@@ -1,15 +1,21 @@
-import { globalStyles } from "@/styles/globalStyles";
-import { theme } from "@/styles/theme";
-import { View } from "react-native";
+import { globalStyles } from '@/styles/globalStyles';
+import { theme } from '@/styles/theme';
+import { Pressable, Text, ViewStyle } from 'react-native';
 
+type Props = {
+	label: string;
+	backgroundColor?: string;
+	style?: ViewStyle;
+};
 
-type Props={
-    label: string;
-    color?: keyof typeof theme.colors;
-}
-
-export default function Deck({label, color} : Props){
-    return(
-        <View style={globalStyles.deckContainer}></View>
-    )
+export default function Deck({
+	label,
+	backgroundColor = theme.colors.blue,
+	style,
+}: Props) {
+	return (
+		<Pressable style={[globalStyles.deckContainer, { backgroundColor }, style]}>
+			<Text style={globalStyles.deckText}>{label}</Text>
+		</Pressable>
+	);
 }

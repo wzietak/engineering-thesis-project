@@ -1,12 +1,26 @@
-import { StyleSheet } from "react-native";
+import { StyleSheet } from 'react-native';
+import { theme } from './theme';
 
 export const globalStyles = StyleSheet.create({
-    deckContainer: {
-        flex: 1,
-        width: '80%',
-        height: '20%',
-        alignItems: 'center',
-		justifyContent: 'center',
-		padding: 3,
-    }
+	screen: {
+		backgroundColor: theme.colors.background,
+	},
+	container: {
+		flex: 1,
+	},
+	deckContainer: {
+		borderRadius: 12,
+        padding: 10,
+        paddingLeft: 15,
+	},
+	deckText: {
+		color: 'black',
+		fontSize: 23,
+		fontWeight: 'bold',
+	},
+	scrollContainer: {
+        marginTop: 30,
+		alignItems: 'center',
+		paddingVertical: 20,
+	},
 });
