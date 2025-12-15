@@ -18,6 +18,7 @@ export default function mainScreen() {
 						height: 120,
 						marginVertical: 10,
 					}}
+					cardsDue={3}
 				/>
 				<Deck
 					label='Przycisk 2'
@@ -26,6 +27,7 @@ export default function mainScreen() {
 						height: 120,
 						marginVertical: 10,
 					}}
+					cardsDue={3}
 					backgroundColor={theme.colors.pink}
 				/>
 				<Deck
@@ -34,17 +36,20 @@ export default function mainScreen() {
 						width: '88%',
 						height: 120,
 						marginVertical: 10,
-					}} backgroundColor={theme.colors.lightblue}
+					}}
+					cardsDue={3}
+					backgroundColor={theme.colors.lightblue}
 				/>
-                <Deck
+				<Deck
 					label='Przycisk 3'
 					style={{
 						width: '88%',
 						height: 120,
 						marginVertical: 10,
-					}} backgroundColor={theme.colors.lightblue}
+					}}
+					cardsDue={3}
+					backgroundColor={theme.colors.green}
 				/>
-            
 			</ScrollView>
 		</View>
 	);
