@@ -1,4 +1,5 @@
 import Deck from '@/components/Deck';
+import FloatingButton from '@/components/FloatingButton';
 import { globalStyles } from '@/styles/globalStyles';
 import { theme } from '@/styles/theme';
 import { ScrollView, View } from 'react-native';
@@ -10,11 +11,11 @@ export default function mainScreen() {
 				globalStyles.container,
 				{ backgroundColor: theme.colors.background },
 			]}>
-			<ScrollView contentContainerStyle={globalStyles.scrollContainer}>
+			<ScrollView contentContainerStyle={globalStyles.scrollContainer} showsVerticalScrollIndicator={false}>
 				<Deck
 					label='Przycisk 1'
 					style={{
-						width: '88%',
+						width: '100%',
 						height: 120,
 						marginVertical: 10,
 					}}
@@ -23,7 +24,7 @@ export default function mainScreen() {
 				<Deck
 					label='Przycisk 2'
 					style={{
-						width: '88%',
+						width: '100%',
 						height: 120,
 						marginVertical: 10,
 					}}
@@ -33,7 +34,7 @@ export default function mainScreen() {
 				<Deck
 					label='Przycisk 3'
 					style={{
-						width: '88%',
+						width: '100%',
 						height: 120,
 						marginVertical: 10,
 					}}
@@ -43,7 +44,7 @@ export default function mainScreen() {
 				<Deck
 					label='Przycisk 3'
 					style={{
-						width: '88%',
+						width: '100%',
 						height: 120,
 						marginVertical: 10,
 					}}
@@ -51,6 +52,8 @@ export default function mainScreen() {
 					backgroundColor={theme.colors.green}
 				/>
 			</ScrollView>
+            <FloatingButton style={globalStyles.floatingButtonContainer} ></FloatingButton>
 		</View>
+
 	);
 }
