@@ -1,5 +1,11 @@
-import { Stack } from "expo-router";
+import { Stack } from 'expo-router';
+
 
 export default function RootLayout() {
-  return <Stack />;
+	return (
+		
+		<Stack initialRouteName='main-screen'>
+			<Stack.Screen name='main-screen' options={{headerShown: false}}/>
+		</Stack>
+	);
 }

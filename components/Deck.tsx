@@ -1,0 +1,49 @@
+import { theme } from '@/styles/theme';
+import { Pressable, StyleSheet, Text, ViewStyle } from 'react-native';
+
+type Props = {
+	label: string;
+	cardsDue: number;
+	backgroundColor?: string;
+	style?: ViewStyle;
+};
+
+export default function Deck({
+	label,
+	cardsDue,
+	backgroundColor = theme.colors.blue,
+	style,
+}: Props) {
+	return (
+		<Pressable style={[styles.deckContainer, { backgroundColor }, style]}>
+			<Text style={styles.deckName}>{label}</Text>
+			<Text style={styles.deckTextCardsDue}>{cardsDue} cards due</Text>
+		</Pressable>
+	);
+}
+
+const styles = StyleSheet.create({
+	deckContainer: {
+		margin: 5,
+		padding: 13,
+		width: '100%',
+		flex: 1,
+		minHeight: 120,
+		maxHeight: 140,
+		borderRadius: 12,
+		flexDirection: 'row',
+		justifyContent: 'space-between',
+	},
+	deckName: {
+		paddingLeft: 2,
+		color: 'black',
+		fontSize: 23,
+		fontWeight: 'bold',
+	},
+	deckTextCardsDue: {
+		color: 'black',
+		fontSize: 18,
+		fontWeight: 'bold',
+		alignSelf: 'flex-end',
+	},
+});
