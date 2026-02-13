@@ -9,4 +9,10 @@ export const theme = {
         pink: '#F5CAF4',
         lightblue: '#CAF5F3',
     },
+    deckColors: [
+        '#B8CBFA',
+        '#D7F5CA',
+        '#F5CAF4',
+        '#CAF5F3'
+    ],
 }
