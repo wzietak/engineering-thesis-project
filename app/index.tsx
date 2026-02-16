@@ -3,15 +3,17 @@ import FloatingButton from '@/components/FloatingButton';
 import { theme } from '@/styles/theme';
 import { ScrollView, View, StyleSheet } from 'react-native';
 import{ decksExampleData } from '@/data/MockData';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 const decks = decksExampleData;
 
 export default function mainScreen() {
+	const insets = useSafeAreaInsets();
 	return (
 		<View
 			style={[
 				styles.container,
-				{ backgroundColor: theme.colors.background },
+				{ backgroundColor: theme.colors.background, paddingBottom: insets.bottom},
 			]}>
 			<ScrollView
 				contentContainerStyle={styles.scrollContainer}
@@ -65,6 +67,6 @@ const styles = StyleSheet.create({
 	},
 	scrollContainer: {
 		width: '90%',
-		paddingBottom: 20,
+		paddingBottom: 10,
 	},
 })

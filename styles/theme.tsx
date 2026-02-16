@@ -15,4 +15,9 @@ export const theme = {
         '#F5CAF4',
         '#CAF5F3'
     ],
+    borderRadius: {
+        sm: 12,
+        md: 18,
+        lg: 24,
+    }
 }

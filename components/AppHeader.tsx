@@ -1,25 +1,27 @@
 import { theme } from '@/styles/theme';
 import Feather from '@expo/vector-icons/Feather';
 import { Pressable, Text, View, StyleSheet } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
+
 
 type Props = {
 	title: string;
 	showBack?: boolean;
-	onBack?: () => void;
-	onMenu?: () => void;
-	onOptions?: () => void;
+	goBack?: () => void;
+	openDrawer?: () => void;
+	openOptions?: () => void;
 };
 
 export default function AppHeader({
-	title,
+	title = "BetterAnki",
 	showBack = false,
-	onBack,
-	onMenu,
-	onOptions,
+	goBack,
+	openDrawer,
+	openOptions,
 }: Props) {
 	return (
-		<View style={styles.menuContainer}>
-			<Pressable onPress={showBack ? onBack : onMenu}>
+		<SafeAreaView edges= {['top']} style={styles.headerContainer}>
+			<Pressable onPress={showBack ? goBack : openDrawer}>
 				<Feather
 					name={showBack ? 'arrow-left' : 'menu'}
 					size={36}
@@ -27,27 +29,27 @@ export default function AppHeader({
 				/>
 			</Pressable>
 
-			<Text style={styles.menuText}>{title}</Text>
+			<Text style={styles.headerText}>{title}</Text>
 
-			<Pressable onPress={onOptions}>
+			<Pressable onPress={openOptions}>
 				<Feather name='more-vertical' size={36} color={theme.colors.primary} />
 			</Pressable>
-		</View>
+		</SafeAreaView>
 	);
 }
 
 const styles = StyleSheet.create({
-	menuContainer: {
-		padding: 15,
-		flex: 1,
+	headerContainer: {
+		width: '100%',
+		height: 100,
 		flexDirection: 'row',
 		justifyContent: 'space-between',
 		alignItems: 'center',
-		maxHeight: '13%',
+		paddingHorizontal: '15%',
 		backgroundColor: theme.colors.background,
 	},
-	menuText: {
+	headerText: {
 		fontSize: 26,
 		fontWeight: 'bold'
-	}
+	},
 })

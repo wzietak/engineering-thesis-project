@@ -1,27 +1,33 @@
 import AppHeader from '@/components/AppHeader';
-import { theme } from '@/styles/theme';
+import MainOptions from '@/components/MainOptions';
 import { Stack } from 'expo-router';
-import { StyleSheet } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import { useState } from 'react';
+import { StyleSheet, View } from 'react-native';
 
 export default function RootLayout() {
+	const [optionsVisible, setOptionsVisible] = useState(false);
 	return (
-		<SafeAreaView style={styles.headerContainer}>
-			<AppHeader title='BetterAnki'></AppHeader>
-
-			<Stack screenOptions={{headerShown: false}}>
-				<Stack.Screen name='index' />
+		<View style={styles.mainContainer}>
+			<Stack
+				screenOptions={{
+					header: (props) => {
+						return (
+							<AppHeader
+								title={String(props.options.title)}
+								goBack={props.navigation.goBack} openOptions={() => setOptionsVisible(!optionsVisible)}
+							/>
+						);
+					},
+				}}>
+				<Stack.Screen name='index' options={{ title: 'BetterAnki' }} />
 			</Stack>
-
-		</SafeAreaView>
-
+			<MainOptions visible={optionsVisible} onClose={() => setOptionsVisible(false)}></MainOptions>
+		</View>
 	);
 }
 
-
 const styles = StyleSheet.create({
-	headerContainer:{
-		flex: 1, 
-		backgroundColor: theme.colors.background
-	}
-})
+	mainContainer: {
+		flex: 1,
+	},
+});
