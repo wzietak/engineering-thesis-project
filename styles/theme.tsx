@@ -19,5 +19,8 @@ export const theme = {
         sm: 12,
         md: 18,
         lg: 24,
+    },
+    boxShadow: {
+        buttons: '0px 0px 18px rgba(0, 0, 0, 0.25)'
     }
 }
