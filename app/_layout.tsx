@@ -21,7 +21,7 @@ export default function RootLayout() {
 				}}>
 				<Stack.Screen name='index' options={{ title: 'BetterAnki' }} />
 			</Stack>
-			<MainOptions visible={optionsVisible} onClose={() => setOptionsVisible(false)}></MainOptions>
+			<MainOptions visible={optionsVisible} hideOnOutline={()=>setOptionsVisible(false)}></MainOptions>
 		</View>
 	);
 }
