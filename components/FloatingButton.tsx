@@ -1,34 +1,32 @@
-import { Pressable, ViewStyle, StyleSheet } from "react-native";
+import { theme } from '@/styles/theme';
 import Feather from '@expo/vector-icons/Feather';
-import { theme } from "@/styles/theme";
-import { SafeAreaInsetsContext, useSafeAreaInsets } from "react-native-safe-area-context";
+import { Pressable, StyleSheet } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 type Props = {
-    onButtonClick?: () => void;
-}
+	onButtonClick?: () => void;
+};
 
 export default function FloatingButton() {
 	const insets = useSafeAreaInsets();
 	return (
-		<Pressable style={[styles.floatingButton, {bottom: insets.bottom+40}]}>
-			<Feather name="plus" 
-			size={45} color={'#fff'}/>
+		<Pressable style={[styles.floatingButton, { bottom: insets.bottom + 40 }]} onPressIn={null}>
+			<Feather name='plus' size={45} color={'#fff'} />
 		</Pressable>
 	);
 }
 
-
 const styles = StyleSheet.create({
-	floatingButton:{
+	floatingButton: {
 		position: 'absolute',
 		width: 70,
 		height: 70,
 		flex: 1,
-		right: 20,
+		right: '5%',
 		borderRadius: theme.borderRadius.md,
 		alignItems: 'center',
 		justifyContent: 'center',
 		backgroundColor: theme.colors.primary,
-	}
-
-})
+		boxShadow: theme.boxShadow.buttons,
+	},
+});
