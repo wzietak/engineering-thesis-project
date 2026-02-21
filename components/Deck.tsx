@@ -37,12 +37,12 @@ const styles = StyleSheet.create({
 	deckName: {
 		paddingLeft: 2,
 		color: 'black',
-		fontSize: 23,
+		fontSize: theme.fontSize.lg,
 		fontWeight: 'bold',
 	},
 	deckTextCardsDue: {
 		color: 'black',
-		fontSize: 18,
+		fontSize: theme.fontSize.sm,
 		fontWeight: 'bold',
 		alignSelf: 'flex-end',
 	},
