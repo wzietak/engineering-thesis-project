@@ -1,11 +1,5 @@
 import { theme } from '@/styles/theme';
-import {
-	Modal,
-	Pressable,
-	StyleSheet,
-	TouchableOpacity,
-	View,
-} from 'react-native';
+import { Pressable, StyleSheet, View } from 'react-native';
 
 type Props = {
 	visible: boolean;
@@ -17,22 +11,15 @@ export default function MainOptions({ visible, hideOnOutline }: Props) {
 		return null;
 	}
 	return (
-		<Modal transparent={true} animationType='fade'>
-			<TouchableOpacity
-				style={styles.touchable}
-				activeOpacity={1}
-				onPress={() => hideOnOutline()}>
-				<View
-					style={styles.mainOptionsComponent}
-					onStartShouldSetResponder={() => true}>
-					<View style={styles.mainOptionsContainer}>
-						<Pressable></Pressable>
-						<Pressable></Pressable>
-						<Pressable></Pressable>
-					</View>
-				</View>
-			</TouchableOpacity>
-		</Modal>
+		<View
+			style={styles.mainOptionsComponent}
+			onStartShouldSetResponder={() => true}>
+			<View style={styles.mainOptionsContainer}>
+				<Pressable></Pressable>
+				<Pressable></Pressable>
+				<Pressable></Pressable>
+			</View>
+		</View>
 	);
 }
 
@@ -48,7 +35,4 @@ const styles = StyleSheet.create({
 		boxShadow: theme.boxShadow.buttons,
 	},
 	mainOptionsContainer: {},
-	touchable: {
-		flex: 1,
-	},
 });

@@ -4,6 +4,7 @@ import { theme } from '@/styles/theme';
 import { ScrollView, View, StyleSheet } from 'react-native';
 import{ decksExampleData } from '@/data/MockData';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { useState } from 'react';
 
 const decks = decksExampleData;
 
@@ -17,7 +18,8 @@ export default function mainScreen() {
 			]}>
 			<ScrollView
 				contentContainerStyle={styles.scrollContainer}
-				showsVerticalScrollIndicator={false}>
+				showsVerticalScrollIndicator={false}
+				onMomentumScrollBegin={() => null}> /*TO-DO*/
 				<Deck
 					label= {decks[0].title}
 					cardsDue={decks[0].cardsDue}
