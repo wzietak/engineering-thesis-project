@@ -17,9 +17,14 @@ export default function MainOptions({ visible, hideOnOutline }: Props) {
 		return null;
 	}
 	return (
-		<Modal transparent={true} animationType='fade' navigationBarTranslucent={true} statusBarTranslucent={false}>
-			<TouchableOpacity style={styles.touchable} activeOpacity={1} onPress={() => hideOnOutline()}>
-				<View style={styles.mainOptionsComponent} onStartShouldSetResponder={()=>true}>
+		<Modal transparent={true} animationType='fade'>
+			<TouchableOpacity
+				style={styles.touchable}
+				activeOpacity={1}
+				onPress={() => hideOnOutline()}>
+				<View
+					style={styles.mainOptionsComponent}
+					onStartShouldSetResponder={() => true}>
 					<View style={styles.mainOptionsContainer}>
 						<Pressable></Pressable>
 						<Pressable></Pressable>
