@@ -39,6 +39,7 @@ export default function MainOptions({ visible, hideOnOutline }: Props) {
 								thumbColor={theme.colors.blue}
 								trackColor={{ false: theme.colors.grey, true: 'red' }}></Switch>
 						</Pressable>
+
 						<Pressable style={styles.menuOption}>
 							<MaterialCommunityIcons
 								style={styles.menuIcon}
@@ -48,6 +49,7 @@ export default function MainOptions({ visible, hideOnOutline }: Props) {
 							/>
 							<Text style={styles.menuOptionText}>Import</Text>
 						</Pressable>
+
 						<Pressable style={styles.menuOption}>
 							<MaterialCommunityIcons
 								style={styles.menuIcon}
@@ -96,7 +98,7 @@ const styles = StyleSheet.create({
 		alignItems: 'center',
 	},
 	menuOptionText: {
-        paddingRight: 10,
+		paddingRight: 10,
 		fontSize: theme.fontSize.sm,
 		fontWeight: 'bold',
 	},
