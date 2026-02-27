@@ -1,7 +1,8 @@
 import AppHeader from '@/components/AppHeader';
 import DrawerMenu from '@/components/DrawerMenu';
 import MainOptions from '@/components/MainOptions';
-import Entypo from '@expo/vector-icons/Entypo';
+import { theme } from '@/styles/theme';
+import Octicons from '@expo/vector-icons/Octicons';
 import { DrawerActions } from '@react-navigation/native';
 import Drawer from 'expo-router/drawer';
 import { useState } from 'react';
@@ -25,16 +26,13 @@ export default function RootLayout() {
 									props.navigation.dispatch(DrawerActions.toggleDrawer())
 								}></AppHeader>
 						);
-					},
+					}
 				}}>
 				<Drawer.Screen
 					name='index'
 					options={{
 						drawerLabel: 'Decks',
 						title: 'Decks',
-						drawerIcon: () => (
-							<Entypo name='documents' size={24} color='black' />
-						),
 					}}
 				/>
 			</Drawer>
