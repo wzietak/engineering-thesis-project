@@ -12,6 +12,7 @@ export default function DrawerMenu(props: DrawerContentComponentProps) {
 	return (
 		<DrawerContentScrollView {...props}>
 			<View style={styles.emptyView}></View>
+			<View style={styles.separator}></View>
 			<DrawerItem
 				label={'Decks'}
 				onPress={() => router.push('/')}
@@ -30,8 +31,11 @@ export default function DrawerMenu(props: DrawerContentComponentProps) {
 				icon={({ size }) => (
 					<Octicons name='versions' size={size} color={theme.colors.primary} />
 				)}
-				labelStyle={styles.labelText} focused={
-					props.state.routes[props.state.index].name == 'browse-cards' ? true : false
+				labelStyle={styles.labelText}
+				focused={
+					props.state.routes[props.state.index].name == 'browse-cards'
+						? true
+						: false
 				}
 				activeTintColor={theme.colors.blue}
 				inactiveTintColor={theme.colors.primary}></DrawerItem>
@@ -41,8 +45,11 @@ export default function DrawerMenu(props: DrawerContentComponentProps) {
 				icon={({ size }) => (
 					<Octicons name='gear' size={size} color={theme.colors.primary} />
 				)}
-				labelStyle={styles.labelText} focused={
-					props.state.routes[props.state.index].name == 'general-settings' ? true : false
+				labelStyle={styles.labelText}
+				focused={
+					props.state.routes[props.state.index].name == 'general-settings'
+						? true
+						: false
 				}
 				activeTintColor={theme.colors.blue}
 				inactiveTintColor={theme.colors.primary}></DrawerItem>
@@ -52,8 +59,17 @@ export default function DrawerMenu(props: DrawerContentComponentProps) {
 
 const styles = StyleSheet.create({
 	emptyView: {
+		marginBottom: 20,
 		height: 120,
 		width: '100%',
+	},
+	separator: {
+        marginBottom: 10,
+        marginLeft: 15,
+		height: 1,
+		width: '50%',
+		backgroundColor: theme.colors.grey,
+		borderRadius: theme.borderRadius.lg,
 	},
 	labelText: {
 		fontSize: theme.fontSize.md,
