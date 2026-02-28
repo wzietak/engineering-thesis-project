@@ -1,5 +1,6 @@
 import { theme } from '@/styles/theme';
 import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons';
+import Octicons from '@expo/vector-icons/Octicons';
 import {
 	Modal,
 	Pressable,
@@ -41,20 +42,20 @@ export default function MainOptions({ visible, hideOnOutline }: Props) {
 						</Pressable>
 
 						<Pressable style={styles.menuOption}>
-							<MaterialCommunityIcons
+							<Octicons
 								style={styles.menuIcon}
-								name='import'
-								size={24}
+								name='download'
+								size={22}
 								color='black'
 							/>
 							<Text style={styles.menuOptionText}>Import</Text>
 						</Pressable>
 
 						<Pressable style={styles.menuOption}>
-							<MaterialCommunityIcons
+							<Octicons
 								style={styles.menuIcon}
-								name='export-variant'
-								size={24}
+								name='share'
+								size={22}
 								color='black'
 							/>
 							<Text style={styles.menuOptionText}>Export</Text>
@@ -103,6 +104,6 @@ const styles = StyleSheet.create({
 		fontWeight: 'bold',
 	},
 	menuIcon: {
-		paddingRight: 5,
+		paddingRight: 8,
 	},
 });
