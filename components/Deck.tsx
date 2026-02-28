@@ -24,7 +24,7 @@ export default function Deck({
 
 const styles = StyleSheet.create({
 	deckContainer: {
-		margin: 5,
+		marginVertical: 5,
 		padding: 13,
 		width: '100%',
 		flex: 1,
