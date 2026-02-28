@@ -1,4 +1,3 @@
-import MainOptions from '@/components/MainOptions';
 import { Stack } from 'expo-router';
 import { useState } from 'react';
 import { StyleSheet, View } from 'react-native';
@@ -8,7 +7,7 @@ export default function RootLayout() {
 	return (
 		<View style={styles.mainContainer}>
 			<Stack screenOptions={{ headerShown: false }}>
-				<Stack.Screen name='index' options={{ title: 'BetterAnki' }} />
+				<Stack.Screen name='(drawer)' />
 			</Stack>
 		</View>
 	);
