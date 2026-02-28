@@ -2,7 +2,6 @@ import AppHeader from '@/components/AppHeader';
 import DrawerMenu from '@/components/DrawerMenu';
 import MainOptions from '@/components/MainOptions';
 import { theme } from '@/styles/theme';
-import Octicons from '@expo/vector-icons/Octicons';
 import { DrawerActions } from '@react-navigation/native';
 import Drawer from 'expo-router/drawer';
 import { useState } from 'react';
@@ -31,8 +30,19 @@ export default function RootLayout() {
 				<Drawer.Screen
 					name='index'
 					options={{
-						drawerLabel: 'Decks',
-						title: 'Decks',
+						title: 'Decks'
+					}}
+				/>
+				<Drawer.Screen
+					name='browse-cards'
+					options={{
+						title: 'Browse cards'
+					}}
+				/>
+				<Drawer.Screen
+					name='general-settings'
+					options={{
+						title: 'Settings'
 					}}
 				/>
 			</Drawer>
