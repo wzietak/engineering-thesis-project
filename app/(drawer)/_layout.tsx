@@ -1,7 +1,6 @@
 import AppHeader from '@/components/AppHeader';
 import DrawerMenu from '@/components/DrawerMenu';
 import MainOptions from '@/components/MainOptions';
-import { theme } from '@/styles/theme';
 import { DrawerActions } from '@react-navigation/native';
 import Drawer from 'expo-router/drawer';
 import { useState } from 'react';
