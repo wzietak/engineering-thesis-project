@@ -3,14 +3,14 @@ import FloatingButton from '@/components/FloatingButton';
 import { decksExampleData } from '@/data/MockData';
 import { theme } from '@/styles/theme';
 import { useState } from 'react';
-import { ScrollView, StyleSheet, View } from 'react-native';
+import { Pressable, ScrollView, StyleSheet, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 const decks = decksExampleData;
 
 export default function mainScreen() {
 	const insets = useSafeAreaInsets();
-	const [buttonVisible, setButtonVisible] = useState(true);
+	const [buttonNotVisible, setButtonNotVisible] = useState(true);
 	return (
 		<View
 			style={[
@@ -55,16 +55,23 @@ export default function mainScreen() {
 					backgroundColor={theme.colors.green}
 				/>
 			</ScrollView>
-
+			{!buttonNotVisible && (
+				<Pressable
+					style={[
+						StyleSheet.absoluteFill,
+						{ backgroundColor: 'rgba(255, 255, 255, 0.2)' },
+					]}
+					onPress={() => setButtonNotVisible(true)}></Pressable>
+			)}
 			<FloatingButton
-				visible={buttonVisible}
+				visible={buttonNotVisible}
 				variant={'AddNewDeck'}></FloatingButton>
 			<FloatingButton
-				visible={buttonVisible}
+				visible={buttonNotVisible}
 				variant={'AddNewCard'}></FloatingButton>
 			<FloatingButton
 				visible={true}
-				onPress={() => setButtonVisible(!buttonVisible)}></FloatingButton>
+				onPress={() => setButtonNotVisible(!buttonNotVisible)}></FloatingButton>
 		</View>
 	);
 }
