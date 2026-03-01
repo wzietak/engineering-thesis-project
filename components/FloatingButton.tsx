@@ -14,6 +14,11 @@ export default function FloatingButton({ variant, visible, onPress }: Props) {
 	const insets = useSafeAreaInsets();
 	const buttonOpacity = useRef(new Animated.Value(0)).current;
 
+	const interpolationValues = buttonOpacity.interpolate({
+		inputRange: [0, 1],
+		outputRange: [10, 0],
+	});
+
 	const fadeIn = () => {
 		Animated.timing(buttonOpacity, {
 			toValue: 1,
@@ -47,6 +52,7 @@ export default function FloatingButton({ variant, visible, onPress }: Props) {
 						bottom: insets.bottom + 40,
 						opacity: buttonOpacity,
 						paddingHorizontal: 20,
+						transform: [{ translateX: interpolationValues }],
 					},
 				]}
 				pointerEvents={visible ? 'auto' : 'none'}>
@@ -62,7 +68,11 @@ export default function FloatingButton({ variant, visible, onPress }: Props) {
 			<Animated.View
 				style={[
 					styles.addNewDeck,
-					{ bottom: insets.bottom + 125, opacity: buttonOpacity },
+					{
+						bottom: insets.bottom + 125,
+						opacity: buttonOpacity,
+						transform: [{ translateY: interpolationValues }],
+					},
 				]}
 				pointerEvents={visible ? 'auto' : 'none'}>
 				<Pressable>

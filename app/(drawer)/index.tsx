@@ -55,15 +55,16 @@ export default function mainScreen() {
 					backgroundColor={theme.colors.green}
 				/>
 			</ScrollView>
+
 			<FloatingButton
-				visible={true}
-				onPress={() => setButtonVisible(!buttonVisible)}></FloatingButton>
+				visible={buttonVisible}
+				variant={'AddNewDeck'}></FloatingButton>
 			<FloatingButton
 				visible={buttonVisible}
 				variant={'AddNewCard'}></FloatingButton>
 			<FloatingButton
-				visible={buttonVisible}
-				variant={'AddNewDeck'}></FloatingButton>
+				visible={true}
+				onPress={() => setButtonVisible(!buttonVisible)}></FloatingButton>
 		</View>
 	);
 }
