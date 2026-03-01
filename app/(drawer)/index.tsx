@@ -2,6 +2,7 @@ import Deck from '@/components/Deck';
 import FloatingButton from '@/components/FloatingButton';
 import { decksExampleData } from '@/data/MockData';
 import { theme } from '@/styles/theme';
+import { useState } from 'react';
 import { ScrollView, StyleSheet, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
@@ -9,6 +10,7 @@ const decks = decksExampleData;
 
 export default function mainScreen() {
 	const insets = useSafeAreaInsets();
+	const [buttonVisible, setButtonVisible] = useState(true);
 	return (
 		<View
 			style={[
@@ -53,9 +55,15 @@ export default function mainScreen() {
 					backgroundColor={theme.colors.green}
 				/>
 			</ScrollView>
-			<FloatingButton visible={true}></FloatingButton>
-			<FloatingButton visible={false} variant={'AddNewCard'}></FloatingButton>
-			<FloatingButton visible={false} variant={'AddNewDeck'}></FloatingButton>
+			<FloatingButton
+				visible={true}
+				onPress={() => setButtonVisible(!buttonVisible)}></FloatingButton>
+			<FloatingButton
+				visible={buttonVisible}
+				variant={'AddNewCard'}></FloatingButton>
+			<FloatingButton
+				visible={buttonVisible}
+				variant={'AddNewDeck'}></FloatingButton>
 		</View>
 	);
 }

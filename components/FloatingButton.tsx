@@ -1,32 +1,76 @@
 import { theme } from '@/styles/theme';
 import Feather from '@expo/vector-icons/Feather';
-import { Pressable, StyleSheet, Text } from 'react-native';
+import { useEffect, useRef } from 'react';
+import { Animated, Pressable, StyleSheet, Text } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 type Props = {
-	onButtonClick?: () => void;
 	variant?: String;
 	visible: boolean;
+	onPress?: () => void;
 };
 
-export default function FloatingButton({ variant, visible }: Props) {
+export default function FloatingButton({ variant, visible, onPress }: Props) {
 	const insets = useSafeAreaInsets();
-	if (!visible) {
-		return null;
-	}
+	const buttonOpacity = useRef(new Animated.Value(0)).current;
+
+	const fadeIn = () => {
+		Animated.timing(buttonOpacity, {
+			toValue: 1,
+			duration: 300,
+			useNativeDriver: true,
+		}).start();
+	};
+
+	const fadeOut = () => {
+		Animated.timing(buttonOpacity, {
+			toValue: 0,
+			duration: 300,
+			useNativeDriver: true,
+		}).start();
+	};
+
+	useEffect(() => {
+		if (visible) {
+			fadeOut();
+		} else {
+			fadeIn();
+		}
+	}, [visible]);
+
 	if (variant == 'AddNewCard') {
 		return (
-			<Pressable style={[styles.addNewButton, { bottom: insets.bottom + 40 }]}>
-				<Text style={[styles.addNewText, { width: 83 }]}>Add new card</Text>
-			</Pressable>
+			<Animated.View
+				style={[
+					styles.addNewButton,
+					{
+						bottom: insets.bottom + 40,
+						opacity: buttonOpacity,
+						paddingHorizontal: 20,
+					},
+				]}
+				pointerEvents={visible ? 'auto' : 'none'}>
+				<Pressable>
+					<Text style={[styles.addNewText, { width: 'auto' }]}>
+						Add new card
+					</Text>
+				</Pressable>
+			</Animated.View>
 		);
 	} else if (variant == 'AddNewDeck') {
 		return (
-			<Pressable style={[styles.addNewDeck, { bottom: insets.bottom + 125 }]}>
-				<Text style={[styles.addNewText, { color: theme.colors.background }]}>
-					Create new deck
-				</Text>
-			</Pressable>
+			<Animated.View
+				style={[
+					styles.addNewDeck,
+					{ bottom: insets.bottom + 125, opacity: buttonOpacity },
+				]}
+				pointerEvents={visible ? 'auto' : 'none'}>
+				<Pressable>
+					<Text style={[styles.addNewText, { color: theme.colors.background }]}>
+						Create new deck
+					</Text>
+				</Pressable>
+			</Animated.View>
 		);
 	}
 	return (
@@ -40,7 +84,7 @@ export default function FloatingButton({ variant, visible }: Props) {
 						: theme.colors.primary,
 				},
 			]}
-			onPressIn={null}>
+			onPressIn={onPress}>
 			<Feather name='plus' size={45} color={'#fff'} />
 		</Pressable>
 	);
