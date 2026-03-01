@@ -24,25 +24,25 @@ export default function Deck({
 
 const styles = StyleSheet.create({
 	deckContainer: {
-		margin: 5,
+		marginVertical: 5,
 		padding: 13,
 		width: '100%',
 		flex: 1,
 		minHeight: 120,
 		maxHeight: 140,
-		borderRadius: 12,
+		borderRadius:theme.borderRadius.sm,
 		flexDirection: 'row',
 		justifyContent: 'space-between',
 	},
 	deckName: {
 		paddingLeft: 2,
 		color: 'black',
-		fontSize: 23,
+		fontSize: theme.fontSize.lg,
 		fontWeight: 'bold',
 	},
 	deckTextCardsDue: {
 		color: 'black',
-		fontSize: 18,
+		fontSize: theme.fontSize.sm,
 		fontWeight: 'bold',
 		alignSelf: 'flex-end',
 	},
