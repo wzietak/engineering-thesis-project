@@ -1,7 +1,9 @@
+import { useFadeAnimation } from '@/hooks/useFadeAnimation';
 import { theme } from '@/styles/theme';
 import Feather from '@expo/vector-icons/Feather';
 import { useEffect, useRef } from 'react';
 import { Animated, Pressable, StyleSheet, Text } from 'react-native';
+import { FadeIn } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 type Props = {
@@ -12,34 +14,18 @@ type Props = {
 
 export default function FloatingButton({ variant, visible, onPress }: Props) {
 	const insets = useSafeAreaInsets();
-	const buttonOpacity = useRef(new Animated.Value(0)).current;
+	const {opacity, fadeIn, fadeOut} = useFadeAnimation();
 
-	const interpolationValues = buttonOpacity.interpolate({
+	const interpolationValues = opacity.interpolate({
 		inputRange: [0, 1],
 		outputRange: [10, 0],
 	});
 
-	const fadeIn = () => {
-		Animated.timing(buttonOpacity, {
-			toValue: 1,
-			duration: 300,
-			useNativeDriver: true,
-		}).start();
-	};
-
-	const fadeOut = () => {
-		Animated.timing(buttonOpacity, {
-			toValue: 0,
-			duration: 300,
-			useNativeDriver: true,
-		}).start();
-	};
-
 	useEffect(() => {
 		if (visible) {
-			fadeOut();
-		} else {
 			fadeIn();
+		} else {
+			fadeOut();
 		}
 	}, [visible]);
 
@@ -50,7 +36,7 @@ export default function FloatingButton({ variant, visible, onPress }: Props) {
 					styles.addNewButton,
 					{
 						bottom: insets.bottom + 40,
-						opacity: buttonOpacity,
+						opacity: opacity,
 						paddingHorizontal: 20,
 						transform: [{ translateX: interpolationValues }],
 					},
@@ -70,7 +56,7 @@ export default function FloatingButton({ variant, visible, onPress }: Props) {
 					styles.addNewDeck,
 					{
 						bottom: insets.bottom + 125,
-						opacity: buttonOpacity,
+						opacity: opacity,
 						transform: [{ translateY: interpolationValues }],
 					},
 				]}
