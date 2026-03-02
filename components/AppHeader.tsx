@@ -1,8 +1,7 @@
 import { theme } from '@/styles/theme';
 import Feather from '@expo/vector-icons/Feather';
-import { Pressable, Text, View, StyleSheet } from 'react-native';
+import { Pressable, StyleSheet, Text } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-
 
 type Props = {
 	title: string;
@@ -13,14 +12,14 @@ type Props = {
 };
 
 export default function AppHeader({
-	title = "BetterAnki",
+	title = 'BetterAnki',
 	showBack = false,
 	goBack,
 	openDrawer,
 	openOptions,
 }: Props) {
 	return (
-		<SafeAreaView edges= {['top']} style={styles.headerContainer}>
+		<SafeAreaView edges={['top']} style={styles.headerContainer}>
 			<Pressable onPress={showBack ? goBack : openDrawer}>
 				<Feather
 					name={showBack ? 'arrow-left' : 'menu'}
@@ -45,11 +44,11 @@ const styles = StyleSheet.create({
 		flexDirection: 'row',
 		justifyContent: 'space-between',
 		alignItems: 'center',
-		paddingHorizontal: '15%',
+		paddingHorizontal: 20,
 		backgroundColor: theme.colors.background,
 	},
 	headerText: {
 		fontSize: 26,
-		fontWeight: 'bold'
+		fontWeight: 'bold',
 	},
-})
+});
