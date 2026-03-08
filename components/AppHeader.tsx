@@ -6,6 +6,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 type Props = {
 	title: string;
 	showBack?: boolean;
+	showOptions?: boolean;
 	goBack?: () => void;
 	openDrawer?: () => void;
 	openOptions?: () => void;
@@ -14,25 +15,30 @@ type Props = {
 export default function AppHeader({
 	title = 'BetterAnki',
 	showBack = false,
+	showOptions = true,
 	goBack,
 	openDrawer,
 	openOptions,
 }: Props) {
 	return (
-		<SafeAreaView edges={['top']} style={styles.headerContainer}>
-			<Pressable onPress={showBack ? goBack : openDrawer}>
+		<SafeAreaView edges={['top']} style={[styles.headerContainer, {paddingLeft: showBack? 10 : 20}]}>
+			<Pressable onPress={showBack ? goBack : openDrawer} hitSlop={showBack? 6 : 6}>
 				<Feather
-					name={showBack ? 'arrow-left' : 'menu'}
-					size={36}
+					name={showBack ? 'chevron-left' : 'menu'}
+					size={showBack ? 42 : 36}
 					color={theme.colors.primary}
 				/>
 			</Pressable>
-
 			<Text style={styles.headerText}>{title}</Text>
-
-			<Pressable onPress={openOptions}>
-				<Feather name='more-vertical' size={36} color={theme.colors.primary} />
-			</Pressable>
+			
+				<Pressable onPress={showOptions? openOptions : null} hitSlop={10}>
+					<Feather
+						name='more-vertical'
+						size={36}
+						color={theme.colors.primary}
+						style={{opacity: showOptions? 1:0}}
+					/>
+				</Pressable>
 		</SafeAreaView>
 	);
 }
@@ -48,7 +54,7 @@ const styles = StyleSheet.create({
 		backgroundColor: theme.colors.background,
 	},
 	headerText: {
-		fontSize: 26,
+		fontSize: theme.fontSize.x_lg,
 		fontFamily: theme.fontFamily.bold,
 	},
 });
