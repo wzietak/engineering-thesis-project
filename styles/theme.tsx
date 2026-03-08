@@ -22,6 +22,7 @@ export const theme = {
 		sm: 18,
 		md: 20,
 		lg: 23,
+		x_lg: 26,
 	},
 	fontFamily: {
         regular: 'Rubik_400Regular',
