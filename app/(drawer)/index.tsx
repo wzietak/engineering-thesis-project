@@ -3,7 +3,8 @@ import FloatingButton from '@/components/FloatingButton';
 import Overlay from '@/components/Overlay';
 import { decksExampleData } from '@/data/MockData';
 import { theme } from '@/styles/theme';
-import { useState } from 'react';
+import { useFocusEffect, useRouter } from 'expo-router';
+import { useCallback, useState } from 'react';
 import { ScrollView, StyleSheet, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
@@ -11,7 +12,15 @@ const decks = decksExampleData;
 
 export default function mainScreen() {
 	const insets = useSafeAreaInsets();
+	const router = useRouter();
 	const [buttonVisible, setButtonVisible] = useState(false);
+
+	useFocusEffect(
+		useCallback(() => {
+			return () => setButtonVisible(false);
+		}, []),
+	);
+
 	return (
 		<View
 			style={[
@@ -65,7 +74,10 @@ export default function mainScreen() {
 				variant={'AddNewDeck'}></FloatingButton>
 			<FloatingButton
 				visible={buttonVisible}
-				variant={'AddNewCard'}></FloatingButton>
+				variant={'AddNewCard'}
+				onPress={() => {
+					router.push('/add-new-card');
+				}}></FloatingButton>
 			<FloatingButton
 				visible={true}
 				onPress={() => setButtonVisible(!buttonVisible)}></FloatingButton>
