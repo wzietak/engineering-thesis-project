@@ -49,6 +49,6 @@ const styles = StyleSheet.create({
 	},
 	headerText: {
 		fontSize: 26,
-		fontFamily: theme.fontFamily.rubikBold,
+		fontFamily: theme.fontFamily.bold,
 	},
 });

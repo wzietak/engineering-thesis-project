@@ -74,6 +74,6 @@ const styles = StyleSheet.create({
 	labelText: {
 		fontSize: theme.fontSize.md,
 		color: theme.colors.primary,
-		fontFamily: theme.fontFamily.rubikBold,
+		fontFamily: theme.fontFamily.bold,
 	},
 });

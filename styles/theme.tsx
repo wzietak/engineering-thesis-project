@@ -24,7 +24,7 @@ export const theme = {
 		lg: 23,
 	},
 	fontFamily: {
-        rubikRegular: 'Rubik_400Regular',
-		rubikBold: 'Rubik_600SemiBold',
+        regular: 'Rubik_400Regular',
+		bold: 'Rubik_600SemiBold',
 	},
 };

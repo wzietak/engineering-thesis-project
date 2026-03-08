@@ -124,7 +124,7 @@ const styles = StyleSheet.create({
 		boxShadow: theme.boxShadow.buttons,
 	},
 	addNewText: {
-		fontFamily: theme.fontFamily.rubikBold,
+		fontFamily: theme.fontFamily.bold,
 		fontSize: theme.fontSize.md + 1,
 		justifyContent: 'center',
 		wordWrap: 'wrap',

@@ -38,12 +38,12 @@ const styles = StyleSheet.create({
 		paddingLeft: 2,
 		color: 'black',
 		fontSize: theme.fontSize.lg,
-		fontFamily: theme.fontFamily.rubikBold,
+		fontFamily: theme.fontFamily.bold,
 	},
 	deckTextCardsDue: {
 		color: 'black',
 		fontSize: theme.fontSize.sm,
-		fontFamily: theme.fontFamily.rubikBold,
+		fontFamily: theme.fontFamily.bold,
 		alignSelf: 'flex-end',
 	},
 });
