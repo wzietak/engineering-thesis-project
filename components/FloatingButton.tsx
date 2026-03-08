@@ -1,9 +1,9 @@
 import { useFadeAnimation } from '@/hooks/useFadeAnimation';
 import { theme } from '@/styles/theme';
 import Feather from '@expo/vector-icons/Feather';
-import { useEffect, useRef } from 'react';
+import { Link,} from 'expo-router';
+import { useEffect } from 'react';
 import { Animated, Pressable, StyleSheet, Text } from 'react-native';
-import { FadeIn } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 type Props = {
@@ -14,7 +14,7 @@ type Props = {
 
 export default function FloatingButton({ variant, visible, onPress }: Props) {
 	const insets = useSafeAreaInsets();
-	const {opacity, fadeIn, fadeOut} = useFadeAnimation();
+	const { opacity, fadeIn, fadeOut } = useFadeAnimation();
 
 	const interpolationValues = opacity.interpolate({
 		inputRange: [0, 1],
@@ -42,11 +42,13 @@ export default function FloatingButton({ variant, visible, onPress }: Props) {
 					},
 				]}
 				pointerEvents={visible ? 'auto' : 'none'}>
-				<Pressable>
-					<Text style={[styles.addNewText, { width: 'auto' }]}>
-						Add new card
-					</Text>
-				</Pressable>
+				<Link href={'/add-new-card'} asChild>
+					<Pressable>
+						<Text style={[styles.addNewText, { width: 'auto' }]}>
+							Add new card
+						</Text>
+					</Pressable>
+				</Link>
 			</Animated.View>
 		);
 	} else if (variant == 'AddNewDeck') {
