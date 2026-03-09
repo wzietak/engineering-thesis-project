@@ -19,6 +19,7 @@ export const theme = {
 	},
 	boxShadow: {
 		buttons: '0px 0px 18px rgba(0, 0, 0, 0.25)',
+		bottomContainer: '0px -5px 18px rgb(255, 255, 255)',
 	},
 	fontSize: {
 		sm: 18,
