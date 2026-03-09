@@ -8,6 +8,8 @@ export const theme = {
 		lightblue: '#CAF5F3',
 		grey: '#CFD7DA',
 		primary_light: '#393939',
+		purple: '#a580e6',
+		purple_alpha: '#a580e65f',
 	},
 	deckColors: ['#B8CBFA', '#D7F5CA', '#F5CAF4', '#CAF5F3'],
 	borderRadius: {
