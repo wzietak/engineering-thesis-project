@@ -63,11 +63,12 @@ export default function FloatingButton({ variant, visible, onPress }: Props) {
 					},
 				]}
 				pointerEvents={visible ? 'auto' : 'none'}>
+					<Link href={'/add-new-deck'} asChild>
 				<Pressable>
 					<Text style={[styles.addNewText, { color: theme.colors.background }]}>
 						Create new deck
 					</Text>
-				</Pressable>
+				</Pressable></Link>
 			</Animated.View>
 		);
 	}

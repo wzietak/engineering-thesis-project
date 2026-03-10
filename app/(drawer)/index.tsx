@@ -71,7 +71,10 @@ export default function mainScreen() {
 
 			<FloatingButton
 				visible={buttonVisible}
-				variant={'AddNewDeck'}></FloatingButton>
+				variant={'AddNewDeck'}
+				onPress={() => {
+					router.push('/add-new-deck');
+				}}></FloatingButton>
 			<FloatingButton
 				visible={buttonVisible}
 				variant={'AddNewCard'}
