@@ -1,39 +1,44 @@
 import { theme } from '@/styles/theme';
 import Feather from '@expo/vector-icons/Feather';
-import { Pressable, Text, View, StyleSheet } from 'react-native';
+import { Pressable, StyleSheet, Text } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-
 
 type Props = {
 	title: string;
 	showBack?: boolean;
+	showOptions?: boolean;
 	goBack?: () => void;
 	openDrawer?: () => void;
 	openOptions?: () => void;
 };
 
 export default function AppHeader({
-	title = "BetterAnki",
+	title = 'BetterAnki',
 	showBack = false,
+	showOptions = true,
 	goBack,
 	openDrawer,
 	openOptions,
 }: Props) {
 	return (
-		<SafeAreaView edges= {['top']} style={styles.headerContainer}>
-			<Pressable onPress={showBack ? goBack : openDrawer}>
+		<SafeAreaView edges={['top']} style={[styles.headerContainer, {paddingLeft: showBack? 10 : 20}]}>
+			<Pressable onPress={showBack ? goBack : openDrawer} hitSlop={showBack? 6 : 6}>
 				<Feather
-					name={showBack ? 'arrow-left' : 'menu'}
-					size={36}
+					name={showBack ? 'chevron-left' : 'menu'}
+					size={showBack ? 42 : 36}
 					color={theme.colors.primary}
 				/>
 			</Pressable>
-
 			<Text style={styles.headerText}>{title}</Text>
-
-			<Pressable onPress={openOptions}>
-				<Feather name='more-vertical' size={36} color={theme.colors.primary} />
-			</Pressable>
+			
+				<Pressable onPress={showOptions? openOptions : null} hitSlop={10}>
+					<Feather
+						name='more-vertical'
+						size={36}
+						color={theme.colors.primary}
+						style={{opacity: showOptions? 1:0}}
+					/>
+				</Pressable>
 		</SafeAreaView>
 	);
 }
@@ -45,11 +50,11 @@ const styles = StyleSheet.create({
 		flexDirection: 'row',
 		justifyContent: 'space-between',
 		alignItems: 'center',
-		paddingHorizontal: '15%',
+		paddingHorizontal: 20,
 		backgroundColor: theme.colors.background,
 	},
 	headerText: {
-		fontSize: 26,
-		fontWeight: 'bold'
+		fontSize: theme.fontSize.x_lg,
+		fontFamily: theme.fontFamily.bold,
 	},
-})
+});

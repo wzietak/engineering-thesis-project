@@ -16,7 +16,7 @@ export default function Deck({
 }: Props) {
 	return (
 		<Pressable style={[styles.deckContainer, { backgroundColor }, style]}>
-			<Text style={styles.deckName}>{label}</Text>
+			<Text style={styles.deckNameText}>{label}</Text>
 			<Text style={styles.deckTextCardsDue}>{cardsDue} cards due</Text>
 		</Pressable>
 	);
@@ -30,20 +30,20 @@ const styles = StyleSheet.create({
 		flex: 1,
 		minHeight: 120,
 		maxHeight: 140,
-		borderRadius:theme.borderRadius.sm,
+		borderRadius: theme.borderRadius.sm,
 		flexDirection: 'row',
 		justifyContent: 'space-between',
 	},
-	deckName: {
+	deckNameText: {
 		paddingLeft: 2,
 		color: 'black',
 		fontSize: theme.fontSize.lg,
-		fontWeight: 'bold',
+		fontFamily: theme.fontFamily.bold,
 	},
 	deckTextCardsDue: {
 		color: 'black',
 		fontSize: theme.fontSize.sm,
-		fontWeight: 'bold',
+		fontFamily: theme.fontFamily.bold,
 		alignSelf: 'flex-end',
 	},
 });
