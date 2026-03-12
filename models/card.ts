@@ -1,11 +1,11 @@
 
 
-interface Card {
+export interface Card {
     id: number;
-    deck_id: number;
-    card_type: string;
+    deckId: number;
+    cardType: string;
     front: string;
     back: string;
-    usage_example: string;
+    usageExample: string;
     tags: string[];
 }
