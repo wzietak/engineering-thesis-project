@@ -101,7 +101,7 @@ const styles = StyleSheet.create({
 	menuOptionText: {
 		paddingRight: 10,
 		fontSize: theme.fontSize.sm,
-		fontWeight: 'bold',
+		fontFamily: theme.fontFamily.bold,
 	},
 	menuIcon: {
 		paddingRight: 8,

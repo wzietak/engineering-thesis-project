@@ -1,16 +1,26 @@
 import Deck from '@/components/Deck';
 import FloatingButton from '@/components/FloatingButton';
+import Overlay from '@/components/Overlay';
 import { decksExampleData } from '@/data/MockData';
 import { theme } from '@/styles/theme';
-import { useState } from 'react';
-import { Pressable, ScrollView, StyleSheet, View } from 'react-native';
+import { useFocusEffect, useRouter } from 'expo-router';
+import { useCallback, useState } from 'react';
+import { ScrollView, StyleSheet, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 const decks = decksExampleData;
 
 export default function mainScreen() {
 	const insets = useSafeAreaInsets();
-	const [buttonNotVisible, setButtonNotVisible] = useState(true);
+	const router = useRouter();
+	const [buttonVisible, setButtonVisible] = useState(false);
+
+	useFocusEffect(
+		useCallback(() => {
+			return () => setButtonVisible(false);
+		}, []),
+	);
+
 	return (
 		<View
 			style={[
@@ -55,23 +65,25 @@ export default function mainScreen() {
 					backgroundColor={theme.colors.green}
 				/>
 			</ScrollView>
-			{!buttonNotVisible && (
-				<Pressable
-					style={[
-						StyleSheet.absoluteFill,
-						{ backgroundColor: 'rgba(255, 255, 255, 0.2)' },
-					]}
-					onPress={() => setButtonNotVisible(true)}></Pressable>
-			)}
+			<Overlay
+				visible={buttonVisible}
+				onPress={() => setButtonVisible(false)}></Overlay>
+
 			<FloatingButton
-				visible={buttonNotVisible}
-				variant={'AddNewDeck'}></FloatingButton>
+				visible={buttonVisible}
+				variant={'AddNewDeck'}
+				onPress={() => {
+					router.push('/add-new-deck');
+				}}></FloatingButton>
 			<FloatingButton
-				visible={buttonNotVisible}
-				variant={'AddNewCard'}></FloatingButton>
+				visible={buttonVisible}
+				variant={'AddNewCard'}
+				onPress={() => {
+					router.push('/add-new-card');
+				}}></FloatingButton>
 			<FloatingButton
 				visible={true}
-				onPress={() => setButtonNotVisible(!buttonNotVisible)}></FloatingButton>
+				onPress={() => setButtonVisible(!buttonVisible)}></FloatingButton>
 		</View>
 	);
 }

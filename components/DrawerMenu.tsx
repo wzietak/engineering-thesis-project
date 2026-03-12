@@ -74,6 +74,6 @@ const styles = StyleSheet.create({
 	labelText: {
 		fontSize: theme.fontSize.md,
 		color: theme.colors.primary,
-		fontWeight: 'bold',
+		fontFamily: theme.fontFamily.bold,
 	},
 });
