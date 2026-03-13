@@ -1,39 +1,52 @@
-import Deck from '@/components/Deck';
-import FloatingButton from '@/components/FloatingButton';
-import Overlay from '@/components/Overlay';
-import { decksExampleData } from '@/data/MockData';
-import { theme } from '@/styles/theme';
-import { useFocusEffect, useRouter } from 'expo-router';
-import { useCallback, useState } from 'react';
-import { ScrollView, StyleSheet, View } from 'react-native';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import FloatingButton from "@/components/FloatingButton";
+import Overlay from "@/components/Overlay";
+import { decksExampleData } from "@/data/MockData";
+import { Deck } from "@/models/deck";
+import { MockDeckRepository } from "@/repositories/MockDeckRepository";
+import { theme } from "@/styles/theme";
+import { useFocusEffect, useRouter } from "expo-router";
+import { useCallback, useEffect, useState } from "react";
+import { ScrollView, StyleSheet, View } from "react-native";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 const decks = decksExampleData;
 
 export default function mainScreen() {
-	const insets = useSafeAreaInsets();
-	const router = useRouter();
-	const [buttonVisible, setButtonVisible] = useState(false);
+  const insets = useSafeAreaInsets();
+  const router = useRouter();
+  const [buttonVisible, setButtonVisible] = useState<boolean>(false);
+  const [decks, setDecks] = useState<Deck[]>([]);
+  const [loading, setIsLoading] = useState<boolean>(true);
 
-	useFocusEffect(
-		useCallback(() => {
-			return () => setButtonVisible(false);
-		}, []),
-	);
+  useEffect(() => {
+    const decksRepository = new MockDeckRepository();
+    decksRepository.getDecks().then((decks) => {
+      setDecks(decks);
+      setIsLoading(false);
+    });
+  }, []);
 
-	return (
-		<View
-			style={[
-				styles.container,
-				{
-					backgroundColor: theme.colors.background,
-					paddingBottom: insets.bottom,
-				},
-			]}>
-			<ScrollView
-				contentContainerStyle={styles.scrollContainer}
-				showsVerticalScrollIndicator={false}>
-				<Deck label={decks[0].title} cardsDue={decks[0].cardsDue} />
+  useFocusEffect(
+    useCallback(() => {
+      return () => setButtonVisible(false);
+    }, []),
+  );
+
+  return (
+    <View
+      style={[
+        styles.container,
+        {
+          backgroundColor: theme.colors.background,
+          paddingBottom: insets.bottom,
+        },
+      ]}
+    >
+      <ScrollView
+        contentContainerStyle={styles.scrollContainer}
+        showsVerticalScrollIndicator={false}
+      >
+        {/* <Deck label={decks[0].title} cardsDue={decks[0].cardsDue} />
 				<Deck
 					label={decks[1].title}
 					cardsDue={decks[1].cardsDue}
@@ -63,40 +76,44 @@ export default function mainScreen() {
 					label={decks[1].title}
 					cardsDue={decks[1].cardsDue}
 					backgroundColor={theme.colors.green}
-				/>
-			</ScrollView>
-			<Overlay
-				visible={buttonVisible}
-				onPress={() => setButtonVisible(false)}></Overlay>
+				/> */}
+      </ScrollView>
+      <Overlay
+        visible={buttonVisible}
+        onPress={() => setButtonVisible(false)}
+      ></Overlay>
 
-			<FloatingButton
-				visible={buttonVisible}
-				variant={'AddNewDeck'}
-				onPress={() => {
-					router.push('/add-new-deck');
-				}}></FloatingButton>
-			<FloatingButton
-				visible={buttonVisible}
-				variant={'AddNewCard'}
-				onPress={() => {
-					router.push('/add-new-card');
-				}}></FloatingButton>
-			<FloatingButton
-				visible={true}
-				onPress={() => setButtonVisible(!buttonVisible)}></FloatingButton>
-		</View>
-	);
+      <FloatingButton
+        visible={buttonVisible}
+        variant={"AddNewDeck"}
+        onPress={() => {
+          router.push("/add-new-deck");
+        }}
+      ></FloatingButton>
+      <FloatingButton
+        visible={buttonVisible}
+        variant={"AddNewCard"}
+        onPress={() => {
+          router.push("/add-new-card");
+        }}
+      ></FloatingButton>
+      <FloatingButton
+        visible={true}
+        onPress={() => setButtonVisible(!buttonVisible)}
+      ></FloatingButton>
+    </View>
+  );
 }
 
 const styles = StyleSheet.create({
-	container: {
-		width: '100%',
-		flex: 1,
-		flexDirection: 'column',
-		alignItems: 'center',
-	},
-	scrollContainer: {
-		paddingHorizontal: 20,
-		paddingBottom: 10,
-	},
+  container: {
+    width: "100%",
+    flex: 1,
+    flexDirection: "column",
+    alignItems: "center",
+  },
+  scrollContainer: {
+    paddingHorizontal: 20,
+    paddingBottom: 10,
+  },
 });
