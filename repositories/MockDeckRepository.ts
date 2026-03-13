@@ -1,7 +1,7 @@
 import { Deck } from "@/models/deck";
 import { DeckRepository } from "./DeckRepository";
 
-class MockDeckRespository implements DeckRepository {
+export class MockDeckRepository implements DeckRepository {
   private counter = 6;
   private decksArray: Deck[] = [
     { id: 1, name: "Angielski A2", language: "English" },

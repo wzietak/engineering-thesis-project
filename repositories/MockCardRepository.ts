@@ -1,7 +1,7 @@
 import { Card } from "@/models/card";
 import { CardRepository, Filters } from "./CardRepository";
 
-class MockCardRepository implements CardRepository {
+export class MockCardRepository implements CardRepository {
   private counter = 2;
   private cardsArray: Card[] = [
     {
