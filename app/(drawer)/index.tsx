@@ -45,9 +45,20 @@ export default function mainScreen() {
         data={decks}
         keyExtractor={(item) => item.id.toString()}
         renderItem={({ item, index }) => {
-          const colorPalette = [theme.colors.blue, theme.colors.pink, theme.colors.lightblue, theme.colors.green, theme.colors.lightpurple]
-          return(
-          <DeckComponent label={item.name} cardsDue={0} backgroundColor={colorPalette[index % colorPalette.length]}></DeckComponent>)
+          const colorPalette = [
+            theme.colors.blue,
+            theme.colors.pink,
+            theme.colors.lightblue,
+            theme.colors.green,
+            theme.colors.lightpurple,
+          ];
+          return (
+            <DeckComponent
+              label={item.name}
+              cardsDue={0}
+              backgroundColor={colorPalette[index % colorPalette.length]}
+            ></DeckComponent>
+          );
         }}
       ></FlatList>
       <Overlay
