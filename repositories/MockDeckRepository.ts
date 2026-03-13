@@ -11,6 +11,7 @@ export class MockDeckRepository implements DeckRepository {
     { id: 5, name: "Englissh", language: "English" },
     { id: 6, name: "Chinese" },
   ];
+
   public createNewDeck(deckData: Omit<Deck, "id">): Promise<Deck> {
     return new Promise((resolve, reject) => {
       setTimeout(() => {
