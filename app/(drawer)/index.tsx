@@ -1,7 +1,6 @@
 import DeckComponent from "@/components/Deck";
 import FloatingButton from "@/components/FloatingButton";
 import Overlay from "@/components/Overlay";
-import { decksExampleData } from "@/data/MockData";
 import { Deck } from "@/models/deck";
 import { MockDeckRepository } from "@/repositories/MockDeckRepository";
 import { theme } from "@/styles/theme";
@@ -9,8 +8,6 @@ import { useFocusEffect, useRouter } from "expo-router";
 import { useCallback, useEffect, useState } from "react";
 import { FlatList, StyleSheet, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-
-const decks = decksExampleData;
 
 export default function mainScreen() {
   const insets = useSafeAreaInsets();
