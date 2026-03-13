@@ -1,7 +1,5 @@
-
-
 export interface Deck {
-    id: number;
-    name: string;
-    language?: string;
+  id: number;
+  name: string;
+  language?: string;
 }
