@@ -56,7 +56,7 @@ export default function mainScreen() {
             <DeckComponent
               label={item.name}
               cardsDue={0}
-              backgroundColor={colorPalette[index % colorPalette.length]}
+              backgroundColor={colorPalette[index % colorPalette.length]} onPress={() => router.push('/study')}
             ></DeckComponent>
           );
         }}
