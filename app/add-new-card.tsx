@@ -1,28 +1,49 @@
-import SaveButton from "@/components/SaveButton";
+
+import { MockDeckRepository } from "@/repositories/MockDeckRepository";
 import { theme } from "@/styles/theme";
 import SimpleLineIcons from "@expo/vector-icons/SimpleLineIcons";
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import SaveButton from "@/components/SaveButton";
 import {
-  Pressable,
-  ScrollView,
-  StyleSheet,
-  Text,
-  TextInput,
-  View,
+	Pressable,
+	ScrollView,
+	StyleSheet,
+	Text,
+	TextInput,
+	View,
 } from "react-native";
 import DropDownPicker from "react-native-dropdown-picker";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-
-type Props = {};
+import { CARD_TYPE_OPTIONS } from "@/models/cardTypes";
 
 export default function AddNewCard() {
   const insets = useSafeAreaInsets();
-  const [open, setOpen] = useState(false);
-  const [value, setValue] = useState(null);
+
+  const [openDeckDropdown, setOpenDeckDropdown] = useState(false);
+  const [openCardTypeDropdown, setOpenCardTypeDropdown] = useState(false);
+  const [openTagsDropdown, setOpenTagsDropdown] = useState(false);
+
+  const [cardTypeValue, setCardTypeValue] = useState(null);
+  const [deckNameValue, setDeckNameValue] = useState(null);
+  const [tagsValue, setTagsValue] = useState(null);
+
   const [items, setItems] = useState([
     { label: "Apple", value: "apple" },
     { label: "Banana", value: "banana" },
   ]);
+
+  const [decks, setDecks] = useState<{ label: string; value: number }[]>([]);
+
+  useEffect(() => {
+    const decksRepository = new MockDeckRepository();
+    decksRepository.getDecks().then((decks) => {
+      const formattedOptions = decks.map((deck) => {
+        return { label: deck.name, value: deck.id };
+      });
+      setDecks(formattedOptions);
+    });
+  }, []);
+
 
   return (
     <View style={[styles.container, { paddingBottom: insets.bottom }]}>
@@ -32,25 +53,29 @@ export default function AddNewCard() {
       >
         <Text style={[styles.formText, { paddingTop: 0 }]}>Deck</Text>
         <DropDownPicker
-          open={open}
-          value={value}
-          items={items}
-          setOpen={setOpen}
-          setValue={setValue}
-          setItems={setItems}
-          disabled={true}
+          open={openDeckDropdown}
+          value={deckNameValue}
+          items={decks}
+          setOpen={setOpenDeckDropdown}
+          setValue={setDeckNameValue}
+          setItems={setDecks}
+          disabled={false}
           style={styles.dropdown}
+          zIndex={10000}
+          listMode="SCROLLVIEW"
         />
+
         <Text style={styles.formText}>Card type</Text>
         <DropDownPicker
-          open={open}
-          value={value}
-          items={items}
-          setOpen={setOpen}
-          setValue={setValue}
-          setItems={setItems}
+          open={openCardTypeDropdown}
+          value={cardTypeValue}
+          items={CARD_TYPE_OPTIONS}
+          setOpen={setOpenCardTypeDropdown}
+          setValue={setCardTypeValue}
           style={styles.dropdown}
+          listMode="SCROLLVIEW"
         />
+  
 
         <Text style={styles.formText}>Front</Text>
         <TextInput style={styles.textInput} />
@@ -94,21 +119,24 @@ export default function AddNewCard() {
         </Pressable>
         <Text style={[styles.formText, { paddingTop: 0 }]}>Tags</Text>
         <DropDownPicker
-          open={open}
-          value={value}
+          open={openTagsDropdown}
+          value={tagsValue}
           items={items}
-          setOpen={setOpen}
-          setValue={setValue}
+          setOpen={setOpenTagsDropdown}
+          setValue={setTagsValue}
           setItems={setItems}
           multiple={true}
           style={[styles.dropdown, { marginBottom: 30 }]}
+		  listMode="SCROLLVIEW"
         />
       </ScrollView>
       <View style={styles.buttonContainer}>
         <SaveButton></SaveButton>
+        
       </View>
     </View>
   );
+       
 }
 
 const styles = StyleSheet.create({

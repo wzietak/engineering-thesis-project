@@ -10,6 +10,7 @@ export const theme = {
 		primary_light: '#393939',
 		purple: '#a580e6',
 		purple_alpha: '#a580e65f',
+		lightpurple: '#e1d0ff'
 	},
 	deckColors: ['#B8CBFA', '#D7F5CA', '#F5CAF4', '#CAF5F3'],
 	borderRadius: {
