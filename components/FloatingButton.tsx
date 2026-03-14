@@ -7,7 +7,7 @@ import { Animated, Pressable, StyleSheet, Text } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 type Props = {
-	variant?: String;
+	variant?: string;
 	visible: boolean;
 	onPress?: () => void;
 };
