@@ -1,8 +1,9 @@
-import { CARD_TYPE_OPTIONS } from "@/models/cardTypes";
+
 import { MockDeckRepository } from "@/repositories/MockDeckRepository";
 import { theme } from "@/styles/theme";
 import SimpleLineIcons from "@expo/vector-icons/SimpleLineIcons";
 import { useEffect, useState } from "react";
+import SaveButton from "@/components/SaveButton";
 import {
 	Pressable,
 	ScrollView,
@@ -13,8 +14,7 @@ import {
 } from "react-native";
 import DropDownPicker from "react-native-dropdown-picker";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-
-type Props = {};
+import { CARD_TYPE_OPTIONS } from "@/models/cardTypes";
 
 export default function AddNewCard() {
   const insets = useSafeAreaInsets();
@@ -43,6 +43,7 @@ export default function AddNewCard() {
       setDecks(formattedOptions);
     });
   }, []);
+
 
   return (
     <View style={[styles.container, { paddingBottom: insets.bottom }]}>
@@ -74,6 +75,7 @@ export default function AddNewCard() {
           style={styles.dropdown}
           listMode="SCROLLVIEW"
         />
+  
 
         <Text style={styles.formText}>Front</Text>
         <TextInput style={styles.textInput} />
@@ -129,12 +131,12 @@ export default function AddNewCard() {
         />
       </ScrollView>
       <View style={styles.buttonContainer}>
-        <Pressable style={[styles.buttonPressable]}>
-          <Text style={styles.buttonText}>Save</Text>
-        </Pressable>
+        <SaveButton></SaveButton>
+        
       </View>
     </View>
   );
+       
 }
 
 const styles = StyleSheet.create({
@@ -183,20 +185,5 @@ const styles = StyleSheet.create({
     paddingTop: 10,
     backgroundColor: theme.colors.background,
     boxShadow: theme.boxShadow.bottomContainer,
-  },
-  buttonPressable: {
-    maxHeight: 60,
-    flex: 1,
-    alignItems: "center",
-    justifyContent: "center",
-    borderRadius: theme.borderRadius.lg,
-    boxShadow: theme.boxShadow.buttons,
-    backgroundColor: theme.colors.primary,
-  },
-  buttonText: {
-    alignSelf: "center",
-    color: theme.colors.background,
-    fontFamily: theme.fontFamily.bold,
-    fontSize: theme.fontSize.lg,
   },
 });
