@@ -1,20 +1,19 @@
-
+import SaveButton from "@/components/SaveButton";
+import { CARD_TYPE_OPTIONS } from "@/models/cardTypes";
 import { MockDeckRepository } from "@/repositories/MockDeckRepository";
 import { theme } from "@/styles/theme";
 import SimpleLineIcons from "@expo/vector-icons/SimpleLineIcons";
 import { useEffect, useState } from "react";
-import SaveButton from "@/components/SaveButton";
 import {
-	Pressable,
-	ScrollView,
-	StyleSheet,
-	Text,
-	TextInput,
-	View,
+  Pressable,
+  ScrollView,
+  StyleSheet,
+  Text,
+  TextInput,
+  View,
 } from "react-native";
 import DropDownPicker from "react-native-dropdown-picker";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-import { CARD_TYPE_OPTIONS } from "@/models/cardTypes";
 
 export default function AddNewCard() {
   const insets = useSafeAreaInsets();
@@ -43,7 +42,6 @@ export default function AddNewCard() {
       setDecks(formattedOptions);
     });
   }, []);
-
 
   return (
     <View style={[styles.container, { paddingBottom: insets.bottom }]}>
@@ -75,7 +73,6 @@ export default function AddNewCard() {
           style={styles.dropdown}
           listMode="SCROLLVIEW"
         />
-  
 
         <Text style={styles.formText}>Front</Text>
         <TextInput style={styles.textInput} />
@@ -127,16 +124,14 @@ export default function AddNewCard() {
           setItems={setItems}
           multiple={true}
           style={[styles.dropdown, { marginBottom: 30 }]}
-		  listMode="SCROLLVIEW"
+          listMode="SCROLLVIEW"
         />
       </ScrollView>
       <View style={styles.buttonContainer}>
         <SaveButton></SaveButton>
-        
       </View>
     </View>
   );
-       
 }
 
 const styles = StyleSheet.create({
