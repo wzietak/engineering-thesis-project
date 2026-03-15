@@ -1,5 +1,5 @@
 import DeckComponent from "@/components/Deck";
-import FloatingButton from "@/components/FloatingButton";
+import FloatingButton from "@/components/buttons/FloatingButton";
 import Overlay from "@/components/Overlay";
 import { Deck } from "@/models/deck";
 import { MockDeckRepository } from "@/repositories/MockDeckRepository";
