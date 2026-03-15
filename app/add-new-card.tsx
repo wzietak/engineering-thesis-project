@@ -1,4 +1,4 @@
-import SaveButton from "@/components/SaveButton";
+import ConfirmationButton from "@/components/buttons/ConfirmationButton";
 import { CARD_TYPE_OPTIONS } from "@/models/cardTypes";
 import { MockDeckRepository } from "@/repositories/MockDeckRepository";
 import { theme } from "@/styles/theme";
@@ -128,7 +128,7 @@ export default function AddNewCard() {
         />
       </ScrollView>
       <View style={styles.buttonContainer}>
-        <SaveButton></SaveButton>
+        <ConfirmationButton buttonText="Save"></ConfirmationButton>
       </View>
     </View>
   );

@@ -1,4 +1,4 @@
-import SaveButton from "@/components/SaveButton";
+import ConfirmationButton from "@/components/buttons/ConfirmationButton";
 import { theme } from "@/styles/theme";
 import { useState } from "react";
 import { StyleSheet, Text, TextInput, View } from "react-native";
@@ -31,9 +31,13 @@ export default function addNewDeck() {
         multiple={true}
         style={[styles.dropdown, { marginBottom: 30 }]}
       />
-      <SaveButton
-        style={{ position: 'absolute', width: '100%', bottom: insets.bottom+40 }}
-      ></SaveButton>
+      <ConfirmationButton buttonText="Save"
+        style={{
+          position: "absolute",
+          width: "100%",
+          bottom: insets.bottom + 40,
+        }}
+      ></ConfirmationButton>
     </View>
   );
 }
