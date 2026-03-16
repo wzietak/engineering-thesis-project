@@ -42,7 +42,7 @@ export default function RootLayout() {
           }}
         ></Stack.Screen>
         <Stack.Screen
-          name="study"
+          name="study-screen/[deckId]"
           options={{
             ...headerStyle,
             title: "Study",
