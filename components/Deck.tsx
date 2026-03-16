@@ -1,5 +1,4 @@
 import { theme } from "@/styles/theme";
-import { Link } from "expo-router";
 import { Pressable, StyleSheet, Text, View, ViewStyle } from "react-native";
 
 type Props = {
@@ -21,15 +20,14 @@ export default function DeckComponent({
 }: Props) {
   return (
     <View style={[styles.deckContainer, { backgroundColor }, style]}>
-      <Link href={"/study"} asChild>
-        <Pressable
-          onPress={onPress}
-          onLongPress={onLongPress} style={styles.deckPressable}
-        >
-          <Text style={styles.deckNameText}>{label}</Text>
-          <Text style={styles.deckTextCardsDue}>{cardsDue} cards due</Text>
-        </Pressable>
-      </Link>
+      <Pressable
+        onPress={onPress}
+        onLongPress={onLongPress}
+        style={styles.deckPressable}
+      >
+        <Text style={styles.deckNameText}>{label}</Text>
+        <Text style={styles.deckTextCardsDue}>{cardsDue} cards due</Text>
+      </Pressable>
     </View>
   );
 }
@@ -45,7 +43,7 @@ const styles = StyleSheet.create({
     flexDirection: "row",
   },
   deckPressable: {
-    width: '100%',
+    width: "100%",
     justifyContent: "space-between",
   },
   deckNameText: {
