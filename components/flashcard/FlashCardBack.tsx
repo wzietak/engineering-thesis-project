@@ -6,12 +6,21 @@ type Props = {
   exampleSentence: string;
   AIgenerated?: boolean;
 };
-export default function FlashCardBack({ backText, exampleSentence, AIgenerated=false }: Props) {
+export default function FlashCardBack({
+  backText,
+  exampleSentence,
+  AIgenerated = false,
+}: Props) {
   return (
     <View style={styles.container}>
       <View style={styles.separator}></View>
       <Text style={styles.backText}>{backText}</Text>
-      <Text style={[styles.backTextSentence, {color: AIgenerated? theme.colors.purple : theme.colors.pink}]}>
+      <Text
+        style={[
+          styles.backTextSentence,
+          { color: AIgenerated ? theme.colors.purple : theme.colors.blue },
+        ]}
+      >
         {exampleSentence}
       </Text>
     </View>
