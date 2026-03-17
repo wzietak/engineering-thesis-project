@@ -4,11 +4,12 @@ import { Pressable, StyleSheet, Text, ViewStyle } from "react-native";
 type Props = {
   style?: ViewStyle;
   buttonText: string;
+  onPress?: () => void;
 };
 
-export default function AssessmentButton({ style, buttonText }: Props) {
+export default function AssessmentButton({ style, buttonText, onPress }: Props) {
   return (
-    <Pressable style={[styles.buttonPressable, style]}>
+    <Pressable style={[styles.buttonPressable, style]} onPress={onPress}>
       <Text style={styles.buttonText}>{buttonText}</Text>
     </Pressable>
   );
