@@ -14,6 +14,7 @@ import {
 type Props = {
 	visible: boolean;
 	hideOnOutline: () => void;
+	variant?: string;
 };
 
 export default function MainOptions({ visible, hideOnOutline }: Props) {

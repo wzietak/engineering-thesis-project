@@ -1,5 +1,5 @@
+import FloatingButton from "@/components/buttons/FloatingButton";
 import DeckComponent from "@/components/Deck";
-import FloatingButton from "@/components/FloatingButton";
 import Overlay from "@/components/Overlay";
 import { Deck } from "@/models/deck";
 import { MockDeckRepository } from "@/repositories/MockDeckRepository";
@@ -57,6 +57,12 @@ export default function mainScreen() {
               label={item.name}
               cardsDue={0}
               backgroundColor={colorPalette[index % colorPalette.length]}
+              onPress={() => {
+                router.push({
+                  pathname: "/study-screen/[deckId]",
+                  params: { deckId: item.id },
+                });
+              }}
             ></DeckComponent>
           );
         }}

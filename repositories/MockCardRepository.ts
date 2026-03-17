@@ -2,7 +2,7 @@ import { Card } from "@/models/card";
 import { CardRepository, Filters } from "./CardRepository";
 
 export class MockCardRepository implements CardRepository {
-  private counter = 2;
+  private counter = 6;
   private cardsArray: Card[] = [
     {
       id: 1,
@@ -21,6 +21,43 @@ export class MockCardRepository implements CardRepository {
       back: "ball",
       usageExample:
         "Imagine playing a round of golf with one ball — lose it and the game is over.",
+      tags: ["basic"],
+    },
+    {
+      id: 3,
+      deckId: 1,
+      cardType: "two-sided",
+      front: "plate",
+      back: "talerz",
+      usageExample: "He was invited to a party and asked to bring a plate.",
+      tags: ["basic", "home"],
+    },
+    {
+      id: 4,
+      deckId: 1,
+      cardType: "two-sided",
+      front: "ball",
+      back: "piłka",
+      usageExample:
+        "Imagine playing a round of golf with one ball — lose it and the game is over.",
+      tags: ["basic"],
+    },
+    {
+      id: 5,
+      deckId: 2,
+      cardType: "one-sided",
+      front: "kot",
+      back: "cat",
+      usageExample: "I love watching my cat sleeping.",
+      tags: ["basic", "home"],
+    },
+    {
+      id: 6,
+      deckId: 2,
+      cardType: "one-sided",
+      front: "pies",
+      back: "dog",
+      usageExample: "My dog always sleep with me.",
       tags: ["basic"],
     },
   ];
