@@ -26,6 +26,7 @@ export const theme = {
 		bottomContainer: '0px -5px 18px rgb(255, 255, 255)',
 	},
 	fontSize: {
+		x_sm: 14,
 		sm: 18,
 		md: 20,
 		lg: 23,
