@@ -1,4 +1,5 @@
 import ConfirmationButton from "@/components/buttons/ConfirmationButton";
+import { DECK_LANGUAGES } from "@/models/deckLanguages";
 import { theme } from "@/styles/theme";
 import { useState } from "react";
 import { StyleSheet, Text, TextInput, View } from "react-native";
@@ -11,27 +12,40 @@ export default function addNewDeck() {
   const insets = useSafeAreaInsets();
   const [open, setOpen] = useState(false);
   const [value, setValue] = useState(null);
-  const [items, setItems] = useState([
-    { label: "Apple", value: "apple" },
-    { label: "Banana", value: "banana" },
-  ]);
 
   return (
     <View style={[styles.container, { paddingBottom: insets.bottom }]}>
-      <Text style={[styles.formText, { paddingTop: 0 }]}>Deck name</Text>
+      <Text style={styles.formText}>Deck name</Text>
       <TextInput style={styles.textInput} />
-      <Text style={styles.formText}>Deck language</Text>
+      <View style={styles.dropdownTextContainer}>
+        <Text style={styles.formText}>Deck language</Text>
+        <Text style={styles.optionalText}>(Optional)</Text>
+      </View>
+
       <DropDownPicker
         open={open}
         value={value}
-        items={items}
+        items={DECK_LANGUAGES}
         setOpen={setOpen}
         setValue={setValue}
-        setItems={setItems}
-        multiple={true}
-        style={[styles.dropdown, { marginBottom: 30 }]}
+        placeholder="Select language"
+        style={[styles.dropdown, { marginBottom: 10 }]}
       />
-      <ConfirmationButton buttonText="Save"
+      <Text
+        style={[
+          styles.optionalText,
+          {
+            alignSelf: "flex-start",
+            color: theme.colors.purple,
+            lineHeight: 20,
+          },
+        ]}
+      >
+        Select a target language to unlock AI-powered example sentences for this
+        deck.
+      </Text>
+      <ConfirmationButton
+        buttonText="Save"
         style={{
           position: "absolute",
           width: "100%",
@@ -51,11 +65,22 @@ const styles = StyleSheet.create({
     alignItems: "center",
     backgroundColor: theme.colors.background,
   },
-  formText: {
+  dropdownTextContainer: {
     paddingTop: 10,
+    flexDirection: "row",
+    alignSelf: "flex-start",
+    alignItems: "center",
+  },
+  formText: {
     fontFamily: theme.fontFamily.bold,
     fontSize: theme.fontSize.sm,
     alignSelf: "flex-start",
+  },
+  optionalText: {
+    paddingHorizontal: 5,
+    fontFamily: theme.fontFamily.regular,
+    fontSize: theme.fontSize.x_sm,
+    color: theme.colors.primary_light,
   },
   dropdown: {
     height: 45,
