@@ -1,3 +1,4 @@
+import { Card } from "@/models/card";
 import { theme } from "@/styles/theme";
 import { useState } from "react";
 import { StyleSheet, View } from "react-native";
@@ -7,41 +8,67 @@ import ConfirmationButton from "../buttons/ConfirmationButton";
 import FlashCardBack from "./FlashCardBack";
 import StandardFront from "./front types/StandardFront";
 
-export default function FlashCardContainer() {
+type Props = {
+  cardData: Card;
+  onNextCard: () => void;
+};
+
+export default function FlashCardContainer({ cardData, onNextCard }: Props) {
   const insets = useSafeAreaInsets();
-  const [isReverted, setIsReverted] = useState(false);
+  const [isReversed, setIsReversed] = useState(false);
   return (
     <View
       style={[styles.flashCardContainer, { paddingBottom: insets.bottom + 40 }]}
     >
       <StandardFront
-        frontText="widelec"
-        style={{ flexGrow: isReverted ? 0 : 1 }}
+        frontText={cardData.front}
+        style={{ flexGrow: isReversed ? 0 : 1 }}
       ></StandardFront>
-      {isReverted && <FlashCardBack backText="fork" exampleSentence="I like my fork"></FlashCardBack>}
-      {!isReverted && (
+      {isReversed && (
+        <FlashCardBack
+          backText={cardData.back}
+          exampleSentence={cardData.usageExample}
+        ></FlashCardBack>
+      )}
+      {!isReversed && (
         <ConfirmationButton
           buttonText="Show answer"
-          onPress={() => setIsReverted(true)}
+          onPress={() => setIsReversed(true)}
         ></ConfirmationButton>
       )}
-      {isReverted && (
+      {isReversed && (
         <View style={styles.footer}>
           <AssessmentButton
             buttonText="Again"
             style={{ backgroundColor: theme.colors.red }}
+            onPress={() => {
+              setIsReversed(false);
+              onNextCard();
+            }}
           ></AssessmentButton>
           <AssessmentButton
             buttonText="Hard"
             style={{ backgroundColor: theme.colors.grey_light }}
+            onPress={() => {
+              setIsReversed(false);
+              onNextCard();
+            }}
           ></AssessmentButton>
           <AssessmentButton
             buttonText="Good"
             style={{ backgroundColor: theme.colors.green }}
+            onPress={() => {
+              setIsReversed(false);
+              onNextCard();
+            }}
           ></AssessmentButton>
           <AssessmentButton
             buttonText="Easy"
             style={{ backgroundColor: theme.colors.lightblue }}
+            onPress={() => {
+              setIsReversed(false);
+              onNextCard();
+            }}
           ></AssessmentButton>
         </View>
       )}
