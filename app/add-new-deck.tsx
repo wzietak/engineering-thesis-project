@@ -2,7 +2,14 @@ import ConfirmationButton from "@/components/buttons/ConfirmationButton";
 import { DECK_LANGUAGES } from "@/models/deckLanguages";
 import { theme } from "@/styles/theme";
 import { useState } from "react";
-import { StyleSheet, Text, TextInput, View } from "react-native";
+import {
+  Keyboard,
+  ScrollView,
+  StyleSheet,
+  Text,
+  TextInput,
+  View,
+} from "react-native";
 import DropDownPicker from "react-native-dropdown-picker";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
@@ -10,40 +17,57 @@ type Props = {};
 
 export default function addNewDeck() {
   const insets = useSafeAreaInsets();
-  const [open, setOpen] = useState(false);
+  const [dropdownOpen, setDropdownOpen] = useState(false);
   const [value, setValue] = useState(null);
 
   return (
     <View style={[styles.container, { paddingBottom: insets.bottom }]}>
-      <Text style={styles.formText}>Deck name</Text>
-      <TextInput style={styles.textInput} />
-      <View style={styles.dropdownTextContainer}>
-        <Text style={styles.formText}>Deck language</Text>
-        <Text style={styles.optionalText}>(Optional)</Text>
-      </View>
-
-      <DropDownPicker
-        open={open}
-        value={value}
-        items={DECK_LANGUAGES}
-        setOpen={setOpen}
-        setValue={setValue}
-        placeholder="Select language"
-        style={[styles.dropdown, { marginBottom: 10 }]}
-      />
-      <Text
-        style={[
-          styles.optionalText,
-          {
-            alignSelf: "flex-start",
-            color: theme.colors.purple,
-            lineHeight: 20,
-          },
-        ]}
+      {/* Although there is too little element make this a real scrollView, 
+      I used ScrollView for the property 'keyboardShouldPersistTaps' which 
+      enables more intuitive handling touches outside of the UI elements 
+      and closing keyboard/other elements */}
+      <ScrollView
+        showsHorizontalScrollIndicator={false}
+        keyboardShouldPersistTaps="handled"
+        contentContainerStyle={{ flexGrow: 1 }}
+        onTouchStart={() => setDropdownOpen(false)}
       >
-        Select a target language to unlock AI-powered example sentences for this
-        deck.
-      </Text>
+        <Text style={styles.formText}>Deck name</Text>
+        <TextInput
+          style={styles.textInput}
+          maxLength={36}
+          onFocus={() => setDropdownOpen(false)}
+        />
+        <View style={styles.dropdownTextContainer}>
+          <Text style={styles.formText}>Deck language</Text>
+          <Text style={styles.optionalText}>(Optional)</Text>
+        </View>
+
+        <DropDownPicker
+          open={dropdownOpen}
+          value={value}
+          items={DECK_LANGUAGES}
+          setOpen={setDropdownOpen}
+          setValue={setValue}
+          placeholder="Select language"
+          style={[styles.dropdown, { marginBottom: 10 }]}
+          listMode="SCROLLVIEW"
+          onOpen={Keyboard.dismiss}
+        />
+        <Text
+          style={[
+            styles.optionalText,
+            {
+              alignSelf: "flex-start",
+              color: theme.colors.purple,
+              lineHeight: 20,
+            },
+          ]}
+        >
+          Select a target language to unlock AI-powered example sentences for
+          this deck.
+        </Text>
+      </ScrollView>
       <ConfirmationButton
         buttonText="Save"
         style={{
