@@ -5,6 +5,7 @@ import { theme } from "@/styles/theme";
 import SimpleLineIcons from "@expo/vector-icons/SimpleLineIcons";
 import { useEffect, useState } from "react";
 import {
+  Keyboard,
   Pressable,
   ScrollView,
   StyleSheet,
@@ -47,7 +48,8 @@ export default function AddNewCard() {
     <View style={[styles.container, { paddingBottom: insets.bottom }]}>
       <ScrollView
         style={styles.scrollContainer}
-        showsVerticalScrollIndicator={false}
+        showsVerticalScrollIndicator={false} keyboardShouldPersistTaps="handled" 
+        onScroll={() => {setOpenCardTypeDropdown(false); setOpenDeckDropdown(false); setOpenTagsDropdown(false)}}
       >
         <Text style={[styles.formText, { paddingTop: 0 }]}>Deck</Text>
         <DropDownPicker
@@ -57,7 +59,7 @@ export default function AddNewCard() {
           setOpen={setOpenDeckDropdown}
           setValue={setDeckNameValue}
           setItems={setDecks}
-          disabled={false}
+          onOpen={Keyboard.dismiss}
           style={styles.dropdown}
           zIndex={10000}
           listMode="SCROLLVIEW"
@@ -70,6 +72,7 @@ export default function AddNewCard() {
           items={CARD_TYPE_OPTIONS}
           setOpen={setOpenCardTypeDropdown}
           setValue={setCardTypeValue}
+          onOpen={Keyboard.dismiss}
           style={styles.dropdown}
           listMode="SCROLLVIEW"
         />
@@ -123,6 +126,7 @@ export default function AddNewCard() {
           setValue={setTagsValue}
           setItems={setItems}
           multiple={true}
+          onOpen={Keyboard.dismiss}
           style={[styles.dropdown, { marginBottom: 30 }]}
           listMode="SCROLLVIEW"
         />
