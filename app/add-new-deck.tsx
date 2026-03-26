@@ -1,6 +1,8 @@
 import ConfirmationButton from "@/components/buttons/ConfirmationButton";
 import { DECK_LANGUAGES } from "@/models/deckLanguages";
+import { globalDeckRepository } from "@/repositories/globalDeckRepository";
 import { theme } from "@/styles/theme";
+import { router } from "expo-router";
 import { useState } from "react";
 import {
   Keyboard,
@@ -13,12 +15,32 @@ import {
 import DropDownPicker from "react-native-dropdown-picker";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
-type Props = {};
-
 export default function addNewDeck() {
   const insets = useSafeAreaInsets();
   const [dropdownOpen, setDropdownOpen] = useState(false);
-  const [value, setValue] = useState(null);
+  const [errorText, setErrorText] = useState("");
+
+  const [deckName, setDeckName] = useState("");
+  const [selectedLanguage, setSelectedLanguage] = useState("");
+
+  const DROPDOWN_ITEMS = [{ label: "None", value: "" }, ...DECK_LANGUAGES];
+
+  const onSavePress = async () => {
+    if (!deckName.trim()) {
+      setErrorText("Deck name cannot be empty.");
+      return;
+    }
+    const deckData = {
+      name: deckName.trim(),
+      language: selectedLanguage,
+    };
+    try {
+      await globalDeckRepository.createNewDeck(deckData);
+    } catch (error) {
+      console.error("Error during creating new deck", error);
+    }
+    router.back();
+  };
 
   return (
     <View style={[styles.container, { paddingBottom: insets.bottom }]}>
@@ -30,14 +52,28 @@ export default function addNewDeck() {
         showsHorizontalScrollIndicator={false}
         keyboardShouldPersistTaps="handled"
         contentContainerStyle={{ flexGrow: 1 }}
-        onTouchStart={() => setDropdownOpen(false)}
       >
         <Text style={styles.formText}>Deck name</Text>
         <TextInput
-          style={styles.textInput}
+          style={[
+            styles.textInput,
+            { borderColor: errorText ? "red" : theme.colors.primary },
+          ]}
           maxLength={36}
-          onFocus={() => setDropdownOpen(false)}
+          onFocus={() => {
+            setDropdownOpen(false);
+          }}
+          value={deckName}
+          onChangeText={(input) => {
+            setDeckName(input);
+            if (errorText) setErrorText("");
+          }}
         />
+        {errorText ? (
+          <Text style={[styles.optionalText, { color: "red", paddingTop: 5 }]}>
+            {errorText}
+          </Text>
+        ) : null}
         <View style={styles.dropdownTextContainer}>
           <Text style={styles.formText}>Deck language</Text>
           <Text style={styles.optionalText}>(Optional)</Text>
@@ -45,15 +81,16 @@ export default function addNewDeck() {
 
         <DropDownPicker
           open={dropdownOpen}
-          value={value}
-          items={DECK_LANGUAGES}
+          value={selectedLanguage}
+          items={DROPDOWN_ITEMS}
           setOpen={setDropdownOpen}
-          setValue={setValue}
+          setValue={setSelectedLanguage}
           placeholder="Select language"
           style={[styles.dropdown, { marginBottom: 10 }]}
           listMode="SCROLLVIEW"
           onOpen={Keyboard.dismiss}
         />
+
         <Text
           style={[
             styles.optionalText,
@@ -75,6 +112,7 @@ export default function addNewDeck() {
           width: "100%",
           bottom: insets.bottom + 40,
         }}
+        onPress={onSavePress}
       ></ConfirmationButton>
     </View>
   );
@@ -111,11 +149,12 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderRadius: theme.borderRadius.sm,
     borderColor: theme.colors.primary,
+    overflow: "hidden",
+    justifyContent: "center",
   },
   textInput: {
     paddingHorizontal: 10,
     minHeight: 45,
-    width: "100%",
     borderWidth: 1,
     borderRadius: theme.borderRadius.sm,
     borderColor: theme.colors.primary,
