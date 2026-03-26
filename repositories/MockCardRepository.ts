@@ -2,7 +2,7 @@ import { Card } from "@/models/card";
 import { CardRepository, Filters } from "./CardRepository";
 
 export class MockCardRepository implements CardRepository {
-  private counter = 6;
+  private static counter = 6;
   private cardsArray: Card[] = [
     {
       id: 1,
@@ -65,7 +65,7 @@ export class MockCardRepository implements CardRepository {
   public createNewCard(cardData: Omit<Card, "id">): Promise<Card> {
     return new Promise<Card>((resolve) => {
       setTimeout(() => {
-        const newCard: Card = { id: (this.counter += 1), ...cardData };
+        const newCard: Card = { id: (MockCardRepository.counter += 1), ...cardData };
         this.cardsArray.push(newCard);
         resolve(newCard);
       }, 500);

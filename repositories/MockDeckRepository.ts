@@ -2,7 +2,7 @@ import { Deck } from "@/models/deck";
 import { DeckRepository } from "./DeckRepository";
 
 export class MockDeckRepository implements DeckRepository {
-  private counter = 6;
+  private static counter = 6;
   private decksArray: Deck[] = [
     { id: 1, name: "Angielski A2", language: "English" },
     { id: 2, name: "Business English", language: "English" },
@@ -15,8 +15,9 @@ export class MockDeckRepository implements DeckRepository {
   public createNewDeck(deckData: Omit<Deck, "id">): Promise<Deck> {
     return new Promise((resolve, reject) => {
       setTimeout(() => {
-        const newDeck: Deck = { id: (this.counter += 1), ...deckData };
+        const newDeck: Deck = { id: (MockDeckRepository.counter += 1), ...deckData };
         if (newDeck != null) {
+          this.decksArray.push(newDeck)
           resolve(newDeck);
         } else {
           reject(new Error("Couldn't create a new deck."));
@@ -25,6 +26,7 @@ export class MockDeckRepository implements DeckRepository {
       }, 500);
     });
   }
+
   public getDecks(): Promise<Deck[]> {
     return new Promise((resolve) => {
       setTimeout(() => {
