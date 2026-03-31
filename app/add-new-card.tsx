@@ -1,9 +1,12 @@
 import ConfirmationButton from "@/components/buttons/ConfirmationButton";
+import { ExampleSource } from "@/models/card";
 import { CARD_TYPE_OPTIONS } from "@/models/cardTypes";
-import { MockDeckRepository } from "@/repositories/MockDeckRepository";
+import { globalCardRepository } from "@/repositories/globalCardRepository";
+import { globalDeckRepository } from "@/repositories/globalDeckRepository";
 import { theme } from "@/styles/theme";
 import SimpleLineIcons from "@expo/vector-icons/SimpleLineIcons";
-import { useEffect, useState } from "react";
+import { useFocusEffect } from "expo-router";
+import { useCallback, useState } from "react";
 import {
   Keyboard,
   Pressable,
@@ -16,82 +19,294 @@ import {
 import DropDownPicker from "react-native-dropdown-picker";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
+const INITIAL_VALUES = {
+  deckId: null,
+  cardType: "",
+  front: "",
+  back: "",
+  usageExample: "",
+  exampleSource: "user" as ExampleSource,
+  tags: [],
+};
+
+const INITIAL_ERRORS = {
+  deckNameErr: "",
+  cardTypeErr: "",
+  cardFrontErr: "",
+  cardBackErr: "",
+};
+
 export default function AddNewCard() {
   const insets = useSafeAreaInsets();
+  const [errorText, setErrorText] = useState({
+    deckNameErr: "",
+    cardTypeErr: "",
+    cardFrontErr: "",
+    cardBackErr: "",
+  });
 
-  const [openDeckDropdown, setOpenDeckDropdown] = useState(false);
-  const [openCardTypeDropdown, setOpenCardTypeDropdown] = useState(false);
-  const [openTagsDropdown, setOpenTagsDropdown] = useState(false);
+  const [deckDropdownOpen, setDeckDropdownOpen] = useState(false);
+  const [cardTypeDropdownOpen, setCardTypeDropdownOpen] = useState(false);
+  const [tagsDropdownOpen, setTagsDropdownOpen] = useState(false);
 
-  const [cardTypeValue, setCardTypeValue] = useState(null);
-  const [deckNameValue, setDeckNameValue] = useState(null);
-  const [tagsValue, setTagsValue] = useState(null);
+  const [cardType, setCardType] = useState(INITIAL_VALUES.cardType);
+  const [deckId, setDeckId] = useState<null | number>(INITIAL_VALUES.deckId);
+  const [tags, setTags] = useState(INITIAL_VALUES.tags);
+  const [cardFront, setCardFront] = useState(INITIAL_VALUES.front);
+  const [cardBack, setCardBack] = useState(INITIAL_VALUES.back);
+  const [usageExample, setUsageExample] = useState(INITIAL_VALUES.usageExample);
+  const [exampleSource, setExampleSource] = useState<ExampleSource>(
+    INITIAL_VALUES.exampleSource,
+  );
 
-  const [items, setItems] = useState([
-    { label: "Apple", value: "apple" },
-    { label: "Banana", value: "banana" },
-  ]);
-
+  const [items, setItems] = useState([{}]);
   const [decks, setDecks] = useState<{ label: string; value: number }[]>([]);
 
-  useEffect(() => {
-    const decksRepository = new MockDeckRepository();
-    decksRepository.getDecks().then((decks) => {
-      const formattedOptions = decks.map((deck) => {
-        return { label: deck.name, value: deck.id };
+  useFocusEffect(
+    useCallback(() => {
+      globalDeckRepository.getDecks().then((decks) => {
+        const formattedOptions = decks.map((deck) => {
+          return { label: deck.name, value: deck.id };
+        });
+        setDecks(formattedOptions);
       });
-      setDecks(formattedOptions);
-    });
-  }, []);
+    }, []),
+  );
+
+  const setDefaultStates = () => {
+    setDeckId(INITIAL_VALUES.deckId);
+    setCardType(INITIAL_VALUES.cardType);
+    setCardFront(INITIAL_VALUES.front);
+    setCardBack(INITIAL_VALUES.back);
+    setTags(INITIAL_VALUES.tags);
+    setErrorText(INITIAL_ERRORS);
+  };
+
+  const onSavePress = async () => {
+    let isFormValid = true;
+    let currentErrors = {
+      deckNameErr: "",
+      cardTypeErr: "",
+      cardFrontErr: "",
+      cardBackErr: "",
+    };
+    if (deckId === null) {
+      isFormValid = false;
+      setErrorText((prevErrors) => ({
+        ...prevErrors,
+        deckNameErr: "Deck selection is required.",
+      }));
+    }
+    if (cardType === "") {
+      isFormValid = false;
+      setErrorText((prevErrors) => ({
+        ...prevErrors,
+        cardTypeErr: "Card type selection is required.",
+      }));
+    }
+    if (!cardFront.trim()) {
+      isFormValid = false;
+      setErrorText((prevErrors) => ({
+        ...prevErrors,
+        cardFrontErr: "Front of the card cannot be empty.",
+      }));
+    }
+    if (!cardBack.trim()) {
+      isFormValid = false;
+      setErrorText((prevErrors) => ({
+        ...prevErrors,
+        cardBackErr: "Back of the card cannot be empty.",
+      }));
+    }
+
+    if (!isFormValid || deckId == null) {
+      return;
+    }
+
+    const cardData = {
+      deckId: deckId,
+      cardType: cardType,
+      front: cardFront,
+      back: cardBack,
+      usageExample: usageExample,
+      exampleSource: exampleSource,
+      tags: [],
+    };
+    try {
+      await globalCardRepository.createNewCard(cardData);
+      setDefaultStates();
+    } catch (error) {
+      console.error("Error during creating new card", error);
+    }
+  };
 
   return (
     <View style={[styles.container, { paddingBottom: insets.bottom }]}>
       <ScrollView
         style={styles.scrollContainer}
-        showsVerticalScrollIndicator={false} keyboardShouldPersistTaps="handled" 
-        onScroll={() => {setOpenCardTypeDropdown(false); setOpenDeckDropdown(false); setOpenTagsDropdown(false)}}
+        showsVerticalScrollIndicator={false}
+        keyboardShouldPersistTaps="handled"
       >
         <Text style={[styles.formText, { paddingTop: 0 }]}>Deck</Text>
         <DropDownPicker
-          open={openDeckDropdown}
-          value={deckNameValue}
+          open={deckDropdownOpen}
+          value={deckId}
           items={decks}
-          setOpen={setOpenDeckDropdown}
-          setValue={setDeckNameValue}
+          setOpen={setDeckDropdownOpen}
+          setValue={setDeckId}
           setItems={setDecks}
-          onOpen={Keyboard.dismiss}
-          style={styles.dropdown}
+          onOpen={() => {
+            Keyboard.dismiss;
+            setTagsDropdownOpen(false);
+            setCardTypeDropdownOpen(false);
+          }}
+          style={[
+            styles.dropdown,
+            {
+              borderColor: errorText.deckNameErr ? "red" : theme.colors.primary,
+            },
+          ]}
           zIndex={10000}
           listMode="SCROLLVIEW"
+          onChangeValue={() => {
+            setDeckId(deckId);
+            if (errorText.deckNameErr)
+              setErrorText((prevErrors) => ({
+                ...prevErrors,
+                deckNameErr: INITIAL_ERRORS.deckNameErr,
+              }));
+          }}
         />
+        {errorText.deckNameErr ? (
+          <Text style={[styles.optionalText, { color: "red", paddingTop: 5 }]}>
+            {errorText.deckNameErr}
+          </Text>
+        ) : null}
 
         <Text style={styles.formText}>Card type</Text>
         <DropDownPicker
-          open={openCardTypeDropdown}
-          value={cardTypeValue}
+          open={cardTypeDropdownOpen}
+          value={cardType}
           items={CARD_TYPE_OPTIONS}
-          setOpen={setOpenCardTypeDropdown}
-          setValue={setCardTypeValue}
-          onOpen={Keyboard.dismiss}
-          style={styles.dropdown}
+          setOpen={setCardTypeDropdownOpen}
+          setValue={setCardType}
+          onOpen={() => {
+            Keyboard.dismiss;
+            setDeckDropdownOpen(false);
+            setTagsDropdownOpen(false);
+          }}
+          style={[
+            styles.dropdown,
+            {
+              borderColor: errorText.cardTypeErr ? "red" : theme.colors.primary,
+            },
+          ]}
           listMode="SCROLLVIEW"
+          onChangeValue={() => {
+            setCardType(cardType);
+            if (errorText.cardTypeErr)
+              setErrorText((prevErrors) => ({
+                ...prevErrors,
+                cardTypeErr: INITIAL_ERRORS.cardTypeErr,
+              }));
+          }}
         />
+        {errorText.cardTypeErr ? (
+          <Text style={[styles.optionalText, { color: "red", paddingTop: 5 }]}>
+            {errorText.deckNameErr}
+          </Text>
+        ) : null}
 
         <Text style={styles.formText}>Front</Text>
-        <TextInput style={styles.textInput} />
+        <TextInput
+          style={[
+            styles.textInput,
+            {
+              borderColor: errorText.cardFrontErr
+                ? "red"
+                : theme.colors.primary,
+            },
+          ]}
+          value={cardFront}
+          onFocus={() => {
+            setDeckDropdownOpen(false);
+            setCardTypeDropdownOpen(false);
+            setTagsDropdownOpen(false);
+          }}
+          onChangeText={(input) => {
+            setCardFront(input);
+            if (errorText.cardFrontErr)
+              setErrorText((prevErrors) => ({
+                ...prevErrors,
+                cardFrontErr: INITIAL_ERRORS.cardFrontErr,
+              }));
+          }}
+        />
+        {errorText.cardFrontErr ? (
+          <Text style={[styles.optionalText, { color: "red", paddingTop: 5 }]}>
+            {errorText.cardFrontErr}
+          </Text>
+        ) : null}
         <Text style={styles.formText}>Back</Text>
-        <TextInput style={styles.textInput} />
-        <Text style={styles.formText}>Example of use</Text>
+        <TextInput
+          style={[
+            styles.textInput,
+            {
+              borderColor: errorText.cardBackErr ? "red" : theme.colors.primary,
+            },
+          ]}
+          value={cardBack}
+          onFocus={() => {
+            setDeckDropdownOpen(false);
+            setCardTypeDropdownOpen(false);
+            setTagsDropdownOpen(false);
+          }}
+          onChangeText={(input) => {
+            setCardBack(input);
+            if (errorText.cardBackErr)
+              setErrorText((prevErrors) => ({
+                ...prevErrors,
+                cardBackErr: INITIAL_ERRORS.cardBackErr,
+              }));
+          }}
+        />
+        {errorText.cardBackErr ? (
+          <Text style={[styles.optionalText, { color: "red", paddingTop: 5 }]}>
+            {errorText.cardBackErr}
+          </Text>
+        ) : null}
+        <View
+          style={{
+            flexDirection: "row",
+            alignItems: "center",
+            paddingTop: 10,
+          }}
+        >
+          <Text style={[styles.formText, { paddingTop: 0 }]}>
+            Example of use
+          </Text>
+          <Text style={styles.optionalText}>(Optional)</Text>
+        </View>
+
         <TextInput
           style={[
             styles.textInput,
             {
               borderColor: theme.colors.purple,
-              height: 80,
+              height: 70,
               textAlignVertical: "top",
             },
           ]}
           multiline={true}
+          value={usageExample}
+          onFocus={() => {
+            setDeckDropdownOpen(false);
+            setCardTypeDropdownOpen(false);
+            setTagsDropdownOpen(false);
+          }}
+          onChangeText={(input) => {
+            setUsageExample(input);
+          }}
         />
         <Pressable style={styles.genwithAIContent}>
           <SimpleLineIcons
@@ -119,20 +334,27 @@ export default function AddNewCard() {
         </Pressable>
         <Text style={[styles.formText, { paddingTop: 0 }]}>Tags</Text>
         <DropDownPicker
-          open={openTagsDropdown}
-          value={tagsValue}
+          open={tagsDropdownOpen}
+          value={tags}
           items={items}
-          setOpen={setOpenTagsDropdown}
-          setValue={setTagsValue}
+          setOpen={setTagsDropdownOpen}
+          setValue={setTags}
           setItems={setItems}
           multiple={true}
-          onOpen={Keyboard.dismiss}
+          onOpen={() => {
+            Keyboard.dismiss;
+            setDeckDropdownOpen(false);
+            setCardTypeDropdownOpen(false);
+          }}
           style={[styles.dropdown, { marginBottom: 30 }]}
           listMode="SCROLLVIEW"
         />
       </ScrollView>
       <View style={styles.buttonContainer}>
-        <ConfirmationButton buttonText="Save"></ConfirmationButton>
+        <ConfirmationButton
+          buttonText="Save"
+          onPress={onSavePress}
+        ></ConfirmationButton>
       </View>
     </View>
   );
@@ -184,5 +406,11 @@ const styles = StyleSheet.create({
     paddingTop: 10,
     backgroundColor: theme.colors.background,
     boxShadow: theme.boxShadow.bottomContainer,
+  },
+  optionalText: {
+    paddingHorizontal: 5,
+    fontFamily: theme.fontFamily.regular,
+    fontSize: theme.fontSize.x_sm,
+    color: theme.colors.primary_light,
   },
 });
