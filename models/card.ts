@@ -1,3 +1,7 @@
+
+export type ExampleSource = 'user' | 'ai';
+
+
 export interface Card {
   id: number;
   deckId: number;
@@ -5,5 +9,6 @@ export interface Card {
   front: string;
   back: string;
   usageExample: string;
+  exampleSource: ExampleSource;
   tags: string[];
 }
