@@ -2,7 +2,7 @@ import { Card } from "@/models/card";
 import { CardRepository, Filters } from "./CardRepository";
 
 export class MockCardRepository implements CardRepository {
-  private counter = 6;
+  private static counter = 6;
   private cardsArray: Card[] = [
     {
       id: 1,
@@ -11,6 +11,7 @@ export class MockCardRepository implements CardRepository {
       front: "talerz",
       back: "plate",
       usageExample: "He was invited to a party and asked to bring a plate.",
+      exampleSource: "user",
       tags: ["basic", "home"],
     },
     {
@@ -21,6 +22,7 @@ export class MockCardRepository implements CardRepository {
       back: "ball",
       usageExample:
         "Imagine playing a round of golf with one ball — lose it and the game is over.",
+      exampleSource: "user",
       tags: ["basic"],
     },
     {
@@ -30,6 +32,7 @@ export class MockCardRepository implements CardRepository {
       front: "plate",
       back: "talerz",
       usageExample: "He was invited to a party and asked to bring a plate.",
+      exampleSource: "user",
       tags: ["basic", "home"],
     },
     {
@@ -40,6 +43,7 @@ export class MockCardRepository implements CardRepository {
       back: "piłka",
       usageExample:
         "Imagine playing a round of golf with one ball — lose it and the game is over.",
+      exampleSource: "user",
       tags: ["basic"],
     },
     {
@@ -49,6 +53,7 @@ export class MockCardRepository implements CardRepository {
       front: "kot",
       back: "cat",
       usageExample: "I love watching my cat sleeping.",
+      exampleSource: "user",
       tags: ["basic", "home"],
     },
     {
@@ -58,6 +63,7 @@ export class MockCardRepository implements CardRepository {
       front: "pies",
       back: "dog",
       usageExample: "My dog always sleep with me.",
+      exampleSource: "user",
       tags: ["basic"],
     },
   ];
@@ -65,7 +71,10 @@ export class MockCardRepository implements CardRepository {
   public createNewCard(cardData: Omit<Card, "id">): Promise<Card> {
     return new Promise<Card>((resolve) => {
       setTimeout(() => {
-        const newCard: Card = { id: (this.counter += 1), ...cardData };
+        const newCard: Card = {
+          id: (MockCardRepository.counter += 1),
+          ...cardData,
+        };
         this.cardsArray.push(newCard);
         resolve(newCard);
       }, 500);

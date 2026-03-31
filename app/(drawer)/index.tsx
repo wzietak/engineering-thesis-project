@@ -2,7 +2,7 @@ import FloatingButton from "@/components/buttons/FloatingButton";
 import DeckComponent from "@/components/Deck";
 import Overlay from "@/components/Overlay";
 import { Deck } from "@/models/deck";
-import { MockDeckRepository } from "@/repositories/MockDeckRepository";
+import { globalDeckRepository } from "@/repositories/globalDeckRepository";
 import { theme } from "@/styles/theme";
 import { useFocusEffect, useRouter } from "expo-router";
 import { useCallback, useEffect, useState } from "react";
@@ -16,16 +16,13 @@ export default function mainScreen() {
   const [decks, setDecks] = useState<Deck[]>([]);
   const [loading, setIsLoading] = useState<boolean>(true);
 
-  useEffect(() => {
-    const decksRepository = new MockDeckRepository();
-    decksRepository.getDecks().then((decks) => {
-      setDecks(decks);
-      setIsLoading(false);
-    });
-  }, []);
-
   useFocusEffect(
     useCallback(() => {
+      globalDeckRepository.getDecks().then((decks) => {
+        setDecks(decks);
+      }).catch((error) => {
+        console.error("Error during loading decks from database.",error)
+      })
       return () => setButtonVisible(false);
     }, []),
   );

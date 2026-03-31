@@ -2,7 +2,7 @@ import EmptyDeckView from "@/components/EmptyDeckView";
 import FlashCardContainer from "@/components/flashcard/FlashCardContainer";
 import LoadingScreen from "@/components/LoadingScreen";
 import { Card } from "@/models/card";
-import { MockCardRepository } from "@/repositories/MockCardRepository";
+import { globalCardRepository } from "@/repositories/globalCardRepository";
 import { router, useLocalSearchParams } from "expo-router";
 import { useEffect, useState } from "react";
 
@@ -22,11 +22,8 @@ export default function studyScreen() {
 
   useEffect(() => {
     const prepareFlashCards = async () => {
-      console.log("Starting useEffect function, my deckId is: ", deckId);
-
       try {
-        const mockCards = new MockCardRepository();
-        await mockCards.getCards().then((cards) => {
+        await globalCardRepository.getCards().then((cards) => {
           const filteredCards = cards.filter(
             (card) => card.deckId === Number(deckId),
           );
