@@ -228,6 +228,7 @@ export default function AddNewCard() {
             },
           ]}
           value={cardFront}
+          maxLength={50}
           onFocus={() => {
             setDeckDropdownOpen(false);
             setCardTypeDropdownOpen(false);
@@ -256,6 +257,7 @@ export default function AddNewCard() {
             },
           ]}
           value={cardBack}
+          maxLength={50}
           onFocus={() => {
             setDeckDropdownOpen(false);
             setCardTypeDropdownOpen(false);
@@ -299,6 +301,7 @@ export default function AddNewCard() {
           ]}
           multiline={true}
           value={usageExample}
+          maxLength={100}
           onFocus={() => {
             setDeckDropdownOpen(false);
             setCardTypeDropdownOpen(false);
