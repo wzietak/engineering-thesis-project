@@ -84,12 +84,6 @@ export default function AddNewCard() {
 
   const onSavePress = async () => {
     let isFormValid = true;
-    let currentErrors = {
-      deckNameErr: "",
-      cardTypeErr: "",
-      cardFrontErr: "",
-      cardBackErr: "",
-    };
     if (deckId === null) {
       isFormValid = false;
       setErrorText((prevErrors) => ({
