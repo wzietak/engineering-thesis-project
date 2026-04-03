@@ -1,14 +1,89 @@
+import ConfirmationButton from "@/components/buttons/ConfirmationButton";
 import { theme } from "@/styles/theme";
-import { StyleSheet, Text, TextInput, View } from "react-native";
+import { Link } from "expo-router";
+import { useState } from "react";
+import { ScrollView, StyleSheet, Text, TextInput, View } from "react-native";
 
 export default function LoginPage() {
+  const [isSignUp, setIsSignUp] = useState(false);
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+
+  const [emailError, setEmailError] = useState("");
+  const [passwordError, setPasswordError] = useState("");
+
+  const onButtonPress = () => {
+    const emailCheckRegex = /[\w-\.]+@([\w-]+\.)+[\w-]{2,4}/;
+    const incorrect = "Invalid email or password."; //TO DELETE LATER
+    let isFormValid = true;
+    const emailEntered = email.trim();
+    const passwordEntered = password.trim();
+    if (!emailEntered) {
+      isFormValid = false;
+      setEmailError("Please enter your email address.");
+    } else if (!emailCheckRegex.test(emailEntered)) {
+      isFormValid = false;
+      setEmailError("Invalid email format.");
+    }
+    if (!passwordEntered) {
+      isFormValid = false;
+      setPasswordError("Please enter your password.");
+    } else if (passwordEntered.length < 7) {
+      setPasswordError("Password must be at least 6 characters.");
+    } else if (passwordEntered === email.trim()) {
+      setPasswordError("Password cannot be the same as your email.");
+    }
+  };
+
   return (
     <View style={styles.container}>
-      <Text style={styles.appTitleText}>BetterAnki</Text>
-      <Text style={styles.formText}>Email</Text>
-      <TextInput style={[styles.textInput]} />
-      <Text style={styles.formText}>Password</Text>
-      <TextInput style={[styles.textInput]} secureTextEntry={true} />
+      <ScrollView
+        keyboardShouldPersistTaps="handled"
+        style={{ flexGrow: 0.2 }}
+        showsVerticalScrollIndicator={false}
+      >
+        <Text style={styles.appTitleText}>BetterAnki</Text>
+        <Text style={styles.formText}>Email</Text>
+        <TextInput
+          style={[styles.textInput]}
+          value={email}
+          onChangeText={setEmail}
+        />
+        <Text style={styles.formText}>Password</Text>
+        <TextInput
+          style={[styles.textInput]}
+          secureTextEntry={true}
+          value={password}
+          onChangeText={setPassword}
+        />
+        <Link href={"/+not-found"} style={styles.forgotPasswordText}>
+          Forgot password?
+        </Link>
+      </ScrollView>
+
+      <View style={styles.buttonContainer}>
+        <ConfirmationButton
+          buttonText={isSignUp ? "Sign up" : "Log in"}
+        ></ConfirmationButton>
+        <View
+          style={{
+            paddingTop: 10,
+            flexDirection: "row",
+            justifyContent: "center",
+          }}
+        >
+          <Text style={[styles.formText, { paddingRight: 5 }]}>
+            {isSignUp ? "Already have an account?" : "Don't have an account?"}
+          </Text>
+          <Link
+            style={[styles.formText, { color: theme.colors.purple }]}
+            href={"/login"}
+            onPress={() => setIsSignUp(!isSignUp)}
+          >
+            {isSignUp ? "Log in" : "Sign up"}
+          </Link>
+        </View>
+      </View>
     </View>
   );
 }
@@ -17,6 +92,7 @@ const styles = StyleSheet.create({
   container: {
     width: "100%",
     paddingHorizontal: 20,
+    paddingTop: 70,
     flex: 1,
     flexDirection: "column",
     justifyContent: "center",
@@ -41,5 +117,17 @@ const styles = StyleSheet.create({
     borderColor: theme.colors.primary,
     color: theme.colors.primary,
     fontFamily: theme.fontFamily.regular,
+  },
+  buttonContainer: {
+    height: 100,
+    width: "100%",
+    paddingTop: 10,
+    flexGrow: 0.2,
+  },
+  forgotPasswordText: {
+    paddingTop: 10,
+    fontFamily: theme.fontFamily.regular,
+    fontSize: theme.fontSize.x_sm,
+    color: theme.colors.purple,
   },
 });
