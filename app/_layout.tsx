@@ -1,4 +1,5 @@
 import AppHeader from "@/components/AppHeader";
+import AuthProvider from "@/contexts/AuthContext";
 import { Stack, useRouter } from "expo-router";
 import { StyleSheet, View } from "react-native";
 
@@ -20,38 +21,40 @@ export default function RootLayout() {
   };
 
   return (
-    <View style={styles.mainContainer}>
-      <Stack screenOptions={{ headerShown: false }}>
-        <Stack.Screen name="(drawer)" />
-        <Stack.Screen
-          name="add-new-card"
-          options={{
-            ...headerStyle,
-            title: "Add new card",
-            presentation: "modal",
-            headerShown: true,
-          }}
-        ></Stack.Screen>
-        <Stack.Screen
-          name="add-new-deck"
-          options={{
-            ...headerStyle,
-            title: "Create new deck",
-            presentation: "modal",
-            headerShown: true,
-          }}
-        ></Stack.Screen>
-        <Stack.Screen
-          name="study-screen/[deckId]"
-          options={{
-            ...headerStyle,
-            title: "Study",
-            presentation: "modal",
-            headerShown: true,
-          }}
-        ></Stack.Screen>
-      </Stack>
-    </View>
+    <AuthProvider>
+      <View style={styles.mainContainer}>
+        <Stack screenOptions={{ headerShown: false }}>
+          <Stack.Screen name="(drawer)" />
+          <Stack.Screen
+            name="add-new-card"
+            options={{
+              ...headerStyle,
+              title: "Add new card",
+              presentation: "modal",
+              headerShown: true,
+            }}
+          ></Stack.Screen>
+          <Stack.Screen
+            name="add-new-deck"
+            options={{
+              ...headerStyle,
+              title: "Create new deck",
+              presentation: "modal",
+              headerShown: true,
+            }}
+          ></Stack.Screen>
+          <Stack.Screen
+            name="study-screen/[deckId]"
+            options={{
+              ...headerStyle,
+              title: "Study",
+              presentation: "modal",
+              headerShown: true,
+            }}
+          ></Stack.Screen>
+        </Stack>
+      </View>
+    </AuthProvider>
   );
 }
 
