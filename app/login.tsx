@@ -1,5 +1,6 @@
 import ConfirmationButton from "@/components/buttons/ConfirmationButton";
 import { theme } from "@/styles/theme";
+import { supabase } from "@/utils/supabase";
 import { Link } from "expo-router";
 import { useState } from "react";
 import { ScrollView, StyleSheet, Text, TextInput, View } from "react-native";
@@ -12,12 +13,17 @@ export default function LoginPage() {
   const [emailError, setEmailError] = useState("");
   const [passwordError, setPasswordError] = useState("");
 
-  const onButtonPress = () => {
-    const emailCheckRegex = /[\w-\.]+@([\w-]+\.)+[\w-]{2,4}/;
-    const incorrect = "Invalid email or password."; //TO DELETE LATER
+  const clearErrors = () => {
+    setEmailError("");
+    setPasswordError("");
+  };
+
+  const onButtonPress = async () => {
+    const emailCheckRegex = /^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$/;
     let isFormValid = true;
     const emailEntered = email.trim();
     const passwordEntered = password.trim();
+
     if (!emailEntered) {
       isFormValid = false;
       setEmailError("Please enter your email address.");
@@ -28,10 +34,28 @@ export default function LoginPage() {
     if (!passwordEntered) {
       isFormValid = false;
       setPasswordError("Please enter your password.");
-    } else if (passwordEntered.length < 7) {
+    } else if (isSignUp && passwordEntered.length < 7) {
+      isFormValid = false;
       setPasswordError("Password must be at least 6 characters.");
-    } else if (passwordEntered === email.trim()) {
+    } else if (isSignUp && passwordEntered === email.trim()) {
+      isFormValid = false;
       setPasswordError("Password cannot be the same as your email.");
+    }
+
+    if (!isFormValid) return;
+
+    if (isSignUp) {
+      const { data, error } = await supabase.auth.signUp({
+        email: email,
+        password: password,
+      });
+    } else {
+      const { data, error } = await supabase.auth.signInWithPassword({
+        email: email,
+        password: password,
+      });
+      if (error) isFormValid = false;
+      setPasswordError("Invalid email or password.");
     }
   };
 
@@ -47,23 +71,38 @@ export default function LoginPage() {
         <TextInput
           style={[styles.textInput]}
           value={email}
-          onChangeText={setEmail}
+          onChangeText={(input) => {
+            setEmail(input);
+            if (emailError) setEmailError("");
+          }}
         />
+        {emailError ? (
+          <Text style={[styles.errorText]}>{emailError}</Text>
+        ) : null}
         <Text style={styles.formText}>Password</Text>
         <TextInput
           style={[styles.textInput]}
           secureTextEntry={true}
           value={password}
-          onChangeText={setPassword}
+          onChangeText={(input) => {
+            setPassword(input);
+            if (passwordError) setPasswordError("");
+          }}
         />
-        <Link href={"/+not-found"} style={styles.forgotPasswordText}>
-          Forgot password?
-        </Link>
+        {passwordError ? (
+          <Text style={[styles.errorText]}>{passwordError}</Text>
+        ) : null}
+        {isSignUp ? null : (
+          <Link href={"/+not-found"} style={styles.forgotPasswordText}>
+            Forgot password?
+          </Link>
+        )}
       </ScrollView>
 
       <View style={styles.buttonContainer}>
         <ConfirmationButton
           buttonText={isSignUp ? "Sign up" : "Log in"}
+          onPress={onButtonPress}
         ></ConfirmationButton>
         <View
           style={{
@@ -78,7 +117,10 @@ export default function LoginPage() {
           <Link
             style={[styles.formText, { color: theme.colors.purple }]}
             href={"/login"}
-            onPress={() => setIsSignUp(!isSignUp)}
+            onPress={() => {
+              setIsSignUp(!isSignUp);
+              clearErrors();
+            }}
           >
             {isSignUp ? "Log in" : "Sign up"}
           </Link>
@@ -129,5 +171,11 @@ const styles = StyleSheet.create({
     fontFamily: theme.fontFamily.regular,
     fontSize: theme.fontSize.x_sm,
     color: theme.colors.purple,
+  },
+  errorText: {
+    paddingTop: 5,
+    fontFamily: theme.fontFamily.regular,
+    fontSize: theme.fontSize.x_sm,
+    color: "red",
   },
 });
