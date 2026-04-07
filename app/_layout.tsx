@@ -1,12 +1,22 @@
 import AppHeader from "@/components/AppHeader";
-import AuthProvider from "@/contexts/AuthContext";
-import { Stack, useRouter } from "expo-router";
+import LoadingScreen from "@/components/LoadingScreen";
+import AuthProvider, { AuthContext } from "@/contexts/AuthContext";
+import {
+  Stack,
+  useRootNavigationState,
+  useRouter,
+  useSegments,
+} from "expo-router";
+import { useContext, useEffect } from "react";
 import { StyleSheet, View } from "react-native";
 
-export default function RootLayout() {
+function ProtectionComponent() {
   const router = useRouter();
+  const session = useContext(AuthContext);
+  const currScreen = useSegments();
+  const rootNavigationState = useRootNavigationState();
 
-  //Extracted header into a constant to apply DRY principle - prevents duplicating the compoent on every Stack.Screen
+  //Extracted header into a constant to apply DRY principle - prevents duplicating the component on every Stack.Screen
   const headerStyle = {
     header: (props: any) => (
       <AppHeader
@@ -20,40 +30,61 @@ export default function RootLayout() {
     ),
   };
 
+  useEffect(() => {
+    if (!rootNavigationState?.key || !currScreen || !session?.isInitialized) {
+      return;
+    }
+    console.log(currScreen);
+    if (!session.currentSession && currScreen[0] != "login") {
+      router.replace("/login");
+    } else if (session.currentSession && currScreen[0] === "login") {
+      router.replace("/(drawer)");
+    }
+  }, [session, currScreen, rootNavigationState?.key]);
+
+  if (!session?.isInitialized) {
+    return <LoadingScreen></LoadingScreen>;
+  }
+  return (
+    <View style={styles.mainContainer}>
+      <Stack screenOptions={{ headerShown: false }}>
+        <Stack.Screen name="(drawer)" />
+        <Stack.Screen
+          name="add-new-card"
+          options={{
+            ...headerStyle,
+            title: "Add new card",
+            presentation: "modal",
+            headerShown: true,
+          }}
+        ></Stack.Screen>
+        <Stack.Screen
+          name="add-new-deck"
+          options={{
+            ...headerStyle,
+            title: "Create new deck",
+            presentation: "modal",
+            headerShown: true,
+          }}
+        ></Stack.Screen>
+        <Stack.Screen
+          name="study-screen/[deckId]"
+          options={{
+            ...headerStyle,
+            title: "Study",
+            presentation: "modal",
+            headerShown: true,
+          }}
+        ></Stack.Screen>
+      </Stack>
+    </View>
+  );
+}
+
+export default function RootLayout() {
   return (
     <AuthProvider>
-      <View style={styles.mainContainer}>
-        <Stack screenOptions={{ headerShown: false }}>
-          <Stack.Screen name="(drawer)" />
-          <Stack.Screen
-            name="add-new-card"
-            options={{
-              ...headerStyle,
-              title: "Add new card",
-              presentation: "modal",
-              headerShown: true,
-            }}
-          ></Stack.Screen>
-          <Stack.Screen
-            name="add-new-deck"
-            options={{
-              ...headerStyle,
-              title: "Create new deck",
-              presentation: "modal",
-              headerShown: true,
-            }}
-          ></Stack.Screen>
-          <Stack.Screen
-            name="study-screen/[deckId]"
-            options={{
-              ...headerStyle,
-              title: "Study",
-              presentation: "modal",
-              headerShown: true,
-            }}
-          ></Stack.Screen>
-        </Stack>
-      </View>
+      <ProtectionComponent></ProtectionComponent>
     </AuthProvider>
   );
 }
