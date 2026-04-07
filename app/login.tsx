@@ -34,7 +34,7 @@ export default function LoginPage() {
     if (!passwordEntered) {
       isFormValid = false;
       setPasswordError("Please enter your password.");
-    } else if (isSignUp && passwordEntered.length < 7) {
+    } else if (isSignUp && passwordEntered.length < 6) {
       isFormValid = false;
       setPasswordError("Password must be at least 6 characters.");
     } else if (isSignUp && passwordEntered === email.trim()) {
