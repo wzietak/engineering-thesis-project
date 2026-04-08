@@ -1,9 +1,19 @@
 import ConfirmationButton from "@/components/buttons/ConfirmationButton";
 import { theme } from "@/styles/theme";
 import { supabase } from "@/utils/supabase";
-import { Link } from "expo-router";
+import Octicons from "@expo/vector-icons/Octicons";
+import { Link, router } from "expo-router";
 import { useState } from "react";
-import { ScrollView, StyleSheet, Text, TextInput, View } from "react-native";
+import {
+  Image,
+  KeyboardAvoidingView,
+  Pressable,
+  ScrollView,
+  StyleSheet,
+  Text,
+  TextInput,
+  View,
+} from "react-native";
 
 export default function LoginPage() {
   const [isSignUp, setIsSignUp] = useState(false);
@@ -11,7 +21,9 @@ export default function LoginPage() {
   const [password, setPassword] = useState("");
 
   const [emailError, setEmailError] = useState("");
-  const [passwordError, setPasswordError] = useState("");
+  const [passwordError, setPasswordError] = useState<String | undefined>("");
+
+  const [isPasswordVisible, setIsPasswordVisible] = useState(false);
 
   const clearErrors = () => {
     setEmailError("");
@@ -34,9 +46,9 @@ export default function LoginPage() {
     if (!passwordEntered) {
       isFormValid = false;
       setPasswordError("Please enter your password.");
-    } else if (isSignUp && passwordEntered.length < 6) {
+    } else if (isSignUp && passwordEntered.length < 8) {
       isFormValid = false;
-      setPasswordError("Password must be at least 6 characters.");
+      setPasswordError("Password must be at least 8 characters.");
     } else if (isSignUp && passwordEntered === email.trim()) {
       isFormValid = false;
       setPasswordError("Password cannot be the same as your email.");
@@ -49,55 +61,94 @@ export default function LoginPage() {
         email: email,
         password: password,
       });
+      if (error) {
+        isFormValid = false;
+        setPasswordError(error.message);
+      }
     } else {
       const { data, error } = await supabase.auth.signInWithPassword({
         email: email,
         password: password,
       });
-      if (error) isFormValid = false;
-      setPasswordError("Invalid email or password.");
+
+      if (error) {
+        isFormValid = false;
+        setPasswordError(error.message);
+      }
     }
   };
 
   return (
     <View style={styles.container}>
-      <ScrollView
-        keyboardShouldPersistTaps="handled"
-        style={{ flexGrow: 0.2 }}
-        showsVerticalScrollIndicator={false}
-      >
-        <Text style={styles.appTitleText}>BetterAnki</Text>
-        <Text style={styles.formText}>Email</Text>
-        <TextInput
-          style={[styles.textInput]}
-          value={email}
-          onChangeText={(input) => {
-            setEmail(input);
-            if (emailError) setEmailError("");
-          }}
-        />
-        {emailError ? (
-          <Text style={[styles.errorText]}>{emailError}</Text>
-        ) : null}
-        <Text style={styles.formText}>Password</Text>
-        <TextInput
-          style={[styles.textInput]}
-          secureTextEntry={true}
-          value={password}
-          onChangeText={(input) => {
-            setPassword(input);
-            if (passwordError) setPasswordError("");
-          }}
-        />
-        {passwordError ? (
-          <Text style={[styles.errorText]}>{passwordError}</Text>
-        ) : null}
-        {isSignUp ? null : (
-          <Link href={"/+not-found"} style={styles.forgotPasswordText}>
-            Forgot password?
-          </Link>
-        )}
-      </ScrollView>
+      <KeyboardAvoidingView behavior="position">
+        <ScrollView
+          keyboardShouldPersistTaps="handled"
+          showsVerticalScrollIndicator={false}
+        >
+          <Image
+            source={require("@/assets/icons/splash-icon-light-android.png")}
+            style={styles.appIcon}
+          ></Image>
+          <Text style={styles.appTitleText}>BetterAnki</Text>
+          <Text style={styles.formText}>Email</Text>
+          <TextInput
+            style={[styles.textInput]}
+            value={email}
+            maxLength={254}
+            onChangeText={(input) => {
+              setEmail(input);
+              if (emailError) setEmailError("");
+            }}
+          />
+          {emailError ? (
+            <Text style={[styles.errorText]}>{emailError}</Text>
+          ) : null}
+          <Text style={styles.formText}>Password</Text>
+          <View
+            style={[
+              styles.textInput,
+              { flexDirection: "row", alignItems: "center" },
+            ]}
+          >
+            <TextInput
+              style={{
+                width: "92%",
+                paddingRight: 10,
+                textOverflow: "clip",
+                color: theme.colors.primary,
+              }}
+              secureTextEntry={!isPasswordVisible}
+              value={password}
+              maxLength={128}
+              onChangeText={(input) => {
+                setPassword(input);
+                if (passwordError) setPasswordError("");
+              }}
+            />
+            <Pressable
+              onPress={() => setIsPasswordVisible(!isPasswordVisible)}
+              hitSlop={25}
+            >
+              {isPasswordVisible ? (
+                <Octicons name="eye-closed" size={24} color="black" />
+              ) : (
+                <Octicons name="eye" size={24} color="black" />
+              )}
+            </Pressable>
+          </View>
+          {passwordError ? (
+            <Text style={[styles.errorText]}>{passwordError}</Text>
+          ) : null}
+          <Pressable
+            onPress={() => (isSignUp ? null : router.push("/+not-found"))}
+            style={{ alignSelf: "flex-start" }}
+          >
+            <Text style={styles.forgotPasswordText}>
+              {isSignUp ? "" : "Forgot password?"}
+            </Text>
+          </Pressable>
+        </ScrollView>
+      </KeyboardAvoidingView>
 
       <View style={styles.buttonContainer}>
         <ConfirmationButton
@@ -134,11 +185,16 @@ const styles = StyleSheet.create({
   container: {
     width: "100%",
     paddingHorizontal: 20,
-    paddingTop: 70,
+    paddingTop: 25,
     flex: 1,
     flexDirection: "column",
-    justifyContent: "center",
+    justifyContent: "flex-start",
     backgroundColor: theme.colors.background,
+  },
+  appIcon: {
+    width: 180,
+    height: 180,
+    alignSelf: "center",
   },
   appTitleText: {
     alignSelf: "center",
@@ -163,8 +219,8 @@ const styles = StyleSheet.create({
   buttonContainer: {
     height: 100,
     width: "100%",
-    paddingTop: 10,
-    flexGrow: 0.2,
+    marginTop: 60,
+    justifyContent: "flex-end",
   },
   forgotPasswordText: {
     paddingTop: 10,
