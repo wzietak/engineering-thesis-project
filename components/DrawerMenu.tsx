@@ -1,14 +1,15 @@
 import { AuthContext } from "@/contexts/AuthContext";
 import { theme } from "@/styles/theme";
+import { supabase } from "@/utils/supabase";
 import Octicons from "@expo/vector-icons/Octicons";
 import {
-	DrawerContentComponentProps,
-	DrawerContentScrollView,
-	DrawerItem,
+  DrawerContentComponentProps,
+  DrawerContentScrollView,
+  DrawerItem,
 } from "@react-navigation/drawer";
 import { router } from "expo-router";
 import { useContext } from "react";
-import { StyleSheet, Text, View } from "react-native";
+import { Pressable, StyleSheet, Text, View } from "react-native";
 
 export default function DrawerMenu(props: DrawerContentComponentProps) {
   const session = useContext(AuthContext);
@@ -16,7 +17,9 @@ export default function DrawerMenu(props: DrawerContentComponentProps) {
     <DrawerContentScrollView {...props}>
       <View style={styles.emptyView}>
         <Octicons name="person" size={30} color="black" />
-        <Text style={styles.userNameText}>{}</Text>
+        <Text style={styles.userNameText}>
+          {session?.currentSession?.user.email}
+        </Text>
       </View>
       <View style={styles.separator}></View>
       <DrawerItem
@@ -62,6 +65,20 @@ export default function DrawerMenu(props: DrawerContentComponentProps) {
         activeTintColor={theme.colors.blue}
         inactiveTintColor={theme.colors.primary}
       ></DrawerItem>
+      <View style={styles.emptyViewBottom}>
+        <Pressable
+          style={styles.logOutPressable}
+          onPress={() => {
+            async function signOut() {
+              const { error } = await supabase.auth.signOut();
+            }
+            signOut();
+          }}
+        >
+          <Octicons name="sign-out" size={24} color={theme.colors.primary} />
+          <Text style={styles.labelText}>Log out</Text>
+        </Pressable>
+      </View>
     </DrawerContentScrollView>
   );
 }
@@ -95,5 +112,17 @@ const styles = StyleSheet.create({
     color: theme.colors.primary,
     fontFamily: theme.fontFamily.regular,
     flexShrink: 1,
+  },
+  emptyViewBottom: {
+    marginLeft: 15,
+    width: "100%",
+    height: "100%",
+    flexGrow: 1,
+    justifyContent: "flex-end",
+  },
+  logOutPressable: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 12,
   },
 });
