@@ -6,10 +6,12 @@ import { router } from "expo-router";
 import { useState } from "react";
 import {
   Keyboard,
+  Platform,
   ScrollView,
   StyleSheet,
   Text,
   TextInput,
+  ToastAndroid,
   View,
 } from "react-native";
 import DropDownPicker from "react-native-dropdown-picker";
@@ -36,6 +38,8 @@ export default function addNewDeck() {
     };
     try {
       await globalDeckRepository.createNewDeck(deckData);
+      if (Platform.OS === "android")
+        ToastAndroid.show("New deck created!", ToastAndroid.SHORT);
     } catch (error) {
       console.error("Error during creating new deck", error);
     }

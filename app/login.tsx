@@ -7,11 +7,13 @@ import { useState } from "react";
 import {
   Image,
   KeyboardAvoidingView,
+  Platform,
   Pressable,
   ScrollView,
   StyleSheet,
   Text,
   TextInput,
+  ToastAndroid,
   View,
 } from "react-native";
 
@@ -64,6 +66,9 @@ export default function LoginPage() {
       if (error) {
         isFormValid = false;
         setPasswordError(error.message);
+      } else {
+        if (Platform.OS === "android")
+          ToastAndroid.show("Your account is ready!", ToastAndroid.SHORT);
       }
     } else {
       const { data, error } = await supabase.auth.signInWithPassword({
@@ -74,6 +79,9 @@ export default function LoginPage() {
       if (error) {
         isFormValid = false;
         setPasswordError(error.message);
+      } else {
+        if (Platform.OS === "android")
+          ToastAndroid.show("Welcome back!", ToastAndroid.SHORT);
       }
     }
   };
@@ -152,7 +160,7 @@ export default function LoginPage() {
 
       <View style={styles.buttonContainer}>
         <ConfirmationButton
-          buttonText={isSignUp ? "Sign up" : "Log in"}
+          buttonText={isSignUp ? "Sign up" : "Sign in"}
           onPress={onButtonPress}
         ></ConfirmationButton>
         <View

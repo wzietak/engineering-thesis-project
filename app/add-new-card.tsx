@@ -9,11 +9,13 @@ import { useFocusEffect } from "expo-router";
 import { useCallback, useState } from "react";
 import {
   Keyboard,
+  Platform,
   Pressable,
   ScrollView,
   StyleSheet,
   Text,
   TextInput,
+  ToastAndroid,
   View,
 } from "react-native";
 import DropDownPicker from "react-native-dropdown-picker";
@@ -129,6 +131,8 @@ export default function AddNewCard() {
     try {
       await globalCardRepository.createNewCard(cardData);
       setDefaultStates();
+      if (Platform.OS === "android")
+        ToastAndroid.show("Card added!", ToastAndroid.SHORT);
     } catch (error) {
       console.error("Error during creating new card", error);
     }
