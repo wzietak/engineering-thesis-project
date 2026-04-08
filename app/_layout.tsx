@@ -1,14 +1,16 @@
 import AppHeader from "@/components/AppHeader";
-import LoadingScreen from "@/components/LoadingScreen";
 import AuthProvider, { AuthContext } from "@/contexts/AuthContext";
 import {
+  SplashScreen,
   Stack,
   useRootNavigationState,
   useRouter,
   useSegments,
 } from "expo-router";
 import { useContext, useEffect } from "react";
-import { StyleSheet, View } from "react-native";
+import { Platform, StyleSheet, ToastAndroid, View } from "react-native";
+
+SplashScreen.preventAutoHideAsync();
 
 function ProtectionComponent() {
   const router = useRouter();
@@ -34,17 +36,29 @@ function ProtectionComponent() {
     if (!rootNavigationState?.key || !currScreen || !session?.isInitialized) {
       return;
     }
+    const unprotectedScreens = ["login", "+not-found"];
     console.log(currScreen);
-    if (!session.currentSession && currScreen[0] != "login") {
+    if (
+      !session.currentSession &&
+      !unprotectedScreens.includes(currScreen[0])
+    ) {
       router.replace("/login");
+      if (Platform.OS === "android")
+        ToastAndroid.show("You've been signed out.", ToastAndroid.SHORT);
     } else if (session.currentSession && currScreen[0] === "login") {
       router.replace("/(drawer)");
     }
   }, [session, currScreen, rootNavigationState?.key]);
 
-  if (!session?.isInitialized) {
-    return <LoadingScreen></LoadingScreen>;
-  }
+  useEffect(() => {
+    if (
+      (session?.currentSession && currScreen[0] == "login") ||
+      (session?.currentSession && currScreen[0] === "(drawer)")
+    ) {
+      SplashScreen.hide();
+    }
+  }, [session?.currentSession]);
+
   return (
     <View style={styles.mainContainer}>
       <Stack screenOptions={{ headerShown: false }}>
