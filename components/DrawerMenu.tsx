@@ -17,9 +17,14 @@ export default function DrawerMenu(props: DrawerContentComponentProps) {
     <DrawerContentScrollView {...props}>
       <View style={styles.emptyView}>
         <Octicons name="person" size={30} color="black" />
-        <Text style={styles.userNameText}>
-          {session?.currentSession?.user.email}
-        </Text>
+        <View style={styles.userDetailsTextBox}>
+          <Text style={{ fontFamily: theme.fontFamily.bold, lineHeight: 15 }}>
+            User
+          </Text>
+          <Text style={styles.userNameText}>
+            {session?.currentSession?.user.email}
+          </Text>
+        </View>
       </View>
       <View style={styles.separator}></View>
       <DrawerItem
@@ -76,7 +81,7 @@ export default function DrawerMenu(props: DrawerContentComponentProps) {
           }}
         >
           <Octicons name="sign-out" size={24} color={theme.colors.primary} />
-          <Text style={styles.labelText}>Log out</Text>
+          <Text style={styles.labelText}>Sign out</Text>
         </Pressable>
       </View>
     </DrawerContentScrollView>
@@ -108,7 +113,7 @@ const styles = StyleSheet.create({
   },
   userNameText: {
     paddingRight: 15,
-    fontSize: theme.fontSize.x_sm,
+    fontSize: theme.fontSize.x_sm - 2,
     color: theme.colors.primary,
     fontFamily: theme.fontFamily.regular,
     flexShrink: 1,
@@ -124,5 +129,8 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     gap: 12,
+  },
+  userDetailsTextBox: {
+    flexDirection: "column",
   },
 });
