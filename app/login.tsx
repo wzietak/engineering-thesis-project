@@ -34,7 +34,7 @@ export default function LoginPage() {
   };
 
   const onButtonPress = async () => {
-    const emailCheckRegex = /^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$/;
+    const emailCheckRegex = /^(?![\.])[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$/;
     let isFormValid = true;
     const emailEntered = email.trim();
     const passwordEntered = password.trim();
