@@ -41,28 +41,28 @@ export default function LoginPage() {
 
     if (!emailEntered) {
       isFormValid = false;
-      setEmailError("Please enter your email address.");
+      setEmailError("Please enter your email address");
     } else if (!emailCheckRegex.test(emailEntered)) {
       isFormValid = false;
-      setEmailError("Invalid email format.");
+      setEmailError("Invalid email format");
     }
     if (!passwordEntered) {
       isFormValid = false;
-      setPasswordError("Please enter your password.");
+      setPasswordError("Please enter your password");
     } else if (isSignUp && passwordEntered.length < 8) {
       isFormValid = false;
-      setPasswordError("Password must be at least 8 characters.");
+      setPasswordError("Password must be at least 8 characters");
     } else if (isSignUp && passwordEntered === email.trim()) {
       isFormValid = false;
-      setPasswordError("Password cannot be the same as your email.");
+      setPasswordError("Password cannot be the same as your email");
     }
 
     if (!isFormValid) return;
 
     if (isSignUp) {
       const { data, error } = await supabase.auth.signUp({
-        email: email,
-        password: password,
+        email: emailEntered,
+        password: passwordEntered,
       });
       if (error) {
         isFormValid = false;
@@ -73,8 +73,8 @@ export default function LoginPage() {
       }
     } else {
       const { data, error } = await supabase.auth.signInWithPassword({
-        email: email,
-        password: password,
+        email: emailEntered,
+        password: passwordEntered,
       });
 
       if (error) {
