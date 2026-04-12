@@ -10,66 +10,74 @@ import {
 import { router } from "expo-router";
 import { useContext } from "react";
 import { Pressable, StyleSheet, Text, View } from "react-native";
+import { SafeAreaInsetsContext, useSafeAreaInsets } from "react-native-safe-area-context";
 
 export default function DrawerMenu(props: DrawerContentComponentProps) {
   const session = useContext(AuthContext);
+  const insets = useSafeAreaInsets();
   return (
-    <DrawerContentScrollView {...props}>
-      <View style={styles.emptyView}>
-        <Octicons name="person" size={30} color="black" />
-        <View style={styles.userDetailsTextBox}>
-          <Text style={{ fontFamily: theme.fontFamily.bold, lineHeight: 15 }}>
-            User
-          </Text>
-          <Text style={styles.userNameText}>
-            {session?.currentSession?.user.email}
-          </Text>
+    <View style={{ flex: 1, marginBottom: insets.bottom, marginTop: insets.top }}>
+      <DrawerContentScrollView {...props}>
+        <View style={styles.emptyView}>
+          <Octicons name="person" size={30} color="black" />
+          <View style={styles.userDetailsTextBox}>
+            <Text style={{ fontFamily: theme.fontFamily.bold, lineHeight: 15 }}>
+              User
+            </Text>
+            <Text style={styles.userNameText}>
+              {session?.currentSession?.user.email}
+            </Text>
+          </View>
         </View>
-      </View>
-      <View style={styles.separator}></View>
-      <DrawerItem
-        label={"Decks"}
-        onPress={() => router.push("/")}
-        icon={({ size }) => (
-          <Octicons name="rows" size={size} color={theme.colors.primary} />
-        )}
-        labelStyle={styles.labelText}
-        focused={
-          props.state.routes[props.state.index].name == "index" ? true : false
-        }
-        activeTintColor={theme.colors.blue}
-        inactiveTintColor={theme.colors.primary}
-      ></DrawerItem>
-      <DrawerItem
-        label={"Browse cards"}
-        onPress={() => router.push("/browse-cards")}
-        icon={({ size }) => (
-          <Octicons name="versions" size={size} color={theme.colors.primary} />
-        )}
-        labelStyle={styles.labelText}
-        focused={
-          props.state.routes[props.state.index].name == "browse-cards"
-            ? true
-            : false
-        }
-        activeTintColor={theme.colors.blue}
-        inactiveTintColor={theme.colors.primary}
-      ></DrawerItem>
-      <DrawerItem
-        label={"Settings"}
-        onPress={() => router.push("/general-settings")}
-        icon={({ size }) => (
-          <Octicons name="gear" size={size} color={theme.colors.primary} />
-        )}
-        labelStyle={styles.labelText}
-        focused={
-          props.state.routes[props.state.index].name == "general-settings"
-            ? true
-            : false
-        }
-        activeTintColor={theme.colors.blue}
-        inactiveTintColor={theme.colors.primary}
-      ></DrawerItem>
+        <View style={styles.separator}></View>
+        <DrawerItem
+          label={"Decks"}
+          onPress={() => router.push("/")}
+          icon={({ size }) => (
+            <Octicons name="rows" size={size} color={theme.colors.primary} />
+          )}
+          labelStyle={styles.labelText}
+          focused={
+            props.state.routes[props.state.index].name == "index" ? true : false
+          }
+          activeTintColor={theme.colors.blue}
+          inactiveTintColor={theme.colors.primary}
+        ></DrawerItem>
+        <DrawerItem
+          label={"Browse cards"}
+          onPress={() => router.push("/browse-cards")}
+          icon={({ size }) => (
+            <Octicons
+              name="versions"
+              size={size}
+              color={theme.colors.primary}
+            />
+          )}
+          labelStyle={styles.labelText}
+          focused={
+            props.state.routes[props.state.index].name == "browse-cards"
+              ? true
+              : false
+          }
+          activeTintColor={theme.colors.blue}
+          inactiveTintColor={theme.colors.primary}
+        ></DrawerItem>
+        <DrawerItem
+          label={"Settings"}
+          onPress={() => router.push("/general-settings")}
+          icon={({ size }) => (
+            <Octicons name="gear" size={size} color={theme.colors.primary} />
+          )}
+          labelStyle={styles.labelText}
+          focused={
+            props.state.routes[props.state.index].name == "general-settings"
+              ? true
+              : false
+          }
+          activeTintColor={theme.colors.blue}
+          inactiveTintColor={theme.colors.primary}
+        ></DrawerItem>
+      </DrawerContentScrollView>
       <View style={styles.emptyViewBottom}>
         <Pressable
           style={styles.logOutPressable}
@@ -84,7 +92,7 @@ export default function DrawerMenu(props: DrawerContentComponentProps) {
           <Text style={styles.labelText}>Sign out</Text>
         </Pressable>
       </View>
-    </DrawerContentScrollView>
+    </View>
   );
 }
 
@@ -119,11 +127,8 @@ const styles = StyleSheet.create({
     flexShrink: 1,
   },
   emptyViewBottom: {
-    marginLeft: 15,
-    width: "100%",
-    height: "100%",
-    flexGrow: 1,
-    justifyContent: "flex-end",
+    marginLeft: 25,
+    paddingBottom: 20,
   },
   logOutPressable: {
     flexDirection: "row",
