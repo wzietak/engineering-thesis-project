@@ -26,6 +26,7 @@ export default function LoginPage() {
   const [passwordError, setPasswordError] = useState<String | undefined>("");
 
   const [isPasswordVisible, setIsPasswordVisible] = useState(false);
+  const [isPasswordFieldEmpty, setIsPasswordFieldEmpty] = useState(true);
 
   const clearErrors = () => {
     setEmailError("");
@@ -127,15 +128,26 @@ export default function LoginPage() {
               }}
               secureTextEntry={!isPasswordVisible}
               value={password}
-              maxLength={128}
+              maxLength={64} //Maximum password length should be at least 64 characters as per OWASP
               onChangeText={(input) => {
                 setPassword(input);
                 if (passwordError) setPasswordError("");
+                if (input) setIsPasswordFieldEmpty(false);
+                else {
+                  setIsPasswordFieldEmpty(true);
+                  setIsPasswordVisible(false);
+                }
               }}
             />
             <Pressable
-              onPress={() => setIsPasswordVisible(!isPasswordVisible)}
+              onPress={() => {
+                if (isPasswordFieldEmpty) return null;
+                return setIsPasswordVisible(!isPasswordVisible);
+              }}
               hitSlop={25}
+              style={{
+                opacity: isPasswordFieldEmpty ? 0 : 1,
+              }}
             >
               {isPasswordVisible ? (
                 <Octicons name="eye-closed" size={24} color="black" />
