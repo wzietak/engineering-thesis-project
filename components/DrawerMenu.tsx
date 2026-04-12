@@ -10,13 +10,17 @@ import {
 import { router } from "expo-router";
 import { useContext } from "react";
 import { Pressable, StyleSheet, Text, View } from "react-native";
-import { SafeAreaInsetsContext, useSafeAreaInsets } from "react-native-safe-area-context";
+import {
+  useSafeAreaInsets
+} from "react-native-safe-area-context";
 
 export default function DrawerMenu(props: DrawerContentComponentProps) {
   const session = useContext(AuthContext);
   const insets = useSafeAreaInsets();
   return (
-    <View style={{ flex: 1, marginBottom: insets.bottom, marginTop: insets.top }}>
+    <View
+      style={{ flex: 1, marginBottom: insets.bottom, marginTop: insets.top }}
+    >
       <DrawerContentScrollView {...props}>
         <View style={styles.emptyView}>
           <Octicons name="person" size={30} color="black" />
@@ -24,7 +28,11 @@ export default function DrawerMenu(props: DrawerContentComponentProps) {
             <Text style={{ fontFamily: theme.fontFamily.bold, lineHeight: 15 }}>
               User
             </Text>
-            <Text style={styles.userNameText}>
+            <Text
+              style={styles.userNameText}
+              numberOfLines={1}
+              ellipsizeMode="tail"
+            >
               {session?.currentSession?.user.email}
             </Text>
           </View>
@@ -100,6 +108,7 @@ const styles = StyleSheet.create({
   emptyView: {
     marginBottom: 20,
     marginLeft: 15,
+    paddingRight: 15,
     height: 120,
     width: "100%",
     flexDirection: "row",
@@ -120,7 +129,6 @@ const styles = StyleSheet.create({
     fontFamily: theme.fontFamily.bold,
   },
   userNameText: {
-    paddingRight: 15,
     fontSize: theme.fontSize.x_sm - 2,
     color: theme.colors.primary,
     fontFamily: theme.fontFamily.regular,
@@ -136,6 +144,7 @@ const styles = StyleSheet.create({
     gap: 12,
   },
   userDetailsTextBox: {
+    flex: 1,
     flexDirection: "column",
   },
 });
