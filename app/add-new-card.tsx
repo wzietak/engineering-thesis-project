@@ -80,12 +80,17 @@ export default function AddNewCard() {
     setCardType(INITIAL_VALUES.cardType);
     setCardFront(INITIAL_VALUES.front);
     setCardBack(INITIAL_VALUES.back);
+    setUsageExample(INITIAL_VALUES.usageExample);
     setTags(INITIAL_VALUES.tags);
     setErrorText(INITIAL_ERRORS);
   };
 
   const onSavePress = async () => {
     let isFormValid = true;
+    const cardFrontCleaned = cardFront.trim().replaceAll(/\n{2,}/g, "\n");
+    const cardBackCleaned = cardBack.trim().replaceAll(/\n{2,}/g, "\n");
+    const usageExampleCleaned = usageExample.trim().replaceAll(/\n{2,}/g, "\n");
+
     if (deckId === null) {
       isFormValid = false;
       setErrorText((prevErrors) => ({
@@ -100,14 +105,14 @@ export default function AddNewCard() {
         cardTypeErr: "Card type selection is required.",
       }));
     }
-    if (!cardFront.trim()) {
+    if (!cardFrontCleaned) {
       isFormValid = false;
       setErrorText((prevErrors) => ({
         ...prevErrors,
         cardFrontErr: "Front of the card cannot be empty.",
       }));
     }
-    if (!cardBack.trim()) {
+    if (!cardBackCleaned) {
       isFormValid = false;
       setErrorText((prevErrors) => ({
         ...prevErrors,
@@ -122,9 +127,9 @@ export default function AddNewCard() {
     const cardData = {
       deckId: deckId,
       cardType: cardType,
-      front: cardFront,
-      back: cardBack,
-      usageExample: usageExample,
+      front: cardFrontCleaned,
+      back: cardBackCleaned,
+      usageExample: usageExampleCleaned,
       exampleSource: exampleSource,
       tags: [],
     };
@@ -225,8 +230,9 @@ export default function AddNewCard() {
                 : theme.colors.primary,
             },
           ]}
+          multiline={true}
           value={cardFront}
-          maxLength={50}
+          maxLength={100}
           onFocus={() => {
             setDeckDropdownOpen(false);
             setCardTypeDropdownOpen(false);
@@ -254,8 +260,9 @@ export default function AddNewCard() {
               borderColor: errorText.cardBackErr ? "red" : theme.colors.primary,
             },
           ]}
+          multiline={true}
           value={cardBack}
-          maxLength={50}
+          maxLength={100}
           onFocus={() => {
             setDeckDropdownOpen(false);
             setCardTypeDropdownOpen(false);
@@ -299,7 +306,7 @@ export default function AddNewCard() {
           ]}
           multiline={true}
           value={usageExample}
-          maxLength={100}
+          maxLength={150}
           onFocus={() => {
             setDeckDropdownOpen(false);
             setCardTypeDropdownOpen(false);
@@ -386,6 +393,7 @@ const styles = StyleSheet.create({
   textInput: {
     paddingHorizontal: 10,
     minHeight: 45,
+    maxHeight: 80,
     borderWidth: 1,
     borderRadius: theme.borderRadius.sm,
     borderColor: theme.colors.primary,
