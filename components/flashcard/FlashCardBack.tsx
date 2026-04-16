@@ -41,12 +41,12 @@ const styles = StyleSheet.create({
   backText: {
     fontFamily: theme.fontFamily.regular,
     fontSize: theme.fontSize.lg,
-    alignSelf: "center",
+    textAlign: "center",
   },
   backTextSentence: {
     paddingTop: 10,
     fontFamily: theme.fontFamily.italic,
     fontSize: theme.fontSize.sm,
-    alignSelf: "center",
+    textAlign: "center",
   },
 });
