@@ -38,12 +38,12 @@ export default function addNewDeck() {
     };
     try {
       await globalDeckRepository.createNewDeck(deckData);
+      router.back();
       if (Platform.OS === "android")
         ToastAndroid.show("New deck created!", ToastAndroid.SHORT);
     } catch (error) {
       console.error("Error during creating new deck", error);
     }
-    router.back();
   };
 
   return (
