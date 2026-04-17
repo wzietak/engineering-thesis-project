@@ -1,9 +1,12 @@
 import { theme } from "@/styles/theme";
 import { StyleSheet, Text, View } from "react-native";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 export default function NoDecksView() {
+  const insets = useSafeAreaInsets();
   return (
-    <View style={styles.container}>
+    <View style={[styles.container, {paddingBottom: insets.bottom+80
+    }]}>
       <Text style={styles.titleText}>No decks yet</Text>
       <Text style={styles.descriptionText}>
         Tap the "+" button in the bottom corner to create your first deck.
@@ -15,10 +18,9 @@ export default function NoDecksView() {
 const styles = StyleSheet.create({
   container: {
     paddingHorizontal: 20,
-    paddingTop: 150,
     flex: 1,
     alignItems: "center",
-    justifyContent: "flex-start",
+    justifyContent: "center",
     backgroundColor: theme.colors.background,
   },
   titleText: {
