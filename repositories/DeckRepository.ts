@@ -2,7 +2,7 @@ import { Deck } from "@/models/deck";
 
 export interface DeckRepository {
   createNewDeck: (deckData: Omit<Deck, "id">) => Promise<Deck>;
-  getDecks: () => Promise<Deck[]>;
+  getDecks: (userId: string) => Promise<Deck[]>;
   updateDeck: (deckData: Deck) => Promise<Deck>;
-  deleteDeck: (deckId: number) => Promise<boolean>;
+  deleteDeck: (deckId: string, userId: string) => Promise<void>;
 }
