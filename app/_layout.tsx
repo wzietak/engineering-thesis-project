@@ -1,5 +1,6 @@
 import AppHeader from "@/components/AppHeader";
 import AuthProvider, { AuthContext } from "@/contexts/AuthContext";
+import { DBContextProvider } from "@/contexts/DBContext";
 import {
   SplashScreen,
   Stack,
@@ -98,7 +99,9 @@ function ProtectionComponent() {
 export default function RootLayout() {
   return (
     <AuthProvider>
-      <ProtectionComponent></ProtectionComponent>
+      <DBContextProvider>
+        <ProtectionComponent></ProtectionComponent>
+      </DBContextProvider>
     </AuthProvider>
   );
 }
