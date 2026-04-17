@@ -3,17 +3,21 @@ import DeckComponent from "@/components/Deck";
 import LoadingScreen from "@/components/LoadingScreen";
 import NoDecksView from "@/components/NoDecksView";
 import Overlay from "@/components/Overlay";
+import { AuthContext } from "@/contexts/AuthContext";
+import { DBContext } from "@/contexts/DBContext";
 import { Deck } from "@/models/deck";
 import { globalDeckRepository } from "@/repositories/globalDeckRepository";
 import { theme } from "@/styles/theme";
 import { useFocusEffect, useRouter } from "expo-router";
-import { useCallback, useState } from "react";
+import { useCallback, useContext, useState } from "react";
 import { FlatList, StyleSheet, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 export default function mainScreen() {
   const insets = useSafeAreaInsets();
   const router = useRouter();
+  const session = useContext(AuthContext);
+  const DBconnection = useContext(DBContext);
   const [buttonVisible, setButtonVisible] = useState<boolean>(false);
   const [decks, setDecks] = useState<Deck[]>([]);
   const [isLoading, setIsLoading] = useState<boolean>(true);
@@ -21,19 +25,23 @@ export default function mainScreen() {
   useFocusEffect(
     useCallback(() => {
       setIsLoading(true);
-      globalDeckRepository
-        .getDecks()
-        .then((fetchedDecks) => {
-          setDecks([...fetchedDecks]);
-        })
-        .catch((error) => {
-          console.error("Error during loading decks from database.", error);
-        })
-        .finally(() => {
-          setIsLoading(false);
-        });
+      if (DBconnection.isReady) {
+        globalDeckRepository
+          .getDecks(session?.currentSession?.user.id as string)
+          .then((fetchedDecks) => {
+            setDecks([...(fetchedDecks || [])]);
+          })
+          .catch((error) => {
+            console.error(error);
+          })
+          .finally(() => {
+            setIsLoading(false);
+          });
+      } else{
+        return;
+      }
       return () => setButtonVisible(false);
-    }, []),
+    }, [DBconnection.isReady]),
   );
 
   return (
