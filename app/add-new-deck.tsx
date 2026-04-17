@@ -1,9 +1,10 @@
 import ConfirmationButton from "@/components/buttons/ConfirmationButton";
+import { AuthContext } from "@/contexts/AuthContext";
 import { DECK_LANGUAGES } from "@/models/deckLanguages";
 import { globalDeckRepository } from "@/repositories/globalDeckRepository";
 import { theme } from "@/styles/theme";
 import { router } from "expo-router";
-import { useState } from "react";
+import { useContext, useState } from "react";
 import {
   Keyboard,
   Platform,
@@ -19,6 +20,7 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 export default function addNewDeck() {
   const insets = useSafeAreaInsets();
+  const session = useContext(AuthContext);
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const [errorText, setErrorText] = useState("");
 
@@ -35,6 +37,7 @@ export default function addNewDeck() {
     const deckData = {
       name: deckName.trim(),
       language: selectedLanguage,
+      user_id: session?.currentSession?.user.id as string
     };
     try {
       await globalDeckRepository.createNewDeck(deckData);
