@@ -37,15 +37,17 @@ export default function addNewDeck() {
     const deckData = {
       name: deckName.trim(),
       language: selectedLanguage,
-      user_id: session?.currentSession?.user.id as string
+      user_id: session?.currentSession?.user.id as string,
     };
     try {
       await globalDeckRepository.createNewDeck(deckData);
       router.back();
       if (Platform.OS === "android")
         ToastAndroid.show("New deck created!", ToastAndroid.SHORT);
-    } catch (error) {
-      console.error("Error during creating new deck", error);
+    } catch (error: any) {
+      if (error.message === "DECK_NAME_ALREADY EXISTS") {
+        setErrorText("A deck with this name already exists.");
+      }
     }
   };
 
