@@ -7,7 +7,8 @@ import { DeckRepository } from "./DeckRepository";
 interface DbDeckRow {
   id: string;
   name: string;
-  language?: string;
+  source_language?: string;
+  target_language?: string;
   user_id: string;
   created_at: string;
   updated_at: string;
@@ -16,6 +17,7 @@ interface DbDeckRow {
 }
 
 export class SqliteDeckRepository implements DeckRepository {
+  
   public async createNewDeck(
     deckData: Omit<
       Deck,
@@ -33,11 +35,12 @@ export class SqliteDeckRepository implements DeckRepository {
 
     try {
       await db.runAsync(
-        "INSERT INTO decks VALUES($id, $name, $language, $user_id, $created_at, $updated_at, $is_synced, $is_deleted);",
+        "INSERT INTO decks VALUES($id, $name, $source_language, $target_language, $user_id, $created_at, $updated_at, $is_synced, $is_deleted);",
         {
           $id: newDeck.id,
           $name: newDeck.name,
-          $language: newDeck.language ?? null,
+          $source_language: newDeck.source_language ?? null,
+          $target_language: newDeck.target_language ?? null,
           $user_id: newDeck.user_id,
           $created_at: newDeck.created_at,
           $updated_at: newDeck.updated_at,
@@ -67,7 +70,8 @@ export class SqliteDeckRepository implements DeckRepository {
     return userDecks.map((row) => ({
       id: row.id,
       name: row.name,
-      language: row.language,
+      source_language: row.source_language,
+      target_language: row.target_language,
       user_id: row.user_id,
       created_at: row.created_at,
       updated_at: row.updated_at,
@@ -78,11 +82,12 @@ export class SqliteDeckRepository implements DeckRepository {
 
   public async updateDeck(deckData: Deck): Promise<Deck> {
     const result = await db.runAsync(
-      "UPDATE decks SET name = $name, language = $language, updated_at = $updated_at, is_synced = $is_synced WHERE id = $id AND user_id = $user_id",
+      "UPDATE decks SET name = $name, source_language = $source_language, target_language = $target_language, updated_at = $updated_at, is_synced = $is_synced WHERE id = $id AND user_id = $user_id",
       {
         $id: deckData.id,
         $name: deckData.name,
-        $language: deckData.language ?? null,
+        $target_language: deckData.target_language ?? null,
+        $source_language: deckData.source_language ?? null,
         $updated_at: new Date().toISOString(),
         $is_synced: 0,
         $user_id: deckData.user_id,
