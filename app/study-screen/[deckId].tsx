@@ -1,16 +1,19 @@
 import EmptyDeckView from "@/components/EmptyDeckView";
 import FlashCardContainer from "@/components/flashcard/FlashCardContainer";
 import LoadingScreen from "@/components/LoadingScreen";
+import { AuthContext } from "@/contexts/AuthContext";
 import { Card } from "@/models/card";
 import { globalCardRepository } from "@/repositories/globalCardRepository";
 import { router, useLocalSearchParams } from "expo-router";
-import { useEffect, useState } from "react";
+import { useContext, useEffect, useState } from "react";
 
 export default function studyScreen() {
   const [cardsForToday, setCardsForToday] = useState<Card[]>([]);
   const [currentCardIndex, setCurrentCardIndex] = useState<number>(0);
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const { deckId } = useLocalSearchParams<{ deckId: string }>();
+
+  const session = useContext(AuthContext);
 
   const increaseIndex = () => {
     if (currentCardIndex < cardsForToday.length - 1) {
@@ -23,9 +26,9 @@ export default function studyScreen() {
   useEffect(() => {
     const prepareFlashCards = async () => {
       try {
-        await globalCardRepository.getCards().then((cards) => {
+        await globalCardRepository.getCards(session?.currentSession?.user.id as string, deckId).then((cards) => {
           const filteredCards = cards.filter(
-            (card) => card.deckId === Number(deckId),
+            (card) => card.deck_id === deckId,
           );
           setCardsForToday(filteredCards);
         });
