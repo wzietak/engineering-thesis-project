@@ -1,4 +1,5 @@
 import ConfirmationButton from "@/components/buttons/ConfirmationButton";
+import { AuthContext } from "@/contexts/AuthContext";
 import { ExampleSource } from "@/models/card";
 import { CARD_TYPE_OPTIONS } from "@/models/cardTypes";
 import { globalCardRepository } from "@/repositories/globalCardRepository";
@@ -6,7 +7,7 @@ import { globalDeckRepository } from "@/repositories/globalDeckRepository";
 import { theme } from "@/styles/theme";
 import SimpleLineIcons from "@expo/vector-icons/SimpleLineIcons";
 import { useFocusEffect } from "expo-router";
-import { useCallback, useState } from "react";
+import { useCallback, useContext, useState } from "react";
 import {
   Keyboard,
   Platform,
@@ -52,7 +53,7 @@ export default function AddNewCard() {
   const [tagsDropdownOpen, setTagsDropdownOpen] = useState(false);
 
   const [cardType, setCardType] = useState(INITIAL_VALUES.cardType);
-  const [deckId, setDeckId] = useState<null | number>(INITIAL_VALUES.deckId);
+  const [deckId, setDeckId] = useState<null | string>(INITIAL_VALUES.deckId);
   const [tags, setTags] = useState(INITIAL_VALUES.tags);
   const [cardFront, setCardFront] = useState(INITIAL_VALUES.front);
   const [cardBack, setCardBack] = useState(INITIAL_VALUES.back);
@@ -62,16 +63,20 @@ export default function AddNewCard() {
   );
 
   const [items, setItems] = useState([{}]);
-  const [decks, setDecks] = useState<{ label: string; value: number }[]>([]);
+  const [decks, setDecks] = useState<{ label: string; value: string }[]>([]);
+
+  const session = useContext(AuthContext);
 
   useFocusEffect(
     useCallback(() => {
-      globalDeckRepository.getDecks().then((decks) => {
-        const formattedOptions = decks.map((deck) => {
-          return { label: deck.name, value: deck.id };
+      globalDeckRepository
+        .getDecks(session?.currentSession?.user.id as string)
+        .then((decks) => {
+          const formattedOptions = decks.map((deck) => {
+            return { label: deck.name, value: deck.id };
+          });
+          setDecks(formattedOptions);
         });
-        setDecks(formattedOptions);
-      });
     }, []),
   );
 
@@ -125,12 +130,13 @@ export default function AddNewCard() {
     }
 
     const cardData = {
-      deckId: deckId,
-      cardType: cardType,
+      deck_id: deckId,
+      card_type: cardType,
       front: cardFrontCleaned,
       back: cardBackCleaned,
-      usageExample: usageExampleCleaned,
-      exampleSource: exampleSource,
+      example_sentence: usageExampleCleaned,
+      example_source: exampleSource,
+      user_id: session?.currentSession?.user.id as string,
       tags: [],
     };
     try {
