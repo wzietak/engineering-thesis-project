@@ -1,5 +1,6 @@
 import AppHeader from "@/components/AppHeader";
 import AuthProvider, { AuthContext } from "@/contexts/AuthContext";
+import ColorThemeProvider from "@/contexts/ColorThemeContext";
 import { DBContextProvider } from "@/contexts/DBContext";
 import {
   SplashScreen,
@@ -98,11 +99,13 @@ function ProtectionComponent() {
 
 export default function RootLayout() {
   return (
-    <AuthProvider>
-      <DBContextProvider>
-        <ProtectionComponent></ProtectionComponent>
-      </DBContextProvider>
-    </AuthProvider>
+    <ColorThemeProvider>
+      <AuthProvider>
+        <DBContextProvider>
+          <ProtectionComponent></ProtectionComponent>
+        </DBContextProvider>
+      </AuthProvider>
+    </ColorThemeProvider>
   );
 }
 
