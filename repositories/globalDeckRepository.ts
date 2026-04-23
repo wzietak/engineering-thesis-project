@@ -1,4 +1,3 @@
-import { MockDeckRepository } from "./MockDeckRepository";
+import { SqliteDeckRepository } from "./SqliteDeckRepository";
 
-
-export const globalDeckRepository = new MockDeckRepository();
+export const globalDeckRepository = new SqliteDeckRepository();

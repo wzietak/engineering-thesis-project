@@ -1,30 +1,47 @@
 import FloatingButton from "@/components/buttons/FloatingButton";
 import DeckComponent from "@/components/Deck";
+import LoadingScreen from "@/components/LoadingScreen";
+import NoDecksView from "@/components/NoDecksView";
 import Overlay from "@/components/Overlay";
+import { AuthContext } from "@/contexts/AuthContext";
+import { DBContext } from "@/contexts/DBContext";
 import { Deck } from "@/models/deck";
 import { globalDeckRepository } from "@/repositories/globalDeckRepository";
 import { theme } from "@/styles/theme";
 import { useFocusEffect, useRouter } from "expo-router";
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useContext, useState } from "react";
 import { FlatList, StyleSheet, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 export default function mainScreen() {
   const insets = useSafeAreaInsets();
   const router = useRouter();
+  const session = useContext(AuthContext);
+  const DBconnection = useContext(DBContext);
   const [buttonVisible, setButtonVisible] = useState<boolean>(false);
   const [decks, setDecks] = useState<Deck[]>([]);
-  const [loading, setIsLoading] = useState<boolean>(true);
+  const [isLoading, setIsLoading] = useState<boolean>(true);
 
   useFocusEffect(
     useCallback(() => {
-      globalDeckRepository.getDecks().then((decks) => {
-        setDecks(decks);
-      }).catch((error) => {
-        console.error("Error during loading decks from database.",error)
-      })
+      setIsLoading(true);
+      if (DBconnection.isReady) {
+        globalDeckRepository
+          .getDecks(session?.currentSession?.user.id as string)
+          .then((fetchedDecks) => {
+            setDecks([...(fetchedDecks || [])]);
+          })
+          .catch((error) => {
+            console.error(error);
+          })
+          .finally(() => {
+            setIsLoading(false);
+          });
+      } else{
+        return;
+      }
       return () => setButtonVisible(false);
-    }, []),
+    }, [DBconnection.isReady]),
   );
 
   return (
@@ -36,34 +53,42 @@ export default function mainScreen() {
           paddingBottom: insets.bottom,
         },
       ]}
+      key={decks.length}
     >
-      <FlatList
-        contentContainerStyle={styles.scrollContainer}
-        data={decks}
-        keyExtractor={(item) => item.id.toString()}
-        renderItem={({ item, index }) => {
-          const colorPalette = [
-            theme.colors.blue,
-            theme.colors.pink,
-            theme.colors.lightblue,
-            theme.colors.green,
-            theme.colors.lightpurple,
-          ];
-          return (
-            <DeckComponent
-              label={item.name}
-              cardsDue={0}
-              backgroundColor={colorPalette[index % colorPalette.length]}
-              onPress={() => {
-                router.push({
-                  pathname: "/study-screen/[deckId]",
-                  params: { deckId: item.id },
-                });
-              }}
-            ></DeckComponent>
-          );
-        }}
-      ></FlatList>
+      {isLoading ? (
+        <LoadingScreen></LoadingScreen>
+      ) : decks.length === 0 ? (
+        <NoDecksView></NoDecksView>
+      ) : (
+        <FlatList
+          contentContainerStyle={styles.scrollContainer}
+          data={decks}
+          keyExtractor={(item) => item.id.toString()}
+          renderItem={({ item, index }) => {
+            const colorPalette = [
+              theme.colors.blue,
+              theme.colors.pink,
+              theme.colors.lightblue,
+              theme.colors.green,
+              theme.colors.lightpurple,
+            ];
+            return (
+              <DeckComponent
+                label={item.name}
+                cardsDue={0}
+                backgroundColor={colorPalette[index % colorPalette.length]}
+                onPress={() => {
+                  router.push({
+                    pathname: "/study-screen/[deckId]",
+                    params: { deckId: item.id },
+                  });
+                }}
+              ></DeckComponent>
+            );
+          }}
+        ></FlatList>
+      )}
+
       <Overlay
         visible={buttonVisible}
         onPress={() => setButtonVisible(false)}
@@ -96,7 +121,6 @@ const styles = StyleSheet.create({
     width: "100%",
     flex: 1,
     flexDirection: "column",
-    alignItems: "center",
   },
   scrollContainer: {
     paddingHorizontal: 20,

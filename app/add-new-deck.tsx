@@ -1,15 +1,18 @@
 import ConfirmationButton from "@/components/buttons/ConfirmationButton";
+import { AuthContext } from "@/contexts/AuthContext";
 import { DECK_LANGUAGES } from "@/models/deckLanguages";
 import { globalDeckRepository } from "@/repositories/globalDeckRepository";
 import { theme } from "@/styles/theme";
 import { router } from "expo-router";
-import { useState } from "react";
+import { useContext, useState } from "react";
 import {
   Keyboard,
+  Platform,
   ScrollView,
   StyleSheet,
   Text,
   TextInput,
+  ToastAndroid,
   View,
 } from "react-native";
 import DropDownPicker from "react-native-dropdown-picker";
@@ -17,6 +20,7 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 export default function addNewDeck() {
   const insets = useSafeAreaInsets();
+  const session = useContext(AuthContext);
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const [errorText, setErrorText] = useState("");
 
@@ -32,14 +36,20 @@ export default function addNewDeck() {
     }
     const deckData = {
       name: deckName.trim(),
-      language: selectedLanguage,
+      source_language: "",
+      target_language: selectedLanguage,
+      user_id: session?.currentSession?.user.id as string,
     };
     try {
       await globalDeckRepository.createNewDeck(deckData);
-    } catch (error) {
-      console.error("Error during creating new deck", error);
+      router.back();
+      if (Platform.OS === "android")
+        ToastAndroid.show("New deck created!", ToastAndroid.SHORT);
+    } catch (error: any) {
+      if (error.message === "DECK_NAME_ALREADY EXISTS") {
+        setErrorText("A deck with this name already exists.");
+      }
     }
-    router.back();
   };
 
   return (

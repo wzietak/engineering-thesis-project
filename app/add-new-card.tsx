@@ -1,4 +1,5 @@
 import ConfirmationButton from "@/components/buttons/ConfirmationButton";
+import { AuthContext } from "@/contexts/AuthContext";
 import { ExampleSource } from "@/models/card";
 import { CARD_TYPE_OPTIONS } from "@/models/cardTypes";
 import { globalCardRepository } from "@/repositories/globalCardRepository";
@@ -6,14 +7,16 @@ import { globalDeckRepository } from "@/repositories/globalDeckRepository";
 import { theme } from "@/styles/theme";
 import SimpleLineIcons from "@expo/vector-icons/SimpleLineIcons";
 import { useFocusEffect } from "expo-router";
-import { useCallback, useState } from "react";
+import { useCallback, useContext, useState } from "react";
 import {
   Keyboard,
+  Platform,
   Pressable,
   ScrollView,
   StyleSheet,
   Text,
   TextInput,
+  ToastAndroid,
   View,
 } from "react-native";
 import DropDownPicker from "react-native-dropdown-picker";
@@ -50,7 +53,7 @@ export default function AddNewCard() {
   const [tagsDropdownOpen, setTagsDropdownOpen] = useState(false);
 
   const [cardType, setCardType] = useState(INITIAL_VALUES.cardType);
-  const [deckId, setDeckId] = useState<null | number>(INITIAL_VALUES.deckId);
+  const [deckId, setDeckId] = useState<null | string>(INITIAL_VALUES.deckId);
   const [tags, setTags] = useState(INITIAL_VALUES.tags);
   const [cardFront, setCardFront] = useState(INITIAL_VALUES.front);
   const [cardBack, setCardBack] = useState(INITIAL_VALUES.back);
@@ -60,16 +63,20 @@ export default function AddNewCard() {
   );
 
   const [items, setItems] = useState([{}]);
-  const [decks, setDecks] = useState<{ label: string; value: number }[]>([]);
+  const [decks, setDecks] = useState<{ label: string; value: string }[]>([]);
+
+  const session = useContext(AuthContext);
 
   useFocusEffect(
     useCallback(() => {
-      globalDeckRepository.getDecks().then((decks) => {
-        const formattedOptions = decks.map((deck) => {
-          return { label: deck.name, value: deck.id };
+      globalDeckRepository
+        .getDecks(session?.currentSession?.user.id as string)
+        .then((decks) => {
+          const formattedOptions = decks.map((deck) => {
+            return { label: deck.name, value: deck.id };
+          });
+          setDecks(formattedOptions);
         });
-        setDecks(formattedOptions);
-      });
     }, []),
   );
 
@@ -78,18 +85,17 @@ export default function AddNewCard() {
     setCardType(INITIAL_VALUES.cardType);
     setCardFront(INITIAL_VALUES.front);
     setCardBack(INITIAL_VALUES.back);
+    setUsageExample(INITIAL_VALUES.usageExample);
     setTags(INITIAL_VALUES.tags);
     setErrorText(INITIAL_ERRORS);
   };
 
   const onSavePress = async () => {
     let isFormValid = true;
-    let currentErrors = {
-      deckNameErr: "",
-      cardTypeErr: "",
-      cardFrontErr: "",
-      cardBackErr: "",
-    };
+    const cardFrontCleaned = cardFront.trim().replaceAll(/\n{2,}/g, "\n");
+    const cardBackCleaned = cardBack.trim().replaceAll(/\n{2,}/g, "\n");
+    const usageExampleCleaned = usageExample.trim().replaceAll(/\n{2,}/g, "\n");
+
     if (deckId === null) {
       isFormValid = false;
       setErrorText((prevErrors) => ({
@@ -104,14 +110,14 @@ export default function AddNewCard() {
         cardTypeErr: "Card type selection is required.",
       }));
     }
-    if (!cardFront.trim()) {
+    if (!cardFrontCleaned) {
       isFormValid = false;
       setErrorText((prevErrors) => ({
         ...prevErrors,
         cardFrontErr: "Front of the card cannot be empty.",
       }));
     }
-    if (!cardBack.trim()) {
+    if (!cardBackCleaned) {
       isFormValid = false;
       setErrorText((prevErrors) => ({
         ...prevErrors,
@@ -124,17 +130,20 @@ export default function AddNewCard() {
     }
 
     const cardData = {
-      deckId: deckId,
-      cardType: cardType,
-      front: cardFront,
-      back: cardBack,
-      usageExample: usageExample,
-      exampleSource: exampleSource,
+      deck_id: deckId,
+      card_type: cardType,
+      front: cardFrontCleaned,
+      back: cardBackCleaned,
+      example_sentence: usageExampleCleaned,
+      example_source: exampleSource,
+      user_id: session?.currentSession?.user.id as string,
       tags: [],
     };
     try {
       await globalCardRepository.createNewCard(cardData);
       setDefaultStates();
+      if (Platform.OS === "android")
+        ToastAndroid.show("Card added!", ToastAndroid.SHORT);
     } catch (error) {
       console.error("Error during creating new card", error);
     }
@@ -213,7 +222,7 @@ export default function AddNewCard() {
         />
         {errorText.cardTypeErr ? (
           <Text style={[styles.optionalText, { color: "red", paddingTop: 5 }]}>
-            {errorText.deckNameErr}
+            {errorText.cardTypeErr}
           </Text>
         ) : null}
 
@@ -227,7 +236,9 @@ export default function AddNewCard() {
                 : theme.colors.primary,
             },
           ]}
+          multiline={true}
           value={cardFront}
+          maxLength={100}
           onFocus={() => {
             setDeckDropdownOpen(false);
             setCardTypeDropdownOpen(false);
@@ -255,7 +266,9 @@ export default function AddNewCard() {
               borderColor: errorText.cardBackErr ? "red" : theme.colors.primary,
             },
           ]}
+          multiline={true}
           value={cardBack}
+          maxLength={100}
           onFocus={() => {
             setDeckDropdownOpen(false);
             setCardTypeDropdownOpen(false);
@@ -299,6 +312,7 @@ export default function AddNewCard() {
           ]}
           multiline={true}
           value={usageExample}
+          maxLength={150}
           onFocus={() => {
             setDeckDropdownOpen(false);
             setCardTypeDropdownOpen(false);
@@ -385,6 +399,7 @@ const styles = StyleSheet.create({
   textInput: {
     paddingHorizontal: 10,
     minHeight: 45,
+    maxHeight: 80,
     borderWidth: 1,
     borderRadius: theme.borderRadius.sm,
     borderColor: theme.colors.primary,

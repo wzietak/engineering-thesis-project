@@ -7,6 +7,7 @@ enum DeckLanguage {
   GERMAN = "German",
   SPANISH = "Spanish",
   ITALIAN = "Italian",
+  POLISH = "Polish"
 }
 /* Mapping array for dropdown components */
 export const DECK_LANGUAGES = [
@@ -14,4 +15,5 @@ export const DECK_LANGUAGES = [
   { label: "German", value: DeckLanguage.GERMAN },
   { label: "Spanish", value: DeckLanguage.SPANISH },
   { label: "Italian", value: DeckLanguage.ITALIAN },
+  { label: "Polish", value: DeckLanguage.POLISH },
 ];

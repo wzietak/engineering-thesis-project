@@ -27,7 +27,7 @@ export default function FlashCardContainer({ cardData, onNextCard }: Props) {
       {isReversed && (
         <FlashCardBack
           backText={cardData.back}
-          exampleSentence={cardData.usageExample}
+          exampleSentence={cardData.example_sentence as string}
         ></FlashCardBack>
       )}
       {!isReversed && (

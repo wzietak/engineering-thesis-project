@@ -25,5 +25,6 @@ const styles = StyleSheet.create({
   frontText: {
     fontFamily: theme.fontFamily.regular,
     fontSize: theme.fontSize.lg,
+    textAlign: 'center'
   },
 });

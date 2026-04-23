@@ -1,11 +1,26 @@
 import AppHeader from "@/components/AppHeader";
-import { Stack, useRouter } from "expo-router";
-import { StyleSheet, View } from "react-native";
+import AuthProvider, { AuthContext } from "@/contexts/AuthContext";
+import ColorThemeProvider from "@/contexts/ColorThemeContext";
+import { DBContextProvider } from "@/contexts/DBContext";
+import {
+  SplashScreen,
+  Stack,
+  useRootNavigationState,
+  useRouter,
+  useSegments,
+} from "expo-router";
+import { useContext, useEffect } from "react";
+import { Platform, StyleSheet, ToastAndroid, View } from "react-native";
 
-export default function RootLayout() {
+SplashScreen.preventAutoHideAsync();
+
+function ProtectionComponent() {
   const router = useRouter();
+  const session = useContext(AuthContext);
+  const currScreen = useSegments();
+  const rootNavigationState = useRootNavigationState();
 
-  //Extracted header into a constant to apply DRY principle - prevents duplicating the compoent on every Stack.Screen
+  //Extracted header into a constant to apply DRY principle - prevents duplicating the component on every Stack.Screen
   const headerStyle = {
     header: (props: any) => (
       <AppHeader
@@ -18,6 +33,33 @@ export default function RootLayout() {
       ></AppHeader>
     ),
   };
+
+  useEffect(() => {
+    if (!rootNavigationState?.key || !currScreen || !session?.isInitialized) {
+      return;
+    }
+    const unprotectedScreens = ["login", "+not-found"];
+    console.log(currScreen);
+    if (
+      !session.currentSession &&
+      !unprotectedScreens.includes(currScreen[0])
+    ) {
+      router.replace("/login");
+      if (Platform.OS === "android")
+        ToastAndroid.show("You've been signed out.", ToastAndroid.SHORT);
+    } else if (session.currentSession && currScreen[0] === "login") {
+      router.replace("/(drawer)");
+    }
+  }, [session, currScreen, rootNavigationState?.key]);
+
+  useEffect(() => {
+    if (
+      (session?.currentSession && currScreen[0] == "login") ||
+      (session?.currentSession && currScreen[0] === "(drawer)")
+    ) {
+      SplashScreen.hide();
+    }
+  }, [session?.currentSession]);
 
   return (
     <View style={styles.mainContainer}>
@@ -52,6 +94,18 @@ export default function RootLayout() {
         ></Stack.Screen>
       </Stack>
     </View>
+  );
+}
+
+export default function RootLayout() {
+  return (
+    <ColorThemeProvider>
+      <AuthProvider>
+        <DBContextProvider>
+          <ProtectionComponent></ProtectionComponent>
+        </DBContextProvider>
+      </AuthProvider>
+    </ColorThemeProvider>
   );
 }
 

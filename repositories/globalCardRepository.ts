@@ -1,3 +1,3 @@
-import { MockCardRepository } from "./MockCardRepository";
+import { SqliteCardRepository } from "./SqliteCardRepository";
 
-export const globalCardRepository = new MockCardRepository();
+export const globalCardRepository = new SqliteCardRepository();
