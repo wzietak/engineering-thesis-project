@@ -3,7 +3,8 @@
 CREATE TABLE IF NOT EXISTS decks (
     id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
     name text NOT NULL,
-    language text,
+    source_language text,
+    target_language text,
     user_id uuid NOT NULL,
     created_at timestamp NOT NULL DEFAULT now(),
     updated_at timestamp NOT NULL DEFAULT now(),
@@ -33,7 +34,8 @@ CREATE TABLE IF NOT EXISTS cards (
 CREATE TABLE IF NOT EXISTS decks (
     id text PRIMARY KEY,
     name text NOT NULL,
-    language text,
+    source_language text,
+    target_language text,
     user_id text NOT NULL,
     created_at text NOT NULL,
     updated_at text NOT NULL,
