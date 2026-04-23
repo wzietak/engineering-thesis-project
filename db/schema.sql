@@ -17,6 +17,7 @@ CREATE TABLE IF NOT EXISTS decks (
 CREATE TABLE IF NOT EXISTS cards (
     id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
     deck_id uuid NOT NULL,
+    card_type text NOT NULL,
     front text NOT NULL,
     back text NOT NULL,
     example_sentence text,
@@ -47,6 +48,7 @@ CREATE TABLE IF NOT EXISTS decks (
 CREATE TABLE IF NOT EXISTS cards (
     id text PRIMARY KEY,
     deck_id text NOT NULL,
+    card_type text NOT NULL
     front text NOT NULL,
     back text NOT NULL,
     example_sentence text,

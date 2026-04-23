@@ -11,7 +11,8 @@ export async function initDB() {
       await db.execAsync(`CREATE TABLE IF NOT EXISTS decks (
     id text PRIMARY KEY,
     name text NOT NULL,
-    language text,
+    source_language text,
+    target_language text,
     user_id text NOT NULL,
     created_at text NOT NULL,
     updated_at text NOT NULL,
@@ -24,6 +25,7 @@ export async function initDB() {
       await db.execAsync(`CREATE TABLE IF NOT EXISTS cards (
     id text PRIMARY KEY,
     deck_id text NOT NULL,
+    card_type text NOT NULL,
     front text NOT NULL,
     back text NOT NULL,
     example_sentence text,
@@ -36,6 +38,7 @@ export async function initDB() {
     FOREIGN KEY(deck_id) REFERENCES decks(id) ON DELETE CASCADE
 );`);
 
+        console.log("DB created!");
     return true;
   } catch (error) {
     console.log(error);
