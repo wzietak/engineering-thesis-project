@@ -13,5 +13,5 @@ export interface CardRepository {
   createNewCard: (cardData: Omit<Card, "id">) => Promise<Card>;
   getCards: (userId:string, deckId:string, filters?: Filters) => Promise<Card[]>;
   updateCard: (cardData: Card) => Promise<Card>;
-  deleteCard: (cardId: number) => Promise<boolean>;
+  deleteCard: (cardId: string, userId: string) => Promise<void>;
 }
