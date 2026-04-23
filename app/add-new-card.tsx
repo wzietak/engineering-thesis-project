@@ -222,7 +222,7 @@ export default function AddNewCard() {
         />
         {errorText.cardTypeErr ? (
           <Text style={[styles.optionalText, { color: "red", paddingTop: 5 }]}>
-            {errorText.deckNameErr}
+            {errorText.cardTypeErr}
           </Text>
         ) : null}
 
