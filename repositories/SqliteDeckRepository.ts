@@ -31,20 +31,31 @@ export class SqliteDeckRepository implements DeckRepository {
       is_deleted: false,
     };
 
-    const result = await db.runAsync(
-      "INSERT INTO decks VALUES($id, $name, $language, $user_id, $created_at, $updated_at, $is_synced, $is_deleted);",
-      {
-        $id: newDeck.id,
-        $name: newDeck.name,
-        $language: newDeck.language ?? null,
-        $user_id: newDeck.user_id,
-        $created_at: newDeck.created_at,
-        $updated_at: newDeck.updated_at,
-        $is_synced: newDeck.is_synced ? 1 : 0,
-        $is_deleted: newDeck.is_deleted ? 1 : 0,
-      },
-    );
-    return newDeck;
+    try {
+      await db.runAsync(
+        "INSERT INTO decks VALUES($id, $name, $language, $user_id, $created_at, $updated_at, $is_synced, $is_deleted);",
+        {
+          $id: newDeck.id,
+          $name: newDeck.name,
+          $language: newDeck.language ?? null,
+          $user_id: newDeck.user_id,
+          $created_at: newDeck.created_at,
+          $updated_at: newDeck.updated_at,
+          $is_synced: newDeck.is_synced ? 1 : 0,
+          $is_deleted: newDeck.is_deleted ? 1 : 0,
+        },
+      );
+      return newDeck;
+    } catch (error: any) {
+      if (
+        error.message &&
+        error.message.includes(
+          "UNIQUE constraint failed: decks.name, decks.user_id",
+        )
+      )
+        throw new Error("DECK_NAME_ALREADY EXISTS");
+      throw error;
+    }
   }
 
   public async getDecks(userId: string): Promise<Deck[]> {
