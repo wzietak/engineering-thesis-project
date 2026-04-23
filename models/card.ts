@@ -7,7 +7,7 @@ export interface Card {
   front: string;
   back: string;
   usageExample?: string;
-  exampleSource?: ExampleSource;
+  exampleSource: ExampleSource;
   user_id: string;
   created_at: string;
   updated_at: string;
