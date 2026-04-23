@@ -36,7 +36,8 @@ export default function addNewDeck() {
     }
     const deckData = {
       name: deckName.trim(),
-      language: selectedLanguage,
+      source_language: "",
+      target_language: selectedLanguage,
       user_id: session?.currentSession?.user.id as string,
     };
     try {
