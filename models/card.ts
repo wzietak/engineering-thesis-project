@@ -3,11 +3,11 @@ export type ExampleSource = "user" | "ai";
 export interface Card {
   id: string;
   deck_id: string;
-  cardType: string;
+  card_type: string;
   front: string;
   back: string;
-  usageExample?: string;
-  exampleSource: ExampleSource;
+  example_sentence?: string;
+  example_source: ExampleSource;
   user_id: string;
   created_at: string;
   updated_at: string;
