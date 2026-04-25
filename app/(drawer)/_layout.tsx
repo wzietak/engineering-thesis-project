@@ -1,6 +1,7 @@
 import AppHeader from "@/components/AppHeader";
 import DrawerMenu from "@/components/DrawerMenu";
 import MainOptions from "@/components/MainOptions";
+import { useAppTheme } from "@/contexts/ColorThemeContext";
 import { DrawerActions } from "@react-navigation/native";
 import Drawer from "expo-router/drawer";
 import { useState } from "react";
@@ -8,7 +9,7 @@ import { StyleSheet, View } from "react-native";
 
 export default function RootLayout() {
   const [optionsVisible, setOptionsVisible] = useState(false);
-
+  const { theme, preferredTheme } = useAppTheme();
   return (
     <View style={styles.mainContainer}>
       <Drawer
@@ -26,6 +27,7 @@ export default function RootLayout() {
               ></AppHeader>
             );
           },
+          drawerStyle: { backgroundColor: theme.colors.background },
         }}
       >
         <Drawer.Screen

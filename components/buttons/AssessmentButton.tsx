@@ -1,4 +1,5 @@
-import { theme } from "@/styles/theme";
+import { useAppTheme } from "@/contexts/ColorThemeContext";
+import { AppTheme, theme } from "@/styles/theme";
 import { Pressable, StyleSheet, Text, ViewStyle } from "react-native";
 
 type Props = {
@@ -8,6 +9,8 @@ type Props = {
 };
 
 export default function AssessmentButton({ style, buttonText, onPress }: Props) {
+  const { theme } = useAppTheme();
+    const styles = createStyles(theme);
   return (
     <Pressable style={[styles.buttonPressable, style]} onPress={onPress}>
       <Text style={styles.buttonText}>{buttonText}</Text>
@@ -15,7 +18,7 @@ export default function AssessmentButton({ style, buttonText, onPress }: Props) 
   );
 }
 
-const styles = StyleSheet.create({
+const createStyles = (theme: AppTheme) => StyleSheet.create({
   buttonPressable: {
     height: 60,
     marginHorizontal: 2,

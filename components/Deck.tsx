@@ -1,4 +1,5 @@
-import { theme } from "@/styles/theme";
+import { useAppTheme } from "@/contexts/ColorThemeContext";
+import { AppTheme, theme } from "@/styles/theme";
 import { Pressable, StyleSheet, Text, View, ViewStyle } from "react-native";
 
 type Props = {
@@ -18,6 +19,8 @@ export default function DeckComponent({
   onPress,
   onLongPress,
 }: Props) {
+  const { theme } = useAppTheme();
+  const styles = createStyles(theme);
   return (
     <View style={[styles.deckContainer, { backgroundColor }, style]}>
       <Pressable
@@ -32,30 +35,31 @@ export default function DeckComponent({
   );
 }
 
-const styles = StyleSheet.create({
-  deckContainer: {
-    marginVertical: 5,
-    flex: 1,
-    padding: 13,
-    minHeight: 120,
-    maxHeight: 140,
-    borderRadius: theme.borderRadius.sm,
-    flexDirection: "row",
-  },
-  deckPressable: {
-    width: "100%",
-    justifyContent: "space-between",
-  },
-  deckNameText: {
-    paddingLeft: 2,
-    color: "black",
-    fontSize: theme.fontSize.lg,
-    fontFamily: theme.fontFamily.bold,
-  },
-  deckTextCardsDue: {
-    color: "black",
-    fontSize: theme.fontSize.sm,
-    fontFamily: theme.fontFamily.bold,
-    alignSelf: "flex-end",
-  },
-});
+const createStyles = (theme: AppTheme) =>
+  StyleSheet.create({
+    deckContainer: {
+      marginVertical: 5,
+      flex: 1,
+      padding: 13,
+      minHeight: 120,
+      maxHeight: 140,
+      borderRadius: theme.borderRadius.sm,
+      flexDirection: "row",
+    },
+    deckPressable: {
+      width: "100%",
+      justifyContent: "space-between",
+    },
+    deckNameText: {
+      paddingLeft: 2,
+      color: "black",
+      fontSize: theme.fontSize.lg,
+      fontFamily: theme.fontFamily.bold,
+    },
+    deckTextCardsDue: {
+      color: "black",
+      fontSize: theme.fontSize.sm,
+      fontFamily: theme.fontFamily.bold,
+      alignSelf: "flex-end",
+    },
+  });

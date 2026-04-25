@@ -4,16 +4,18 @@ import LoadingScreen from "@/components/LoadingScreen";
 import NoDecksView from "@/components/NoDecksView";
 import Overlay from "@/components/Overlay";
 import { AuthContext } from "@/contexts/AuthContext";
+import { useAppTheme } from "@/contexts/ColorThemeContext";
 import { DBContext } from "@/contexts/DBContext";
 import { Deck } from "@/models/deck";
 import { globalDeckRepository } from "@/repositories/globalDeckRepository";
-import { theme } from "@/styles/theme";
 import { useFocusEffect, useRouter } from "expo-router";
 import { useCallback, useContext, useState } from "react";
 import { FlatList, StyleSheet, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 export default function mainScreen() {
+  const { theme } = useAppTheme();
+
   const insets = useSafeAreaInsets();
   const router = useRouter();
   const session = useContext(AuthContext);
@@ -37,7 +39,7 @@ export default function mainScreen() {
           .finally(() => {
             setIsLoading(false);
           });
-      } else{
+      } else {
         return;
       }
       return () => setButtonVisible(false);

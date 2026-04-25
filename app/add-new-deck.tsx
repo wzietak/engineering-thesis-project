@@ -1,8 +1,9 @@
 import ConfirmationButton from "@/components/buttons/ConfirmationButton";
 import { AuthContext } from "@/contexts/AuthContext";
+import { useAppTheme } from "@/contexts/ColorThemeContext";
 import { DECK_LANGUAGES } from "@/models/deckLanguages";
 import { globalDeckRepository } from "@/repositories/globalDeckRepository";
-import { theme } from "@/styles/theme";
+import { AppTheme } from "@/styles/theme";
 import { router } from "expo-router";
 import { useContext, useState } from "react";
 import {
@@ -20,6 +21,8 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 export default function addNewDeck() {
   const insets = useSafeAreaInsets();
+  const { theme } = useAppTheme();
+  const styles = createStyles(theme);
   const session = useContext(AuthContext);
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const [errorText, setErrorText] = useState("");
@@ -128,47 +131,48 @@ export default function addNewDeck() {
   );
 }
 
-const styles = StyleSheet.create({
-  container: {
-    width: "100%",
-    paddingHorizontal: 20,
-    flex: 1,
-    flexDirection: "column",
-    alignItems: "center",
-    backgroundColor: theme.colors.background,
-  },
-  dropdownTextContainer: {
-    paddingTop: 10,
-    flexDirection: "row",
-    alignSelf: "flex-start",
-    alignItems: "center",
-  },
-  formText: {
-    fontFamily: theme.fontFamily.bold,
-    fontSize: theme.fontSize.sm,
-    alignSelf: "flex-start",
-  },
-  optionalText: {
-    paddingHorizontal: 5,
-    fontFamily: theme.fontFamily.regular,
-    fontSize: theme.fontSize.x_sm,
-    color: theme.colors.primary_light,
-  },
-  dropdown: {
-    height: 45,
-    borderWidth: 1,
-    borderRadius: theme.borderRadius.sm,
-    borderColor: theme.colors.primary,
-    overflow: "hidden",
-    justifyContent: "center",
-  },
-  textInput: {
-    paddingHorizontal: 10,
-    minHeight: 45,
-    borderWidth: 1,
-    borderRadius: theme.borderRadius.sm,
-    borderColor: theme.colors.primary,
-    color: theme.colors.primary,
-    fontFamily: theme.fontFamily.regular,
-  },
-});
+const createStyles = (theme: AppTheme) =>
+  StyleSheet.create({
+    container: {
+      width: "100%",
+      paddingHorizontal: 20,
+      flex: 1,
+      flexDirection: "column",
+      alignItems: "center",
+      backgroundColor: theme.colors.background,
+    },
+    dropdownTextContainer: {
+      paddingTop: 10,
+      flexDirection: "row",
+      alignSelf: "flex-start",
+      alignItems: "center",
+    },
+    formText: {
+      fontFamily: theme.fontFamily.bold,
+      fontSize: theme.fontSize.sm,
+      alignSelf: "flex-start",
+    },
+    optionalText: {
+      paddingHorizontal: 5,
+      fontFamily: theme.fontFamily.regular,
+      fontSize: theme.fontSize.x_sm,
+      color: theme.colors.primary_light,
+    },
+    dropdown: {
+      height: 45,
+      borderWidth: 1,
+      borderRadius: theme.borderRadius.sm,
+      borderColor: theme.colors.primary,
+      overflow: "hidden",
+      justifyContent: "center",
+    },
+    textInput: {
+      paddingHorizontal: 10,
+      minHeight: 45,
+      borderWidth: 1,
+      borderRadius: theme.borderRadius.sm,
+      borderColor: theme.colors.primary,
+      color: theme.colors.primary,
+      fontFamily: theme.fontFamily.regular,
+    },
+  });

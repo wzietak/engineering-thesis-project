@@ -1,5 +1,6 @@
+import { useAppTheme } from "@/contexts/ColorThemeContext";
 import { Card } from "@/models/card";
-import { theme } from "@/styles/theme";
+import { AppTheme } from "@/styles/theme";
 import { useState } from "react";
 import { StyleSheet, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
@@ -15,6 +16,8 @@ type Props = {
 
 export default function FlashCardContainer({ cardData, onNextCard }: Props) {
   const insets = useSafeAreaInsets();
+  const { theme } = useAppTheme();
+  const styles = createStyles(theme);
   const [isReversed, setIsReversed] = useState(false);
   return (
     <View
@@ -76,18 +79,19 @@ export default function FlashCardContainer({ cardData, onNextCard }: Props) {
   );
 }
 
-const styles = StyleSheet.create({
-  flashCardContainer: {
-    flex: 1,
-    flexGrow: 1,
-    flexDirection: "column",
-    paddingHorizontal: 20,
-    paddingTop: 20,
-    backgroundColor: theme.colors.background,
-  },
-  footer: {
-    width: "100%",
-    flexDirection: "row",
-    alignContent: "space-between",
-  },
-});
+const createStyles = (theme: AppTheme) =>
+  StyleSheet.create({
+    flashCardContainer: {
+      flex: 1,
+      flexGrow: 1,
+      flexDirection: "column",
+      paddingHorizontal: 20,
+      paddingTop: 20,
+      backgroundColor: theme.colors.background,
+    },
+    footer: {
+      width: "100%",
+      flexDirection: "row",
+      alignContent: "space-between",
+    },
+  });

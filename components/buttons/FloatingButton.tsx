@@ -1,5 +1,6 @@
+import { useAppTheme } from "@/contexts/ColorThemeContext";
 import { useFadeAnimation } from "@/hooks/useFadeAnimation";
-import { theme } from "@/styles/theme";
+import { AppTheme, theme } from "@/styles/theme";
 import Feather from "@expo/vector-icons/Feather";
 import { Link } from "expo-router";
 import { useEffect } from "react";
@@ -14,6 +15,8 @@ type Props = {
 
 export default function FloatingButton({ variant, visible, onPress }: Props) {
   const insets = useSafeAreaInsets();
+  const { theme } = useAppTheme();
+    const styles = createStyles(theme);
   const { opacity, fadeIn, fadeOut } = useFadeAnimation();
 
   const interpolationValues = opacity.interpolate({
@@ -95,7 +98,7 @@ export default function FloatingButton({ variant, visible, onPress }: Props) {
   );
 }
 
-const styles = StyleSheet.create({
+const createStyles = (theme: AppTheme) => StyleSheet.create({
   floatingButton: {
     position: "absolute",
     width: 70,

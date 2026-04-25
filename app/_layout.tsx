@@ -7,7 +7,7 @@ import {
   Stack,
   useRootNavigationState,
   useRouter,
-  useSegments,
+  useSegments
 } from "expo-router";
 import { useContext, useEffect } from "react";
 import { Platform, StyleSheet, ToastAndroid, View } from "react-native";
