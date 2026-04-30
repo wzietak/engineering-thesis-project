@@ -46,6 +46,7 @@ const createStyles = (theme: AppTheme) =>
       fontFamily: theme.fontFamily.regular,
       fontSize: theme.fontSize.lg,
       textAlign: "center",
+      color: theme.colors.primary
     },
     backTextSentence: {
       paddingTop: 10,
