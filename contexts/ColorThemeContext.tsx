@@ -6,7 +6,7 @@ import {
   darkTheme,
   fontFamily,
   fontSize,
-  lightTheme
+  lightTheme,
 } from "@/styles/theme";
 import { createContext, ReactNode, useContext, useMemo, useState } from "react";
 import { useColorScheme } from "react-native";
@@ -30,9 +30,10 @@ export default function ColorThemeProvider({
     "dark" | "light" | "system"
   >("system");
   const colorScheme = useColorScheme();
+  let activeTheme = "";
 
   const activeColors = useMemo(() => {
-    const activeTheme =
+    activeTheme =
       preferredTheme === "system" ? (colorScheme ?? "light") : preferredTheme;
     return activeTheme === "light" ? lightTheme : darkTheme;
   }, [preferredTheme, colorScheme]);
@@ -40,7 +41,7 @@ export default function ColorThemeProvider({
   const currentTheme: AppTheme = {
     colors: activeColors,
     borderRadius,
-    boxShadow: preferredTheme === "light" ? boxShadowLight : boxShadowDark,
+    boxShadow: activeTheme === "light" ? boxShadowLight : boxShadowDark,
     fontSize,
     fontFamily,
   };
