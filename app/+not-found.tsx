@@ -43,6 +43,7 @@ const createStyles = (theme: AppTheme) =>
       fontSize: theme.fontSize.lg,
       fontFamily: theme.fontFamily.bold,
       textAlign: "center",
+      color: theme.colors.primary,
     },
     button: {
       fontFamily: theme.fontFamily.bold,
