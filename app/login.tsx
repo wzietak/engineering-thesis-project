@@ -19,7 +19,7 @@ import {
 } from "react-native";
 
 export default function LoginPage() {
-  const { theme } = useAppTheme();
+  const { theme, preferredTheme } = useAppTheme();
   const styles = createStyles(theme);
   const [isSignUp, setIsSignUp] = useState(false);
   const [email, setEmail] = useState("");
@@ -89,7 +89,6 @@ export default function LoginPage() {
       }
     }
   };
-
   return (
     <View style={styles.container}>
       <KeyboardAvoidingView behavior="position">
@@ -97,10 +96,17 @@ export default function LoginPage() {
           keyboardShouldPersistTaps="handled"
           showsVerticalScrollIndicator={false}
         >
-          <Image
-            source={require("@/assets/icons/splash-icon-light-android.png")}
-            style={styles.appIcon}
-          ></Image>
+          {preferredTheme === "dark" ? (
+            <Image
+              source={require("@/assets/icons/splash-icon-dark-android.png")}
+              style={styles.appIcon}
+            ></Image>
+          ) : (
+            <Image
+              source={require("@/assets/icons/splash-icon-light-android.png")}
+              style={styles.appIcon}
+            ></Image>
+          )}
           <Text style={styles.appTitleText}>BetterAnki</Text>
           <Text style={styles.formText}>Email</Text>
           <TextInput
