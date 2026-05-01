@@ -37,8 +37,6 @@ export async function initDB() {
     is_deleted INTEGER NOT NULL DEFAULT 0,
     FOREIGN KEY(deck_id) REFERENCES decks(id) ON DELETE CASCADE
 );`);
-
-        console.log("DB created!");
     return true;
   } catch (error) {
     console.log(error);
