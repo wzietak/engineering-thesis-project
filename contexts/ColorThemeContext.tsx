@@ -25,6 +25,7 @@ type colorThemeContextType = {
   theme: AppTheme;
   setPreferredTheme: (value: themeOption) => void;
   preferredTheme: themeOption;
+  actualTheme: string;
 };
 
 export const ColorThemeContext = createContext<
@@ -79,6 +80,7 @@ export default function ColorThemeProvider({
         theme: currentTheme,
         setPreferredTheme: setThemeOnChange,
         preferredTheme,
+        actualTheme,
       }}
     >
       {children}
