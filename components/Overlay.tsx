@@ -1,6 +1,5 @@
 import { useAppTheme } from '@/contexts/ColorThemeContext';
 import { useFadeAnimation } from '@/hooks/useFadeAnimation';
-import { theme } from '@/styles/theme';
 import { useEffect } from 'react';
 import { Animated, Pressable, StyleSheet } from 'react-native';
 
