@@ -518,7 +518,7 @@ const createStyles = (theme: AppTheme) =>
     },
     textInput: {
       paddingHorizontal: 10,
-      minHeight: 45,
+      minHeight: 50,
       maxHeight: 80,
       borderWidth: 1,
       borderRadius: theme.borderRadius.sm,
