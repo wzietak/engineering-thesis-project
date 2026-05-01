@@ -4,10 +4,10 @@ import { useAppTheme } from "@/contexts/ColorThemeContext";
 import { DECK_LANGUAGES } from "@/models/deckLanguages";
 import { globalDeckRepository } from "@/repositories/globalDeckRepository";
 import { AppTheme } from "@/styles/theme";
+import Octicons from "@expo/vector-icons/Octicons";
 import { router } from "expo-router";
 import { useContext, useState } from "react";
 import {
-  Keyboard,
   Platform,
   ScrollView,
   StyleSheet,
@@ -16,7 +16,7 @@ import {
   ToastAndroid,
   View,
 } from "react-native";
-import DropDownPicker from "react-native-dropdown-picker";
+import DropdownSelect from "react-native-input-select";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 export default function addNewDeck() {
@@ -29,8 +29,6 @@ export default function addNewDeck() {
 
   const [deckName, setDeckName] = useState("");
   const [selectedLanguage, setSelectedLanguage] = useState("");
-
-  const DROPDOWN_ITEMS = [{ label: "None", value: "" }, ...DECK_LANGUAGES];
 
   const onSavePress = async () => {
     if (!deckName.trim()) {
@@ -70,7 +68,11 @@ export default function addNewDeck() {
         <TextInput
           style={[
             styles.textInput,
-            { borderColor: errorText ? "red" : theme.colors.primary },
+            {
+              borderColor: errorText
+                ? theme.colors.error
+                : theme.colors.primary,
+            },
           ]}
           maxLength={36}
           onFocus={() => {
@@ -83,7 +85,12 @@ export default function addNewDeck() {
           }}
         />
         {errorText ? (
-          <Text style={[styles.optionalText, { color: "red", paddingTop: 5 }]}>
+          <Text
+            style={[
+              styles.optionalText,
+              { color: theme.colors.error, paddingTop: 5 },
+            ]}
+          >
             {errorText}
           </Text>
         ) : null}
@@ -91,17 +98,40 @@ export default function addNewDeck() {
           <Text style={styles.formText}>Deck language</Text>
           <Text style={styles.optionalText}>(Optional)</Text>
         </View>
-
-        <DropDownPicker
-          open={dropdownOpen}
-          value={selectedLanguage}
-          items={DROPDOWN_ITEMS}
-          setOpen={setDropdownOpen}
-          setValue={setSelectedLanguage}
+        <DropdownSelect
           placeholder="Select language"
-          style={[styles.dropdown, { marginBottom: 10 }]}
-          listMode="SCROLLVIEW"
-          onOpen={Keyboard.dismiss}
+          options={DECK_LANGUAGES}
+          selectedValue={
+            selectedLanguage ? (selectedLanguage as string) : undefined
+          }
+          onValueChange={(value) => {
+            setSelectedLanguage(value as string);
+          }}
+          primaryColor={theme.colors.purple}
+          isMultiple={false}
+          isSearchable={false}
+          dropdownStyle={styles.dropdown}
+          dropdownContainerStyle={{ marginBottom: 0 }}
+          placeholderStyle={styles.dropdownPlaceholder}
+          selectedItemStyle={{ color: theme.colors.primary }}
+          dropdownIconStyle={styles.dropdownIcon}
+          dropdownIcon={
+            <Octicons
+              name="chevron-down"
+              size={24}
+              color={theme.colors.primary}
+            />
+          }
+          modalControls={{
+            modalOptionsContainerStyle: {
+              backgroundColor: theme.colors.background,
+            },
+          }}
+          checkboxControls={{
+            checkboxUnselectedColor: theme.colors.background,
+            checkboxStyle: { borderColor: theme.colors.primary },
+            checkboxLabelStyle: { color: theme.colors.primary },
+          }}
         />
 
         <Text
@@ -111,6 +141,7 @@ export default function addNewDeck() {
               alignSelf: "flex-start",
               color: theme.colors.purple,
               lineHeight: 20,
+              paddingTop: 10,
             },
           ]}
         >
@@ -151,6 +182,7 @@ const createStyles = (theme: AppTheme) =>
       fontFamily: theme.fontFamily.bold,
       fontSize: theme.fontSize.sm,
       alignSelf: "flex-start",
+      color: theme.colors.primary,
     },
     optionalText: {
       paddingHorizontal: 5,
@@ -159,20 +191,43 @@ const createStyles = (theme: AppTheme) =>
       color: theme.colors.primary_light,
     },
     dropdown: {
-      height: 45,
+      height: 50,
+      minHeight: 45,
+      paddingVertical: 0,
+      paddingHorizontal: 10,
       borderWidth: 1,
       borderRadius: theme.borderRadius.sm,
       borderColor: theme.colors.primary,
-      overflow: "hidden",
-      justifyContent: "center",
+      backgroundColor: theme.colors.background,
     },
     textInput: {
       paddingHorizontal: 10,
-      minHeight: 45,
+      minHeight: 50,
       borderWidth: 1,
       borderRadius: theme.borderRadius.sm,
       borderColor: theme.colors.primary,
       color: theme.colors.primary,
       fontFamily: theme.fontFamily.regular,
+    },
+    dropdownPlaceholder: {
+      color: theme.colors.primary,
+      fontFamily: theme.fontFamily.regular,
+    },
+    dropdownIcon: {
+      top: "50%",
+      right: 15,
+      paddingRight: 0,
+      transform: [{ translateY: -12 }], //I had to use translate as dropdown library doesn't allow to use other props to align dropdown icon to center
+    },
+    dropdowntextInput: {
+      height: 50,
+      minHeight: 45,
+      paddingVertical: 0,
+      paddingHorizontal: 10,
+      backgroundColor: theme.colors.background,
+      color: theme.colors.primary,
+      borderColor: theme.colors.primary,
+      fontFamily: theme.fontFamily.regular,
+      borderRadius: theme.borderRadius.sm,
     },
   });
