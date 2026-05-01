@@ -8,13 +8,23 @@ import {
   fontSize,
   lightTheme,
 } from "@/styles/theme";
-import { createContext, ReactNode, useContext, useMemo, useState } from "react";
+import AsyncStorage from "@react-native-async-storage/async-storage";
+import {
+  createContext,
+  ReactNode,
+  useContext,
+  useEffect,
+  useMemo,
+  useState,
+} from "react";
 import { useColorScheme } from "react-native";
+
+export type themeOption = "dark" | "light" | "system";
 
 type colorThemeContextType = {
   theme: AppTheme;
-  setPreferredTheme: (theme: "dark" | "light" | "system") => void;
-  preferredTheme: "dark" | "light" | "system";
+  setPreferredTheme: (value: themeOption) => void;
+  preferredTheme: themeOption;
 };
 
 export const ColorThemeContext = createContext<
@@ -26,29 +36,50 @@ export default function ColorThemeProvider({
 }: {
   children: ReactNode;
 }) {
-  const [preferredTheme, setPreferredTheme] = useState<
-    "dark" | "light" | "system"
-  >("system");
+  const [preferredTheme, setPreferredTheme] = useState<themeOption>("system");
   const colorScheme = useColorScheme();
-  let activeTheme = "";
 
-  const activeColors = useMemo(() => {
-    activeTheme =
-      preferredTheme === "system" ? (colorScheme ?? "light") : preferredTheme;
-    return activeTheme === "light" ? lightTheme : darkTheme;
+  useEffect(() => {
+    const getPreferredTheme = async () => {
+      try {
+        const theme = await AsyncStorage.getItem("preferredTheme");
+        if (theme !== null) {
+          setPreferredTheme(theme as themeOption);
+        }
+      } catch (error) {}
+    };
+    getPreferredTheme();
+  }, []);
+
+  const setThemeOnChange = async (value: themeOption) => {
+    try {
+      setPreferredTheme(value);
+      await AsyncStorage.setItem("preferredTheme", value);
+    } catch (error) {}
+  };
+
+  const actualTheme = useMemo(() => {
+    if (preferredTheme === "system") {
+      return colorScheme ?? "light";
+    }
+    return preferredTheme;
   }, [preferredTheme, colorScheme]);
 
   const currentTheme: AppTheme = {
-    colors: activeColors,
+    colors: actualTheme === "dark" ? darkTheme : lightTheme,
     borderRadius,
-    boxShadow: activeTheme === "light" ? boxShadowLight : boxShadowDark,
+    boxShadow: actualTheme === "light" ? boxShadowLight : boxShadowDark,
     fontSize,
     fontFamily,
   };
 
   return (
     <ColorThemeContext.Provider
-      value={{ theme: currentTheme, setPreferredTheme, preferredTheme }}
+      value={{
+        theme: currentTheme,
+        setPreferredTheme: setThemeOnChange,
+        preferredTheme,
+      }}
     >
       {children}
     </ColorThemeContext.Provider>
