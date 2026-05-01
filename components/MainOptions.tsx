@@ -18,7 +18,7 @@ type Props = {
 };
 
 export default function MainOptions({ visible, hideOnOutline }: Props) {
-  const { theme, setPreferredTheme, preferredTheme } = useAppTheme();
+  const { theme, setPreferredTheme, actualTheme } = useAppTheme();
   const styles = createStyles(theme);
   if (!visible) {
     return null;
@@ -44,14 +44,14 @@ export default function MainOptions({ visible, hideOnOutline }: Props) {
               <Text style={styles.menuOptionText}>Toggle theme</Text>
               <Switch
                 thumbColor={theme.colors.blue}
-                trackColor={{ false: theme.colors.grey, true: "red" }}
+                trackColor={{ false: theme.colors.grey, true: "#5f719b" }}
                 onValueChange={() => {
-                  preferredTheme === "light"
+                  actualTheme === "light"
                     ? setPreferredTheme("dark")
                     : setPreferredTheme("light");
                 }}
                 value={
-                  preferredTheme === "light" || preferredTheme === "system"
+                  actualTheme === "light"
                     ? true
                     : false
                 }
