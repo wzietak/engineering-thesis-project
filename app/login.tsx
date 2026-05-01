@@ -19,7 +19,7 @@ import {
 } from "react-native";
 
 export default function LoginPage() {
-  const { theme, preferredTheme } = useAppTheme();
+  const { theme, actualTheme } = useAppTheme();
   const styles = createStyles(theme);
   const [isSignUp, setIsSignUp] = useState(false);
   const [email, setEmail] = useState("");
@@ -96,7 +96,7 @@ export default function LoginPage() {
           keyboardShouldPersistTaps="handled"
           showsVerticalScrollIndicator={false}
         >
-          {preferredTheme === "dark" ? (
+          {actualTheme === "dark" ? (
             <Image
               source={require("@/assets/icons/splash-icon-dark-android.png")}
               style={styles.appIcon}
