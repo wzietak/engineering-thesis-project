@@ -1,5 +1,5 @@
 import { useAppTheme } from "@/contexts/ColorThemeContext";
-import { AppTheme, theme } from "@/styles/theme";
+import { AppTheme } from "@/styles/theme";
 import { Pressable, StyleSheet, Text, View, ViewStyle } from "react-native";
 
 type Props = {
@@ -14,7 +14,7 @@ type Props = {
 export default function DeckComponent({
   label,
   cardsDue,
-  backgroundColor = theme.colors.blue,
+  backgroundColor,
   style,
   onPress,
   onLongPress,
