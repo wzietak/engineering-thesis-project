@@ -1,7 +1,8 @@
 import AppHeader from "@/components/AppHeader";
 import AuthProvider, { AuthContext } from "@/contexts/AuthContext";
-import ColorThemeProvider from "@/contexts/ColorThemeContext";
+import ColorThemeProvider, { useAppTheme } from "@/contexts/ColorThemeContext";
 import { DBContextProvider } from "@/contexts/DBContext";
+import { AppTheme } from "@/styles/theme";
 import {
   SplashScreen,
   Stack,
@@ -19,6 +20,8 @@ function ProtectionComponent() {
   const session = useContext(AuthContext);
   const currScreen = useSegments();
   const rootNavigationState = useRootNavigationState();
+  const { theme } = useAppTheme();
+  const styles = createStyles(theme);
 
   //Extracted header into a constant to apply DRY principle - prevents duplicating the component on every Stack.Screen
   const headerStyle = {
@@ -109,8 +112,10 @@ export default function RootLayout() {
   );
 }
 
-const styles = StyleSheet.create({
-  mainContainer: {
-    flex: 1,
-  },
-});
+const createStyles = (theme: AppTheme) =>
+  StyleSheet.create({
+    mainContainer: {
+      flex: 1,
+      backgroundColor: theme.colors.primary,
+    },
+  });

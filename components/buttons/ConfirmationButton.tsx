@@ -1,4 +1,5 @@
-import { theme } from "@/styles/theme";
+import { useAppTheme } from "@/contexts/ColorThemeContext";
+import { AppTheme } from "@/styles/theme";
 import {
   Pressable,
   StyleProp,
@@ -13,7 +14,13 @@ type Props = {
   style?: StyleProp<ViewStyle>;
 };
 
-export default function ConfirmationButton({ buttonText, onPress, style }: Props) {
+export default function ConfirmationButton({
+  buttonText,
+  onPress,
+  style,
+}: Props) {
+  const { theme } = useAppTheme();
+  const styles = createStyles(theme);
   return (
     <Pressable style={[styles.buttonPressable, style]} onPress={onPress}>
       <Text style={styles.buttonText}>{buttonText}</Text>
@@ -21,19 +28,20 @@ export default function ConfirmationButton({ buttonText, onPress, style }: Props
   );
 }
 
-const styles = StyleSheet.create({
-  buttonPressable: {
-    height: 60,
-    alignItems: "center",
-    justifyContent: "center",
-    borderRadius: theme.borderRadius.lg,
-    boxShadow: theme.boxShadow.buttons,
-    backgroundColor: theme.colors.primary,
-  },
-  buttonText: {
-    alignSelf: "center",
-    color: theme.colors.background,
-    fontFamily: theme.fontFamily.bold,
-    fontSize: theme.fontSize.lg,
-  },
-});
+const createStyles = (theme: AppTheme) =>
+  StyleSheet.create({
+    buttonPressable: {
+      height: 60,
+      alignItems: "center",
+      justifyContent: "center",
+      borderRadius: theme.borderRadius.lg,
+      boxShadow: theme.boxShadow.buttons,
+      backgroundColor: theme.colors.primary,
+    },
+    buttonText: {
+      alignSelf: "center",
+      color: theme.colors.background,
+      fontFamily: theme.fontFamily.bold,
+      fontSize: theme.fontSize.lg,
+    },
+  });

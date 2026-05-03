@@ -1,5 +1,6 @@
+import { useAppTheme } from "@/contexts/ColorThemeContext";
 import { useFadeAnimation } from "@/hooks/useFadeAnimation";
-import { theme } from "@/styles/theme";
+import { AppTheme } from "@/styles/theme";
 import Feather from "@expo/vector-icons/Feather";
 import { Link } from "expo-router";
 import { useEffect } from "react";
@@ -14,6 +15,8 @@ type Props = {
 
 export default function FloatingButton({ variant, visible, onPress }: Props) {
   const insets = useSafeAreaInsets();
+  const { theme } = useAppTheme();
+  const styles = createStyles(theme);
   const { opacity, fadeIn, fadeOut } = useFadeAnimation();
 
   const interpolationValues = opacity.interpolate({
@@ -45,7 +48,12 @@ export default function FloatingButton({ variant, visible, onPress }: Props) {
       >
         <Link href={"/add-new-card"} asChild>
           <Pressable>
-            <Text style={[styles.addNewText, { width: "auto" }]}>
+            <Text
+              style={[
+                styles.addNewText,
+                { width: "auto", color: theme.colors.primary },
+              ]}
+            >
               Add new card
             </Text>
           </Pressable>
@@ -90,54 +98,55 @@ export default function FloatingButton({ variant, visible, onPress }: Props) {
       ]}
       onPressIn={onPress}
     >
-      <Feather name="plus" size={45} color={"#fff"} />
+      <Feather name="plus" size={45} color={theme.colors.background} />
     </Pressable>
   );
 }
 
-const styles = StyleSheet.create({
-  floatingButton: {
-    position: "absolute",
-    width: 70,
-    height: 70,
-    flex: 1,
-    right: 20,
-    borderRadius: theme.borderRadius.md,
-    alignItems: "center",
-    justifyContent: "center",
-    backgroundColor: theme.colors.primary,
-    boxShadow: theme.boxShadow.buttons,
-  },
-  addNewButton: {
-    position: "absolute",
-    width: 140,
-    height: 70,
-    flex: 1,
-    right: 108,
-    borderRadius: theme.borderRadius.lg,
-    alignItems: "center",
-    justifyContent: "center",
-    backgroundColor: theme.colors.background,
-    boxShadow: theme.boxShadow.buttons,
-  },
-  addNewDeck: {
-    position: "absolute",
-    width: 230,
-    height: 50,
-    flex: 1,
-    right: 20,
-    borderRadius: theme.borderRadius.lg,
-    alignItems: "center",
-    justifyContent: "center",
-    backgroundColor: theme.colors.primary,
-    boxShadow: theme.boxShadow.buttons,
-  },
-  addNewText: {
-    fontFamily: theme.fontFamily.bold,
-    fontSize: theme.fontSize.md + 1,
-    justifyContent: "center",
-    wordWrap: "wrap",
-    alignSelf: "center",
-    letterSpacing: 0.3,
-  },
-});
+const createStyles = (theme: AppTheme) =>
+  StyleSheet.create({
+    floatingButton: {
+      position: "absolute",
+      width: 70,
+      height: 70,
+      flex: 1,
+      right: 20,
+      borderRadius: theme.borderRadius.md,
+      alignItems: "center",
+      justifyContent: "center",
+      backgroundColor: theme.colors.primary,
+      boxShadow: theme.boxShadow.buttons,
+    },
+    addNewButton: {
+      position: "absolute",
+      width: 140,
+      height: 70,
+      flex: 1,
+      right: 108,
+      borderRadius: theme.borderRadius.lg,
+      alignItems: "center",
+      justifyContent: "center",
+      backgroundColor: theme.colors.background,
+      boxShadow: theme.boxShadow.buttons,
+    },
+    addNewDeck: {
+      position: "absolute",
+      width: 230,
+      height: 50,
+      flex: 1,
+      right: 20,
+      borderRadius: theme.borderRadius.lg,
+      alignItems: "center",
+      justifyContent: "center",
+      backgroundColor: theme.colors.primary,
+      boxShadow: theme.boxShadow.buttons,
+    },
+    addNewText: {
+      fontFamily: theme.fontFamily.bold,
+      fontSize: theme.fontSize.md + 1,
+      justifyContent: "center",
+      wordWrap: "wrap",
+      alignSelf: "center",
+      letterSpacing: 0.3,
+    },
+  });

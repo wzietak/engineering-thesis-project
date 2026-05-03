@@ -1,15 +1,16 @@
 import ConfirmationButton from "@/components/buttons/ConfirmationButton";
 import { AuthContext } from "@/contexts/AuthContext";
+import { useAppTheme } from "@/contexts/ColorThemeContext";
 import { ExampleSource } from "@/models/card";
-import { CARD_TYPE_OPTIONS } from "@/models/cardTypes";
+import { CARD_TYPE_OPTIONS } from "@/models/CardTypes";
 import { globalCardRepository } from "@/repositories/globalCardRepository";
 import { globalDeckRepository } from "@/repositories/globalDeckRepository";
-import { theme } from "@/styles/theme";
+import { AppTheme } from "@/styles/theme";
+import Octicons from "@expo/vector-icons/Octicons";
 import SimpleLineIcons from "@expo/vector-icons/SimpleLineIcons";
 import { useFocusEffect } from "expo-router";
 import { useCallback, useContext, useState } from "react";
 import {
-  Keyboard,
   Platform,
   Pressable,
   ScrollView,
@@ -17,10 +18,13 @@ import {
   Text,
   TextInput,
   ToastAndroid,
-  View,
+  View
 } from "react-native";
-import DropDownPicker from "react-native-dropdown-picker";
-import { useSafeAreaInsets } from "react-native-safe-area-context";
+import DropdownSelect from "react-native-input-select";
+import {
+  SafeAreaProvider,
+  useSafeAreaInsets,
+} from "react-native-safe-area-context";
 
 const INITIAL_VALUES = {
   deckId: null,
@@ -41,6 +45,8 @@ const INITIAL_ERRORS = {
 
 export default function AddNewCard() {
   const insets = useSafeAreaInsets();
+  const { theme } = useAppTheme();
+  const styles = createStyles(theme);
   const [errorText, setErrorText] = useState({
     deckNameErr: "",
     cardTypeErr: "",
@@ -96,14 +102,14 @@ export default function AddNewCard() {
     const cardBackCleaned = cardBack.trim().replaceAll(/\n{2,}/g, "\n");
     const usageExampleCleaned = usageExample.trim().replaceAll(/\n{2,}/g, "\n");
 
-    if (deckId === null) {
+    if (deckId === null || deckId === "") {
       isFormValid = false;
       setErrorText((prevErrors) => ({
         ...prevErrors,
         deckNameErr: "Deck selection is required.",
       }));
     }
-    if (cardType === "") {
+    if (cardType === "" || cardType === null) {
       isFormValid = false;
       setErrorText((prevErrors) => ({
         ...prevErrors,
@@ -150,282 +156,417 @@ export default function AddNewCard() {
   };
 
   return (
-    <View style={[styles.container, { paddingBottom: insets.bottom }]}>
-      <ScrollView
-        style={styles.scrollContainer}
-        showsVerticalScrollIndicator={false}
-        keyboardShouldPersistTaps="handled"
-      >
-        <Text style={[styles.formText, { paddingTop: 0 }]}>Deck</Text>
-        <DropDownPicker
-          open={deckDropdownOpen}
-          value={deckId}
-          items={decks}
-          setOpen={setDeckDropdownOpen}
-          setValue={setDeckId}
-          setItems={setDecks}
-          onOpen={() => {
-            Keyboard.dismiss;
-            setTagsDropdownOpen(false);
-            setCardTypeDropdownOpen(false);
-          }}
-          style={[
-            styles.dropdown,
-            {
-              borderColor: errorText.deckNameErr ? "red" : theme.colors.primary,
-            },
-          ]}
-          zIndex={10000}
-          listMode="SCROLLVIEW"
-          onChangeValue={() => {
-            setDeckId(deckId);
-            if (errorText.deckNameErr)
-              setErrorText((prevErrors) => ({
-                ...prevErrors,
-                deckNameErr: INITIAL_ERRORS.deckNameErr,
-              }));
-          }}
-        />
-        {errorText.deckNameErr ? (
-          <Text style={[styles.optionalText, { color: "red", paddingTop: 5 }]}>
-            {errorText.deckNameErr}
-          </Text>
-        ) : null}
-
-        <Text style={styles.formText}>Card type</Text>
-        <DropDownPicker
-          open={cardTypeDropdownOpen}
-          value={cardType}
-          items={CARD_TYPE_OPTIONS}
-          setOpen={setCardTypeDropdownOpen}
-          setValue={setCardType}
-          onOpen={() => {
-            Keyboard.dismiss;
-            setDeckDropdownOpen(false);
-            setTagsDropdownOpen(false);
-          }}
-          style={[
-            styles.dropdown,
-            {
-              borderColor: errorText.cardTypeErr ? "red" : theme.colors.primary,
-            },
-          ]}
-          listMode="SCROLLVIEW"
-          onChangeValue={() => {
-            setCardType(cardType);
-            if (errorText.cardTypeErr)
-              setErrorText((prevErrors) => ({
-                ...prevErrors,
-                cardTypeErr: INITIAL_ERRORS.cardTypeErr,
-              }));
-          }}
-        />
-        {errorText.cardTypeErr ? (
-          <Text style={[styles.optionalText, { color: "red", paddingTop: 5 }]}>
-            {errorText.cardTypeErr}
-          </Text>
-        ) : null}
-
-        <Text style={styles.formText}>Front</Text>
-        <TextInput
-          style={[
-            styles.textInput,
-            {
-              borderColor: errorText.cardFrontErr
-                ? "red"
-                : theme.colors.primary,
-            },
-          ]}
-          multiline={true}
-          value={cardFront}
-          maxLength={100}
-          onFocus={() => {
-            setDeckDropdownOpen(false);
-            setCardTypeDropdownOpen(false);
-            setTagsDropdownOpen(false);
-          }}
-          onChangeText={(input) => {
-            setCardFront(input);
-            if (errorText.cardFrontErr)
-              setErrorText((prevErrors) => ({
-                ...prevErrors,
-                cardFrontErr: INITIAL_ERRORS.cardFrontErr,
-              }));
-          }}
-        />
-        {errorText.cardFrontErr ? (
-          <Text style={[styles.optionalText, { color: "red", paddingTop: 5 }]}>
-            {errorText.cardFrontErr}
-          </Text>
-        ) : null}
-        <Text style={styles.formText}>Back</Text>
-        <TextInput
-          style={[
-            styles.textInput,
-            {
-              borderColor: errorText.cardBackErr ? "red" : theme.colors.primary,
-            },
-          ]}
-          multiline={true}
-          value={cardBack}
-          maxLength={100}
-          onFocus={() => {
-            setDeckDropdownOpen(false);
-            setCardTypeDropdownOpen(false);
-            setTagsDropdownOpen(false);
-          }}
-          onChangeText={(input) => {
-            setCardBack(input);
-            if (errorText.cardBackErr)
-              setErrorText((prevErrors) => ({
-                ...prevErrors,
-                cardBackErr: INITIAL_ERRORS.cardBackErr,
-              }));
-          }}
-        />
-        {errorText.cardBackErr ? (
-          <Text style={[styles.optionalText, { color: "red", paddingTop: 5 }]}>
-            {errorText.cardBackErr}
-          </Text>
-        ) : null}
-        <View
-          style={{
-            flexDirection: "row",
-            alignItems: "center",
-            paddingTop: 10,
-          }}
+    <SafeAreaProvider>
+      <View style={[styles.container, { paddingBottom: insets.bottom }]}>
+        <ScrollView
+          style={styles.scrollContainer}
+          showsVerticalScrollIndicator={false}
+          keyboardShouldPersistTaps="handled"
         >
-          <Text style={[styles.formText, { paddingTop: 0 }]}>
-            Example of use
-          </Text>
-          <Text style={styles.optionalText}>(Optional)</Text>
-        </View>
+          <Text style={[styles.formText, { paddingTop: 0 }]}>Deck</Text>
+          <DropdownSelect
+            placeholder="Select deck"
+            options={decks}
+            selectedValue={deckId ? (deckId as string) : undefined}
+            onValueChange={(value) => {
+              setDeckId(value as string);
+              if (errorText.deckNameErr)
+                setErrorText((prevErrors) => ({
+                  ...prevErrors,
+                  deckNameErr: INITIAL_ERRORS.deckNameErr,
+                }));
+            }}
+            primaryColor={theme.colors.purple}
+            isMultiple={false}
+            isSearchable={true}
+            dropdownStyle={{
+              ...styles.dropdown,
+              borderColor: errorText.deckNameErr
+                ? theme.colors.error
+                : theme.colors.primary,
+            }}
+            dropdownContainerStyle={{ marginBottom: 0 }}
+            placeholderStyle={styles.dropdownPlaceholder}
+            selectedItemStyle={{ color: theme.colors.primary }}
+            dropdownIconStyle={styles.dropdownIcon}
+            dropdownIcon={
+              <Octicons
+                name="chevron-down"
+                size={24}
+                color={theme.colors.primary}
+              />
+            }
+            searchControls={{
+              textInputStyle: styles.dropdowntextInput,
+              textInputProps: { placeholderTextColor: theme.colors.primary },
+            }}
+            modalControls={{
+              modalOptionsContainerStyle: {
+                backgroundColor: theme.colors.background,
+              },
+            }}
+            checkboxControls={{
+              checkboxUnselectedColor: theme.colors.background,
+              checkboxStyle: { borderColor: theme.colors.primary },
+              checkboxLabelStyle: { color: theme.colors.primary },
+            }}
+            listEmptyComponent={
+              <View style={{ alignItems: "center" }}>
+                <Text
+                  style={{
+                    color: theme.colors.primary,
+                    fontFamily: theme.fontFamily.regular,
+                  }}
+                >
+                  No options available
+                </Text>
+              </View>
+            }
+          />
+          {errorText.deckNameErr ? (
+            <Text
+              style={[
+                styles.optionalText,
+                { color: theme.colors.error, paddingTop: 5 },
+              ]}
+            >
+              {errorText.deckNameErr}
+            </Text>
+          ) : null}
 
-        <TextInput
-          style={[
-            styles.textInput,
-            {
-              borderColor: theme.colors.purple,
-              height: 70,
-              textAlignVertical: "top",
-            },
-          ]}
-          multiline={true}
-          value={usageExample}
-          maxLength={150}
-          onFocus={() => {
-            setDeckDropdownOpen(false);
-            setCardTypeDropdownOpen(false);
-            setTagsDropdownOpen(false);
-          }}
-          onChangeText={(input) => {
-            setUsageExample(input);
-          }}
-        />
-        <Pressable style={styles.genwithAIContent}>
-          <SimpleLineIcons
-            name="magic-wand"
-            size={24}
-            color={theme.colors.purple}
-            style={{
-              textShadowRadius: 30,
-              textShadowColor: theme.colors.purple_alpha,
+          <Text style={styles.formText}>Card type</Text>
+          <DropdownSelect
+            placeholder="Select card type"
+            options={CARD_TYPE_OPTIONS}
+            selectedValue={cardType ? (cardType as string) : undefined}
+            onValueChange={(value) => {
+              setCardType(value as string);
+              if (errorText.cardTypeErr)
+                setErrorText((prevErrors) => ({
+                  ...prevErrors,
+                  cardTypeErr: INITIAL_ERRORS.cardTypeErr,
+                }));
+            }}
+            primaryColor={theme.colors.purple}
+            isMultiple={false}
+            isSearchable={false}
+            dropdownStyle={{
+              ...styles.dropdown,
+              borderColor: errorText.cardTypeErr
+                ? theme.colors.error
+                : theme.colors.primary,
+            }}
+            dropdownContainerStyle={{ marginBottom: 0 }}
+            placeholderStyle={styles.dropdownPlaceholder}
+            selectedItemStyle={{ color: theme.colors.primary }}
+            dropdownIconStyle={styles.dropdownIcon}
+            dropdownIcon={
+              <Octicons
+                name="chevron-down"
+                size={24}
+                color={theme.colors.primary}
+              />
+            }
+            modalControls={{
+              modalOptionsContainerStyle: {
+                backgroundColor: theme.colors.background,
+              },
+            }}
+            checkboxControls={{
+              checkboxUnselectedColor: theme.colors.background,
+              checkboxStyle: { borderColor: theme.colors.primary },
+              checkboxLabelStyle: { color: theme.colors.primary },
             }}
           />
-          <Text
+          {errorText.cardTypeErr ? (
+            <Text
+              style={[
+                styles.optionalText,
+                { color: theme.colors.error, paddingTop: 5 },
+              ]}
+            >
+              {errorText.cardTypeErr}
+            </Text>
+          ) : null}
+
+          <Text style={styles.formText}>Front</Text>
+          <TextInput
             style={[
-              styles.formText,
+              styles.textInput,
               {
-                paddingHorizontal: 10,
-                color: theme.colors.purple,
-                textShadowRadius: 30,
-                textShadowColor: theme.colors.purple_alpha,
+                borderColor: errorText.cardFrontErr
+                  ? theme.colors.error
+                  : theme.colors.primary,
               },
             ]}
+            multiline={true}
+            value={cardFront}
+            maxLength={100}
+            onFocus={() => {
+              setDeckDropdownOpen(false);
+              setCardTypeDropdownOpen(false);
+              setTagsDropdownOpen(false);
+            }}
+            onChangeText={(input) => {
+              setCardFront(input);
+              if (errorText.cardFrontErr)
+                setErrorText((prevErrors) => ({
+                  ...prevErrors,
+                  cardFrontErr: INITIAL_ERRORS.cardFrontErr,
+                }));
+            }}
+          />
+          {errorText.cardFrontErr ? (
+            <Text
+              style={[
+                styles.optionalText,
+                { color: theme.colors.error, paddingTop: 5 },
+              ]}
+            >
+              {errorText.cardFrontErr}
+            </Text>
+          ) : null}
+          <Text style={styles.formText}>Back</Text>
+          <TextInput
+            style={[
+              styles.textInput,
+              {
+                borderColor: errorText.cardBackErr
+                  ? theme.colors.error
+                  : theme.colors.primary,
+              },
+            ]}
+            multiline={true}
+            value={cardBack}
+            maxLength={100}
+            onFocus={() => {
+              setDeckDropdownOpen(false);
+              setCardTypeDropdownOpen(false);
+              setTagsDropdownOpen(false);
+            }}
+            onChangeText={(input) => {
+              setCardBack(input);
+              if (errorText.cardBackErr)
+                setErrorText((prevErrors) => ({
+                  ...prevErrors,
+                  cardBackErr: INITIAL_ERRORS.cardBackErr,
+                }));
+            }}
+          />
+          {errorText.cardBackErr ? (
+            <Text
+              style={[
+                styles.optionalText,
+                { color: theme.colors.error, paddingTop: 5 },
+              ]}
+            >
+              {errorText.cardBackErr}
+            </Text>
+          ) : null}
+          <View
+            style={{
+              flexDirection: "row",
+              alignItems: "center",
+              paddingTop: 10,
+            }}
           >
-            {" Generate with AI "}
-          </Text>
-        </Pressable>
-        <Text style={[styles.formText, { paddingTop: 0 }]}>Tags</Text>
-        <DropDownPicker
-          open={tagsDropdownOpen}
-          value={tags}
-          items={items}
-          setOpen={setTagsDropdownOpen}
-          setValue={setTags}
-          setItems={setItems}
-          multiple={true}
-          onOpen={() => {
-            Keyboard.dismiss;
-            setDeckDropdownOpen(false);
-            setCardTypeDropdownOpen(false);
-          }}
-          style={[styles.dropdown, { marginBottom: 30 }]}
-          listMode="SCROLLVIEW"
-        />
-      </ScrollView>
-      <View style={styles.buttonContainer}>
-        <ConfirmationButton
-          buttonText="Save"
-          onPress={onSavePress}
-        ></ConfirmationButton>
+            <Text style={[styles.formText, { paddingTop: 0 }]}>
+              Example of use
+            </Text>
+            <Text style={styles.optionalText}>(Optional)</Text>
+          </View>
+
+          <TextInput
+            style={[
+              styles.textInput,
+              {
+                borderColor: theme.colors.purple,
+                height: 70,
+                textAlignVertical: "top",
+              },
+            ]}
+            multiline={true}
+            value={usageExample}
+            maxLength={150}
+            onFocus={() => {
+              setDeckDropdownOpen(false);
+              setCardTypeDropdownOpen(false);
+              setTagsDropdownOpen(false);
+            }}
+            onChangeText={(input) => {
+              setUsageExample(input);
+            }}
+          />
+          <Pressable style={styles.genwithAIContent}>
+            <SimpleLineIcons
+              name="magic-wand"
+              size={24}
+              color={theme.colors.purple}
+              style={{
+                textShadowRadius: 30,
+                textShadowColor: theme.colors.purple_alpha,
+              }}
+            />
+            <Text
+              style={[
+                styles.formText,
+                {
+                  paddingHorizontal: 10,
+                  color: theme.colors.purple,
+                  textShadowRadius: 30,
+                  textShadowColor: theme.colors.purple_alpha,
+                },
+              ]}
+            >
+              {" Generate with AI "}
+            </Text>
+          </Pressable>
+          <Text style={[styles.formText, { paddingTop: 0 }]}>Tags</Text>
+          <DropdownSelect
+            placeholder="Add tags"
+            options={[]}
+            selectedValue={undefined}
+            onValueChange={() => {}}
+            primaryColor={theme.colors.purple}
+            isMultiple={true}
+            isSearchable={true}
+            dropdownStyle={{
+              ...styles.dropdown,
+              borderColor: errorText.deckNameErr
+                ? theme.colors.error
+                : theme.colors.primary,
+            }}
+            dropdownContainerStyle={{ marginBottom: 10 }}
+            placeholderStyle={styles.dropdownPlaceholder}
+            selectedItemStyle={{ color: theme.colors.primary }}
+            dropdownIconStyle={styles.dropdownIcon}
+            dropdownIcon={
+              <Octicons
+                name="chevron-down"
+                size={24}
+                color={theme.colors.primary}
+              />
+            }
+            searchControls={{
+              textInputStyle: styles.dropdowntextInput,
+              textInputProps: { placeholderTextColor: theme.colors.primary },
+            }}
+            modalControls={{
+              modalOptionsContainerStyle: {
+                backgroundColor: theme.colors.background,
+              },
+            }}
+            checkboxControls={{
+              checkboxUnselectedColor: theme.colors.background,
+              checkboxStyle: { borderColor: theme.colors.primary },
+              checkboxLabelStyle: { color: theme.colors.primary },
+            }}
+            listEmptyComponent={
+              <View style={{ alignItems: "center" }}>
+                <Text
+                  style={{
+                    color: theme.colors.primary,
+                    fontFamily: theme.fontFamily.regular,
+                  }}
+                >
+                  No options available
+                </Text>
+              </View>
+            }
+          />
+        </ScrollView>
+        <View style={styles.buttonContainer}>
+          <ConfirmationButton
+            buttonText="Save"
+            onPress={onSavePress}
+            style={{ boxShadow: "" }}
+          ></ConfirmationButton>
+        </View>
       </View>
-    </View>
+    </SafeAreaProvider>
   );
 }
 
-const styles = StyleSheet.create({
-  container: {
-    width: "100%",
-    flex: 1,
-    flexDirection: "column",
-    alignItems: "center",
-    backgroundColor: theme.colors.background,
-  },
-  scrollContainer: {
-    paddingHorizontal: 20,
-  },
-  formText: {
-    paddingTop: 10,
-    fontFamily: theme.fontFamily.bold,
-    fontSize: theme.fontSize.sm,
-  },
-  dropdown: {
-    height: 45,
-    borderWidth: 1,
-    borderRadius: theme.borderRadius.sm,
-    borderColor: theme.colors.primary,
-  },
-  textInput: {
-    paddingHorizontal: 10,
-    minHeight: 45,
-    maxHeight: 80,
-    borderWidth: 1,
-    borderRadius: theme.borderRadius.sm,
-    borderColor: theme.colors.primary,
-    color: theme.colors.primary,
-    fontFamily: theme.fontFamily.regular,
-  },
-  genwithAIContent: {
-    maxHeight: 45,
-    paddingTop: 5,
-    flex: 1,
-    flexDirection: "row",
-    justifyContent: "center",
-    alignItems: "center",
-  },
-  buttonContainer: {
-    height: 100,
-    width: "100%",
-    paddingHorizontal: 20,
-    paddingTop: 10,
-    backgroundColor: theme.colors.background,
-    boxShadow: theme.boxShadow.bottomContainer,
-  },
-  optionalText: {
-    paddingHorizontal: 5,
-    fontFamily: theme.fontFamily.regular,
-    fontSize: theme.fontSize.x_sm,
-    color: theme.colors.primary_light,
-  },
-});
+const createStyles = (theme: AppTheme) =>
+  StyleSheet.create({
+    container: {
+      width: "100%",
+      flex: 1,
+      flexDirection: "column",
+      alignItems: "center",
+      backgroundColor: theme.colors.background,
+    },
+    scrollContainer: {
+      width: "100%",
+      paddingHorizontal: 20,
+    },
+    formText: {
+      paddingTop: 10,
+      fontFamily: theme.fontFamily.bold,
+      fontSize: theme.fontSize.sm,
+      color: theme.colors.primary,
+    },
+    dropdown: {
+      height: 50,
+      minHeight: 45,
+      paddingVertical: 0,
+      paddingHorizontal: 10,
+      borderWidth: 1,
+      borderRadius: theme.borderRadius.sm,
+      borderColor: theme.colors.primary,
+      backgroundColor: theme.colors.background,
+    },
+    textInput: {
+      paddingHorizontal: 10,
+      minHeight: 50,
+      maxHeight: 80,
+      borderWidth: 1,
+      borderRadius: theme.borderRadius.sm,
+      borderColor: theme.colors.primary,
+      color: theme.colors.primary,
+      fontFamily: theme.fontFamily.regular,
+    },
+    genwithAIContent: {
+      maxHeight: 45,
+      paddingTop: 5,
+      flex: 1,
+      flexDirection: "row",
+      justifyContent: "center",
+      alignItems: "center",
+    },
+    buttonContainer: {
+      height: 100,
+      width: "100%",
+      paddingHorizontal: 20,
+      paddingTop: 10,
+      backgroundColor: theme.colors.background,
+      boxShadow: theme.boxShadow.bottomContainer,
+    },
+    optionalText: {
+      paddingHorizontal: 5,
+      fontFamily: theme.fontFamily.regular,
+      fontSize: theme.fontSize.x_sm,
+      color: theme.colors.primary_light,
+    },
+    dropdownPlaceholder: {
+      color: theme.colors.primary,
+      fontFamily: theme.fontFamily.regular,
+    },
+    dropdownIcon: {
+      top: "50%",
+      right: 15,
+      paddingRight: 0,
+      transform: [{ translateY: -12 }], //I had to use translate as dropdown library doesn't allow to use other props to align dropdown icon to center
+    },
+    dropdowntextInput: {
+      height: 50,
+      minHeight: 45,
+      paddingVertical: 0,
+      paddingHorizontal: 10,
+      backgroundColor: theme.colors.background,
+      color: theme.colors.primary,
+      borderColor: theme.colors.primary,
+      fontFamily: theme.fontFamily.regular,
+      borderRadius: theme.borderRadius.sm,
+    },
+  });

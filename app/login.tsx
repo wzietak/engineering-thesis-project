@@ -1,5 +1,6 @@
 import ConfirmationButton from "@/components/buttons/ConfirmationButton";
-import { theme } from "@/styles/theme";
+import { useAppTheme } from "@/contexts/ColorThemeContext";
+import { AppTheme } from "@/styles/theme";
 import { supabase } from "@/utils/supabase";
 import Octicons from "@expo/vector-icons/Octicons";
 import { Link, router } from "expo-router";
@@ -18,6 +19,8 @@ import {
 } from "react-native";
 
 export default function LoginPage() {
+  const { theme, actualTheme } = useAppTheme();
+  const styles = createStyles(theme);
   const [isSignUp, setIsSignUp] = useState(false);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -86,7 +89,6 @@ export default function LoginPage() {
       }
     }
   };
-
   return (
     <View style={styles.container}>
       <KeyboardAvoidingView behavior="position">
@@ -94,10 +96,17 @@ export default function LoginPage() {
           keyboardShouldPersistTaps="handled"
           showsVerticalScrollIndicator={false}
         >
-          <Image
-            source={require("@/assets/icons/splash-icon-light-android.png")}
-            style={styles.appIcon}
-          ></Image>
+          {actualTheme === "dark" ? (
+            <Image
+              source={require("@/assets/icons/splash-icon-dark-android.png")}
+              style={styles.appIcon}
+            ></Image>
+          ) : (
+            <Image
+              source={require("@/assets/icons/splash-icon-light-android.png")}
+              style={styles.appIcon}
+            ></Image>
+          )}
           <Text style={styles.appTitleText}>BetterAnki</Text>
           <Text style={styles.formText}>Email</Text>
           <TextInput
@@ -150,9 +159,13 @@ export default function LoginPage() {
               }}
             >
               {isPasswordVisible ? (
-                <Octicons name="eye-closed" size={24} color="black" />
+                <Octicons
+                  name="eye-closed"
+                  size={24}
+                  color={theme.colors.primary}
+                />
               ) : (
-                <Octicons name="eye" size={24} color="black" />
+                <Octicons name="eye" size={24} color={theme.colors.primary} />
               )}
             </Pressable>
           </View>
@@ -201,57 +214,60 @@ export default function LoginPage() {
   );
 }
 
-const styles = StyleSheet.create({
-  container: {
-    width: "100%",
-    paddingHorizontal: 20,
-    paddingTop: 25,
-    flex: 1,
-    flexDirection: "column",
-    justifyContent: "flex-start",
-    backgroundColor: theme.colors.background,
-  },
-  appIcon: {
-    width: 180,
-    height: 180,
-    alignSelf: "center",
-  },
-  appTitleText: {
-    alignSelf: "center",
-    fontFamily: theme.fontFamily.bold,
-    fontSize: theme.fontSize.x_lg,
-  },
-  formText: {
-    paddingTop: 10,
-    fontFamily: theme.fontFamily.bold,
-    fontSize: theme.fontSize.sm,
-  },
-  textInput: {
-    width: "100%",
-    paddingHorizontal: 10,
-    minHeight: 45,
-    borderWidth: 1,
-    borderRadius: theme.borderRadius.sm,
-    borderColor: theme.colors.primary,
-    color: theme.colors.primary,
-    fontFamily: theme.fontFamily.regular,
-  },
-  buttonContainer: {
-    height: 100,
-    width: "100%",
-    marginTop: 60,
-    justifyContent: "flex-end",
-  },
-  forgotPasswordText: {
-    paddingTop: 10,
-    fontFamily: theme.fontFamily.regular,
-    fontSize: theme.fontSize.x_sm,
-    color: theme.colors.purple,
-  },
-  errorText: {
-    paddingTop: 5,
-    fontFamily: theme.fontFamily.regular,
-    fontSize: theme.fontSize.x_sm,
-    color: "red",
-  },
-});
+const createStyles = (theme: AppTheme) =>
+  StyleSheet.create({
+    container: {
+      width: "100%",
+      paddingHorizontal: 20,
+      paddingTop: 25,
+      flex: 1,
+      flexDirection: "column",
+      justifyContent: "flex-start",
+      backgroundColor: theme.colors.background,
+    },
+    appIcon: {
+      width: 180,
+      height: 180,
+      alignSelf: "center",
+    },
+    appTitleText: {
+      alignSelf: "center",
+      fontFamily: theme.fontFamily.bold,
+      fontSize: theme.fontSize.x_lg,
+      color: theme.colors.primary,
+    },
+    formText: {
+      paddingTop: 10,
+      fontFamily: theme.fontFamily.bold,
+      fontSize: theme.fontSize.sm,
+      color: theme.colors.primary,
+    },
+    textInput: {
+      width: "100%",
+      paddingHorizontal: 10,
+      minHeight: 45,
+      borderWidth: 1,
+      borderRadius: theme.borderRadius.sm,
+      borderColor: theme.colors.primary,
+      color: theme.colors.primary,
+      fontFamily: theme.fontFamily.regular,
+    },
+    buttonContainer: {
+      height: 100,
+      width: "100%",
+      marginTop: 60,
+      justifyContent: "flex-end",
+    },
+    forgotPasswordText: {
+      paddingTop: 10,
+      fontFamily: theme.fontFamily.regular,
+      fontSize: theme.fontSize.x_sm,
+      color: theme.colors.purple,
+    },
+    errorText: {
+      paddingTop: 5,
+      fontFamily: theme.fontFamily.regular,
+      fontSize: theme.fontSize.x_sm,
+      color: theme.colors.error,
+    },
+  });

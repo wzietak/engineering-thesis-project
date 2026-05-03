@@ -1,3 +1,4 @@
+import { useAppTheme } from '@/contexts/ColorThemeContext';
 import { useFadeAnimation } from '@/hooks/useFadeAnimation';
 import { useEffect } from 'react';
 import { Animated, Pressable, StyleSheet } from 'react-native';
@@ -8,6 +9,7 @@ type Props = {
 };
 
 export default function Overlay({ visible, onPress }: Props) {
+	const {theme} = useAppTheme();
 	const { opacity, fadeIn, fadeOut } = useFadeAnimation();
 
 	useEffect(() => {
@@ -22,7 +24,7 @@ export default function Overlay({ visible, onPress }: Props) {
 		<Animated.View
 			style={[
 				StyleSheet.absoluteFill,
-				{ backgroundColor: 'rgba(255, 255, 255, 0.2)', opacity: opacity },
+				{ backgroundColor: theme.colors.background_alpha, opacity: opacity },
 			]}
 			pointerEvents={visible ? 'auto' : 'none'}>
 			<Pressable style={{ flex: 1 }} onPress={onPress}></Pressable>
