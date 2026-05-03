@@ -5,11 +5,11 @@ import {
   Modal,
   Pressable,
   StyleSheet,
-  Switch,
   Text,
   TouchableOpacity,
   View,
 } from "react-native";
+import ToggleButton from "./ToggleButton";
 
 type Props = {
   visible: boolean;
@@ -41,21 +41,15 @@ export default function MainOptions({ visible, hideOnOutline }: Props) {
         >
           <View style={styles.mainOptionsContainer}>
             <Pressable style={styles.menuOptionToggle}>
-              <Text style={styles.menuOptionText}>Toggle theme</Text>
-              <Switch
-                thumbColor={theme.colors.blue}
-                trackColor={{ false: theme.colors.grey, true: "#5f719b" }}
+              <Text style={styles.menuOptionText}>App theme</Text>
+              <ToggleButton
+                value={actualTheme === "light" ? true : false}
                 onValueChange={() => {
                   actualTheme === "light"
                     ? setPreferredTheme("dark")
                     : setPreferredTheme("light");
                 }}
-                value={
-                  actualTheme === "light"
-                    ? true
-                    : false
-                }
-              ></Switch>
+              ></ToggleButton>
             </Pressable>
 
             <Pressable style={styles.menuOption}>
