@@ -28,7 +28,8 @@ export default function addNewDeck() {
   const [errorText, setErrorText] = useState("");
 
   const [deckName, setDeckName] = useState("");
-  const [selectedLanguage, setSelectedLanguage] = useState("");
+  const [sourceLanguage, setSourceLanguage] = useState("");
+  const [targetLanguage, setTargetLanguage] = useState("");
 
   const onSavePress = async () => {
     if (!deckName.trim()) {
@@ -37,8 +38,8 @@ export default function addNewDeck() {
     }
     const deckData = {
       name: deckName.trim(),
-      source_language: "",
-      target_language: selectedLanguage,
+      source_language: sourceLanguage,
+      target_language: targetLanguage,
       user_id: session?.currentSession?.user.id as string,
     };
     try {
@@ -95,23 +96,58 @@ export default function addNewDeck() {
           </Text>
         ) : null}
         <View style={styles.dropdownTextContainer}>
-          <Text style={styles.formText}>Deck language</Text>
+          <Text style={styles.formText}>Deck languages</Text>
           <Text style={styles.optionalText}>(Optional)</Text>
         </View>
         <DropdownSelect
-          placeholder="Select language"
+          placeholder="Source language"
           options={DECK_LANGUAGES}
           selectedValue={
-            selectedLanguage ? (selectedLanguage as string) : undefined
+            sourceLanguage ? (sourceLanguage as string) : undefined
           }
           onValueChange={(value) => {
-            setSelectedLanguage(value as string);
+            setSourceLanguage(value as string);
           }}
           primaryColor={theme.colors.purple}
           isMultiple={false}
           isSearchable={false}
           dropdownStyle={styles.dropdown}
           dropdownContainerStyle={{ marginBottom: 0 }}
+          placeholderStyle={styles.dropdownPlaceholder}
+          selectedItemStyle={{ color: theme.colors.primary }}
+          dropdownIconStyle={styles.dropdownIcon}
+          dropdownIcon={
+            <Octicons
+              name="chevron-down"
+              size={24}
+              color={theme.colors.primary}
+            />
+          }
+          modalControls={{
+            modalOptionsContainerStyle: {
+              backgroundColor: theme.colors.background,
+            },
+          }}
+          checkboxControls={{
+            checkboxUnselectedColor: theme.colors.background,
+            checkboxStyle: { borderColor: theme.colors.primary },
+            checkboxLabelStyle: { color: theme.colors.primary },
+          }}
+        />
+        <DropdownSelect
+          placeholder="Target language"
+          options={DECK_LANGUAGES}
+          selectedValue={
+            targetLanguage ? (targetLanguage as string) : undefined
+          }
+          onValueChange={(value) => {
+            setTargetLanguage(value as string);
+          }}
+          primaryColor={theme.colors.purple}
+          isMultiple={false}
+          isSearchable={false}
+          dropdownStyle={styles.dropdown}
+          dropdownContainerStyle={{ marginBottom: 0, marginTop: 15 }}
           placeholderStyle={styles.dropdownPlaceholder}
           selectedItemStyle={{ color: theme.colors.primary }}
           dropdownIconStyle={styles.dropdownIcon}
@@ -145,8 +181,8 @@ export default function addNewDeck() {
             },
           ]}
         >
-          Select a target language to unlock AI-powered example sentences for
-          this deck.
+          Select deck languages to unlock AI-powered example sentences for this
+          deck.
         </Text>
       </ScrollView>
       <ConfirmationButton
