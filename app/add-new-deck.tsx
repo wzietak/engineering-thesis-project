@@ -26,6 +26,7 @@ export default function addNewDeck() {
   const session = useContext(AuthContext);
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const [errorText, setErrorText] = useState("");
+  const [langError, setlangError] = useState("");
 
   const [deckName, setDeckName] = useState("");
   const [sourceLanguage, setSourceLanguage] = useState("");
@@ -34,6 +35,17 @@ export default function addNewDeck() {
   const onSavePress = async () => {
     if (!deckName.trim()) {
       setErrorText("Deck name cannot be empty.");
+      return;
+    }
+    if (
+      ((sourceLanguage === "" || sourceLanguage === undefined) &&
+        targetLanguage !== "" &&
+        targetLanguage !== undefined) ||
+      ((targetLanguage === "" || targetLanguage === undefined) &&
+        sourceLanguage !== "" &&
+        sourceLanguage !== undefined)
+    ) {
+      setlangError("Both languages are required to enable AI assistance.");
       return;
     }
     const deckData = {
@@ -107,6 +119,7 @@ export default function addNewDeck() {
           }
           onValueChange={(value) => {
             setSourceLanguage(value as string);
+            if (langError) setlangError("");
           }}
           primaryColor={theme.colors.purple}
           isMultiple={false}
@@ -142,6 +155,7 @@ export default function addNewDeck() {
           }
           onValueChange={(value) => {
             setTargetLanguage(value as string);
+            if (langError) setlangError("");
           }}
           primaryColor={theme.colors.purple}
           isMultiple={false}
@@ -184,6 +198,17 @@ export default function addNewDeck() {
           Select deck languages to unlock AI-powered example sentences for this
           deck.
         </Text>
+
+        {langError ? (
+          <Text
+            style={[
+              styles.optionalText,
+              { color: theme.colors.error, paddingTop: 5 },
+            ]}
+          >
+            {langError}
+          </Text>
+        ) : null}
       </ScrollView>
       <ConfirmationButton
         buttonText="Save"
