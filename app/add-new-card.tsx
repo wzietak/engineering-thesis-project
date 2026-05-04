@@ -3,6 +3,7 @@ import { AuthContext } from "@/contexts/AuthContext";
 import { useAppTheme } from "@/contexts/ColorThemeContext";
 import { ExampleSource } from "@/models/card";
 import { CARD_TYPE_OPTIONS } from "@/models/CardTypes";
+import { Deck } from "@/models/deck";
 import { globalCardRepository } from "@/repositories/globalCardRepository";
 import { globalDeckRepository } from "@/repositories/globalDeckRepository";
 import { AppTheme } from "@/styles/theme";
@@ -18,7 +19,7 @@ import {
   Text,
   TextInput,
   ToastAndroid,
-  View
+  View,
 } from "react-native";
 import DropdownSelect from "react-native-input-select";
 import {
@@ -67,24 +68,31 @@ export default function AddNewCard() {
   const [exampleSource, setExampleSource] = useState<ExampleSource>(
     INITIAL_VALUES.exampleSource,
   );
-
-  const [items, setItems] = useState([{}]);
-  const [decks, setDecks] = useState<{ label: string; value: string }[]>([]);
+  const [rawDecks, setRawDecks] = useState<Deck[]>([]);
+  const [sourceLanguage, setSourceLanguage] = useState("");
+  const [targetLanguage, setTargetLanguage] = useState("");
 
   const session = useContext(AuthContext);
 
   useFocusEffect(
     useCallback(() => {
-      globalDeckRepository
-        .getDecks(session?.currentSession?.user.id as string)
-        .then((decks) => {
-          const formattedOptions = decks.map((deck) => {
-            return { label: deck.name, value: deck.id };
-          });
-          setDecks(formattedOptions);
-        });
-    }, []),
+      const user_id = session?.currentSession?.user.id;
+      if (!user_id) return;
+      globalDeckRepository.getDecks(user_id).then((decks) => {
+        return setRawDecks(decks);
+      });
+    }, [session?.currentSession?.user.id]),
   );
+
+  const formattedOptions = rawDecks
+    .map((deck: Deck) => {
+      return { label: deck.name, value: deck.id };
+    })
+    .sort((a, b) => a.label.localeCompare(b.label));
+
+  const getDeckData = (deck_id: string) => {
+    return rawDecks.find((deck) => deck.id === deck_id);
+  };
 
   const setDefaultStates = () => {
     setDeckId(INITIAL_VALUES.deckId);
@@ -166,7 +174,7 @@ export default function AddNewCard() {
           <Text style={[styles.formText, { paddingTop: 0 }]}>Deck</Text>
           <DropdownSelect
             placeholder="Select deck"
-            options={decks}
+            options={formattedOptions}
             selectedValue={deckId ? (deckId as string) : undefined}
             onValueChange={(value) => {
               setDeckId(value as string);
@@ -175,6 +183,12 @@ export default function AddNewCard() {
                   ...prevErrors,
                   deckNameErr: INITIAL_ERRORS.deckNameErr,
                 }));
+              if (value) {
+                const deckData = getDeckData(value as string);
+                console.log(deckData);
+                setSourceLanguage(deckData?.source_language ?? "");
+                setTargetLanguage(deckData?.target_language ?? "");
+              }
             }}
             primaryColor={theme.colors.purple}
             isMultiple={false}
@@ -289,7 +303,14 @@ export default function AddNewCard() {
             </Text>
           ) : null}
 
-          <Text style={styles.formText}>Front</Text>
+          <View style={styles.inputTextContainer}>
+            <Text style={styles.formText}>Front</Text>
+            {sourceLanguage !== "" ? (
+              <Text style={[styles.optionalText, { paddingTop: 10 }]}>
+                ({sourceLanguage})
+              </Text>
+            ) : null}
+          </View>
           <TextInput
             style={[
               styles.textInput,
@@ -326,7 +347,15 @@ export default function AddNewCard() {
               {errorText.cardFrontErr}
             </Text>
           ) : null}
-          <Text style={styles.formText}>Back</Text>
+          <View style={styles.inputTextContainer}>
+            <Text style={styles.formText}>Back</Text>
+            {targetLanguage !== "" ? (
+              <Text style={[styles.optionalText, { paddingTop: 10 }]}>
+                ({targetLanguage})
+              </Text>
+            ) : null}
+          </View>
+
           <TextInput
             style={[
               styles.textInput,
@@ -568,5 +597,10 @@ const createStyles = (theme: AppTheme) =>
       borderColor: theme.colors.primary,
       fontFamily: theme.fontFamily.regular,
       borderRadius: theme.borderRadius.sm,
+    },
+    inputTextContainer: {
+      flexDirection: "row",
+      alignSelf: "flex-start",
+      alignItems: "center",
     },
   });
