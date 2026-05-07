@@ -36,6 +36,7 @@ export default function addNewDeck() {
   const { deckId } = useLocalSearchParams<{ deckId: string }>();
 
   const [isEditMode, setIsEditMode] = useState(deckId ? true : false);
+  const [isDeckEmpty, setIsDeckEmpty] = useState(true);
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
@@ -57,6 +58,10 @@ export default function addNewDeck() {
               setSourceLanguage(deck.source_language);
               setTargetLanguage(deck.target_language);
             }
+
+            const isEmpty =
+              await globalDeckRepository.checkIfDeckIsEmpty(deckId);
+            setIsDeckEmpty(isEmpty);
           }
         } catch (error) {
         } finally {
@@ -67,6 +72,8 @@ export default function addNewDeck() {
       getDeck();
     } else {
       setIsLoading(false);
+      setIsEditMode(false);
+      setIsDeckEmpty(true);
     }
   }, [deckId]);
 
@@ -111,7 +118,7 @@ export default function addNewDeck() {
         await globalDeckRepository.updateDeck(deckData);
         router.back();
         if (Platform.OS === "android")
-          ToastAndroid.show("Changes saved!", ToastAndroid.SHORT);
+          ToastAndroid.show("Changes saved", ToastAndroid.SHORT);
       }
     } catch (error: any) {
       if (error.message === "DECK_NAME_ALREADY EXISTS") {
@@ -178,16 +185,23 @@ export default function addNewDeck() {
             primaryColor={theme.colors.purple}
             isMultiple={false}
             isSearchable={false}
-            dropdownStyle={styles.dropdown}
+            disabled={!isDeckEmpty && isEditMode}
+            dropdownStyle={
+              isDeckEmpty ? styles.dropdown : styles.dropdownDisabled
+            }
             dropdownContainerStyle={{ marginBottom: 0 }}
-            placeholderStyle={styles.dropdownPlaceholder}
+            placeholderStyle={
+              isDeckEmpty
+                ? styles.dropdownPlaceholder
+                : styles.dropdownPlaceholderDisabled
+            }
             selectedItemStyle={{ color: theme.colors.primary }}
             dropdownIconStyle={styles.dropdownIcon}
             dropdownIcon={
               <Octicons
                 name="chevron-down"
                 size={24}
-                color={theme.colors.primary}
+                color={isDeckEmpty ? theme.colors.primary : theme.colors.grey}
               />
             }
             modalControls={{
@@ -214,16 +228,23 @@ export default function addNewDeck() {
             primaryColor={theme.colors.purple}
             isMultiple={false}
             isSearchable={false}
-            dropdownStyle={styles.dropdown}
+            disabled={!isDeckEmpty && isEditMode}
+            dropdownStyle={
+              isDeckEmpty ? styles.dropdown : styles.dropdownDisabled
+            }
             dropdownContainerStyle={{ marginBottom: 0, marginTop: 15 }}
-            placeholderStyle={styles.dropdownPlaceholder}
+            placeholderStyle={
+              isDeckEmpty
+                ? styles.dropdownPlaceholder
+                : styles.dropdownPlaceholderDisabled
+            }
             selectedItemStyle={{ color: theme.colors.primary }}
             dropdownIconStyle={styles.dropdownIcon}
             dropdownIcon={
               <Octicons
                 name="chevron-down"
                 size={24}
-                color={theme.colors.primary}
+                color={isDeckEmpty ? theme.colors.primary : theme.colors.grey}
               />
             }
             modalControls={{
@@ -243,14 +264,18 @@ export default function addNewDeck() {
               styles.optionalText,
               {
                 alignSelf: "flex-start",
-                color: theme.colors.purple,
+                color:
+                  isEditMode && !isDeckEmpty
+                    ? theme.colors.primary
+                    : theme.colors.purple,
                 lineHeight: 20,
                 paddingTop: 10,
               },
             ]}
           >
-            Select deck languages to unlock AI-powered example sentences for
-            this deck.
+            {isDeckEmpty
+              ? "Select deck languages to unlock AI-powered example sentences for this deck."
+              : "You can't change the languages once flashcards have been added to the deck."}
           </Text>
 
           {langError ? (
@@ -316,6 +341,16 @@ const createStyles = (theme: AppTheme) =>
       borderColor: theme.colors.primary,
       backgroundColor: theme.colors.background,
     },
+    dropdownDisabled: {
+      height: 50,
+      minHeight: 45,
+      paddingVertical: 0,
+      paddingHorizontal: 10,
+      borderWidth: 1,
+      borderRadius: theme.borderRadius.sm,
+      borderColor: theme.colors.grey,
+      backgroundColor: theme.colors.background,
+    },
     textInput: {
       paddingHorizontal: 10,
       minHeight: 50,
@@ -327,6 +362,10 @@ const createStyles = (theme: AppTheme) =>
     },
     dropdownPlaceholder: {
       color: theme.colors.primary,
+      fontFamily: theme.fontFamily.regular,
+    },
+    dropdownPlaceholderDisabled: {
+      color: theme.colors.grey,
       fontFamily: theme.fontFamily.regular,
     },
     dropdownIcon: {
