@@ -35,7 +35,14 @@ export default function DeckOptions({
   }, [isVisible]);
   return (
     <Animated.View
-      style={[styles.container, { opacity: opacity, top: positionTop }]}
+      style={[
+        styles.container,
+        {
+          opacity: opacity,
+          top: positionTop,
+          pointerEvents: isVisible ? "auto" : "none",
+        },
+      ]}
     >
       <Pressable style={styles.menuOption} onPress={onEditPress}>
         <Text style={styles.menuOptionText}>Edit deck</Text>
