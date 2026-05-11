@@ -15,6 +15,7 @@ type Colors = {
   background_alpha: string;
   error: string;
   icon: string;
+  overlay: string;
 };
 
 type BorderRadius = {
@@ -60,6 +61,7 @@ export const lightTheme: Colors = {
   background_alpha: "rgba(255, 255, 255, 0.2)",
   error: "red",
   icon: "@/assets/icons/splash-icon-light-android.png",
+  overlay: "rgba(20, 25, 41, 0.2)",
 };
 
 export const darkTheme: Colors = {
@@ -79,6 +81,7 @@ export const darkTheme: Colors = {
   background_alpha: "rgba(20, 25, 41, 0.2)",
   error: "#8d0707",
   icon: "@/assets/icons/splash-icon-dark-android.png",
+  overlay: "rgba(20, 25, 41, 0.38)",
 };
 
 export const borderRadius: BorderRadius = {
