@@ -1,6 +1,7 @@
 import FloatingButton from "@/components/buttons/FloatingButton";
 import DeckComponent from "@/components/Deck";
 import DeckOptions from "@/components/DeckOptions";
+import DeleteConfirmationAlert from "@/components/DeleteConfirmationAlert";
 import LoadingScreen from "@/components/LoadingScreen";
 import NoDecksView from "@/components/NoDecksView";
 import Overlay from "@/components/Overlay";
@@ -11,12 +12,18 @@ import { Deck } from "@/models/deck";
 import { globalDeckRepository } from "@/repositories/globalDeckRepository";
 import { useFocusEffect, useRouter } from "expo-router";
 import { useCallback, useContext, useState } from "react";
-import { Dimensions, FlatList, StyleSheet, View } from "react-native";
+import {
+  Dimensions,
+  FlatList,
+  Platform,
+  StyleSheet,
+  ToastAndroid,
+  View,
+} from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 export default function mainScreen() {
   const { theme } = useAppTheme();
-
   const insets = useSafeAreaInsets();
   const router = useRouter();
   const session = useContext(AuthContext);
@@ -27,13 +34,15 @@ export default function mainScreen() {
   const [areDeckOptionsVisible, setDeckOptionsVisible] = useState(false);
   const [pressLocationY, setPressLocationY] = useState<number>();
   const [activeDeckId, setActiveDeckId] = useState<string | null>(null);
+  const [isDeleteModalVisible, setIsDeleteModalVisible] = useState(false);
 
   const SCREEN_HEIGHT = Dimensions.get("window").height;
   const SAFE_MARGIN = 20;
 
+  const userId = session?.currentSession?.user.id as string;
+
   useFocusEffect(
     useCallback(() => {
-      const userId = session?.currentSession?.user.id as string;
       if (!DBconnection.isReady || !userId) {
         return;
       }
@@ -52,6 +61,21 @@ export default function mainScreen() {
       return () => setButtonVisible(false);
     }, [DBconnection.isReady, session?.currentSession?.user.id]),
   );
+
+  const handleDelete = async () => {
+    if (activeDeckId) {
+      await globalDeckRepository.deleteDeck(activeDeckId as string, userId);
+      setDecks((decks) => {
+        const updatedDecks = decks.filter((deck) => {
+          return deck.id !== activeDeckId;
+        });
+        return updatedDecks;
+      });
+      setIsDeleteModalVisible(false);
+      if (Platform.OS === "android")
+        ToastAndroid.show("Deck deleted successfully", ToastAndroid.SHORT);
+    }
+  };
 
   return (
     <View
@@ -153,14 +177,17 @@ export default function mainScreen() {
           setDeckOptionsVisible(false);
         }}
         onDeletePress={() => {
-          // router.push({
-          //   pathname: "/add-new-deck",
-          //   params: { deckId: activeDeckId as string },
-          // });
-          setActiveDeckId(null);
           setDeckOptionsVisible(false);
+          setIsDeleteModalVisible(true);
         }}
       ></DeckOptions>
+      {isDeleteModalVisible ? (
+        <DeleteConfirmationAlert
+          onCancel={() => setIsDeleteModalVisible(false)}
+          onDelete={handleDelete}
+          onClose={() => setIsDeleteModalVisible(false)}
+        ></DeleteConfirmationAlert>
+      ) : null}
     </View>
   );
 }
