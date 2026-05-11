@@ -60,7 +60,7 @@ const createStyles = (theme: AppTheme) =>
     container: {
       position: "absolute",
       top: 0,
-      right: 20,
+      right: 25,
       paddingVertical: 3,
       borderRadius: theme.borderRadius.sm,
       backgroundColor: theme.colors.background,
