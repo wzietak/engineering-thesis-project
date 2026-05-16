@@ -76,7 +76,7 @@ export const darkTheme: Colors = {
   primary_light: "rgb(76, 83, 114)",
   purple: "#7458a9",
   purple_alpha: "#7861a43a",
-  lightpurple: "#706683",
+  lightpurple: "#6d5f87",
   red: "#8a5858",
   background_alpha: "rgba(20, 25, 41, 0.2)",
   error: "#8d0707",
