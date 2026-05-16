@@ -1,5 +1,7 @@
 import FloatingButton from "@/components/buttons/FloatingButton";
 import DeckComponent from "@/components/Deck";
+import DeckOptions from "@/components/DeckOptions";
+import DeleteConfirmationAlert from "@/components/DeleteConfirmationAlert";
 import LoadingScreen from "@/components/LoadingScreen";
 import NoDecksView from "@/components/NoDecksView";
 import Overlay from "@/components/Overlay";
@@ -10,12 +12,18 @@ import { Deck } from "@/models/deck";
 import { globalDeckRepository } from "@/repositories/globalDeckRepository";
 import { useFocusEffect, useRouter } from "expo-router";
 import { useCallback, useContext, useState } from "react";
-import { FlatList, StyleSheet, View } from "react-native";
+import {
+  Dimensions,
+  FlatList,
+  Platform,
+  StyleSheet,
+  ToastAndroid,
+  View,
+} from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 export default function mainScreen() {
   const { theme } = useAppTheme();
-
   const insets = useSafeAreaInsets();
   const router = useRouter();
   const session = useContext(AuthContext);
@@ -23,28 +31,52 @@ export default function mainScreen() {
   const [buttonVisible, setButtonVisible] = useState<boolean>(false);
   const [decks, setDecks] = useState<Deck[]>([]);
   const [isLoading, setIsLoading] = useState<boolean>(true);
+  const [areDeckOptionsVisible, setDeckOptionsVisible] = useState(false);
+  const [pressLocationY, setPressLocationY] = useState<number>();
+  const [activeDeckId, setActiveDeckId] = useState<string | null>(null);
+  const [isDeleteModalVisible, setIsDeleteModalVisible] = useState(false);
+
+  const SCREEN_HEIGHT = Dimensions.get("window").height;
+  const SAFE_MARGIN = 20;
+
+  const userId = session?.currentSession?.user.id as string;
 
   useFocusEffect(
     useCallback(() => {
-      setIsLoading(true);
-      if (DBconnection.isReady) {
-        globalDeckRepository
-          .getDecks(session?.currentSession?.user.id as string)
-          .then((fetchedDecks) => {
-            setDecks([...(fetchedDecks || [])]);
-          })
-          .catch((error) => {
-            console.error(error);
-          })
-          .finally(() => {
-            setIsLoading(false);
-          });
-      } else {
+      if (!DBconnection.isReady || !userId) {
         return;
       }
+      setIsLoading(true);
+      globalDeckRepository
+        .getDecks(userId)
+        .then((fetchedDecks) => {
+          setDecks([...(fetchedDecks || [])]);
+        })
+        .catch((error) => {
+          console.error(error);
+        })
+        .finally(() => {
+          setIsLoading(false);
+        });
       return () => setButtonVisible(false);
-    }, [DBconnection.isReady]),
+    }, [DBconnection.isReady, session?.currentSession?.user.id]),
   );
+
+  const handleDelete = async () => {
+    if (activeDeckId) {
+      await globalDeckRepository.deleteDeck(activeDeckId as string, userId);
+      setDecks((decks) => {
+        const updatedDecks = decks.filter((deck) => {
+          return deck.id !== activeDeckId;
+        });
+        return updatedDecks;
+      });
+      setIsDeleteModalVisible(false);
+      setActiveDeckId(null);
+      if (Platform.OS === "android")
+        ToastAndroid.show("Deck deleted successfully", ToastAndroid.SHORT);
+    }
+  };
 
   return (
     <View
@@ -85,6 +117,20 @@ export default function mainScreen() {
                     params: { deckId: item.id },
                   });
                 }}
+                onLongPress={(event) => {
+                  setActiveDeckId(item.id);
+                  setDeckOptionsVisible(true);
+                  if (event.nativeEvent.pageY - 120 < 30) {
+                    setPressLocationY(event.nativeEvent.pageY - 90);
+                  } else if (
+                    event.nativeEvent.pageY + 110 >
+                    SCREEN_HEIGHT - SAFE_MARGIN
+                  ) {
+                    setPressLocationY(event.nativeEvent.pageY - 180);
+                  } else {
+                    setPressLocationY(event.nativeEvent.pageY - 120);
+                  }
+                }}
               ></DeckComponent>
             );
           }}
@@ -114,6 +160,35 @@ export default function mainScreen() {
         visible={true}
         onPress={() => setButtonVisible(!buttonVisible)}
       ></FloatingButton>
+
+      <Overlay
+        visible={areDeckOptionsVisible}
+        onPress={() => setDeckOptionsVisible(false)}
+      ></Overlay>
+
+      <DeckOptions
+        isVisible={areDeckOptionsVisible}
+        positionTop={pressLocationY as number}
+        onEditPress={() => {
+          router.push({
+            pathname: "/add-new-deck",
+            params: { deckId: activeDeckId as string },
+          });
+          setActiveDeckId(null);
+          setDeckOptionsVisible(false);
+        }}
+        onDeletePress={() => {
+          setDeckOptionsVisible(false);
+          setIsDeleteModalVisible(true);
+        }}
+      ></DeckOptions>
+      {isDeleteModalVisible ? (
+        <DeleteConfirmationAlert
+          onCancel={() => setIsDeleteModalVisible(false)}
+          onDelete={handleDelete}
+          onClose={() => setIsDeleteModalVisible(false)}
+        ></DeleteConfirmationAlert>
+      ) : null}
     </View>
   );
 }

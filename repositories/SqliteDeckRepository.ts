@@ -17,7 +17,6 @@ interface DbDeckRow {
 }
 
 export class SqliteDeckRepository implements DeckRepository {
-  
   public async createNewDeck(
     deckData: Omit<
       Deck,
@@ -80,7 +79,44 @@ export class SqliteDeckRepository implements DeckRepository {
     }));
   }
 
-  public async updateDeck(deckData: Deck): Promise<Deck> {
+  public async checkIfDeckIsEmpty(deckId: string): Promise<boolean> {
+    const countCards: any = await db.getFirstAsync(
+      "SELECT COUNT(*) AS total_cards FROM cards WHERE deck_id = $deck_id AND is_deleted = $is_deleted;",
+      { $deck_id: deckId, $is_deleted: 0 },
+    );
+    return countCards["total_cards"] <= 0;
+  }
+
+  public async getDeckById(
+    deckId: string,
+    userId: string,
+  ): Promise<Deck | null> {
+    const deck = await db.getFirstAsync<DbDeckRow>(
+      "SELECT * FROM decks WHERE user_id = $user_id AND is_deleted = $is_deleted AND id = $id",
+      { $user_id: userId, $is_deleted: 0, $id: deckId },
+    );
+
+    if (deck !== null) {
+      const deckData: Deck = {
+        id: deck.id,
+        name: deck.name,
+        source_language: deck.source_language,
+        target_language: deck.target_language,
+        user_id: deck.user_id,
+        created_at: deck.created_at,
+        updated_at: deck.updated_at,
+        is_synced: deck.is_synced === 1 ? true : false,
+        is_deleted: deck.is_deleted === 1 ? true : false,
+      };
+      return deckData;
+    }
+
+    return null;
+  }
+
+  public async updateDeck(
+    deckData: Omit<Deck, "created_at" | "updated_at" | "is_synced">,
+  ): Promise<Deck | null> {
     const result = await db.runAsync(
       "UPDATE decks SET name = $name, source_language = $source_language, target_language = $target_language, updated_at = $updated_at, is_synced = $is_synced WHERE id = $id AND user_id = $user_id",
       {
@@ -93,13 +129,7 @@ export class SqliteDeckRepository implements DeckRepository {
         $user_id: deckData.user_id,
       },
     );
-    const updatedDeck: Deck = {
-      ...deckData,
-      updated_at: new Date().toISOString(),
-      is_synced: false,
-    };
-
-    return updatedDeck;
+    return null;
   }
 
   public async deleteDeck(deckId: string, userId: string): Promise<void> {

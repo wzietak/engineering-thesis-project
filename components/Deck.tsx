@@ -1,6 +1,13 @@
 import { useAppTheme } from "@/contexts/ColorThemeContext";
 import { AppTheme } from "@/styles/theme";
-import { Pressable, StyleSheet, Text, View, ViewStyle } from "react-native";
+import {
+  GestureResponderEvent,
+  Pressable,
+  StyleSheet,
+  Text,
+  View,
+  ViewStyle,
+} from "react-native";
 
 type Props = {
   label: string;
@@ -8,7 +15,7 @@ type Props = {
   backgroundColor?: string;
   style?: ViewStyle;
   onPress?: () => void;
-  onLongPress?: () => void;
+  onLongPress?: (event: GestureResponderEvent) => void;
 };
 
 export default function DeckComponent({
@@ -27,6 +34,7 @@ export default function DeckComponent({
         onPress={onPress}
         onLongPress={onLongPress}
         style={styles.deckPressable}
+        delayLongPress={350}
       >
         <Text style={styles.deckNameText}>{label}</Text>
         <Text style={styles.deckTextCardsDue}>{cardsDue} cards due</Text>
