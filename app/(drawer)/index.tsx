@@ -72,6 +72,7 @@ export default function mainScreen() {
         return updatedDecks;
       });
       setIsDeleteModalVisible(false);
+      setActiveDeckId(null);
       if (Platform.OS === "android")
         ToastAndroid.show("Deck deleted successfully", ToastAndroid.SHORT);
     }
