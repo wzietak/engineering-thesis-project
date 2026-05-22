@@ -1,5 +1,4 @@
-import { State } from "react-native-gesture-handler";
-import { CardDirection } from "./FSRSTypes";
+import { CardDirection, flashcardState } from "./FSRSTypes";
 
 export interface FSRSState {
   id: string;
@@ -10,7 +9,7 @@ export interface FSRSState {
   last_review: string;
   next_review: string;
   interval_days: number;
-  state: State;
+  state: flashcardState;
   reps: number;
   lapses: number;
   updated_at: string;

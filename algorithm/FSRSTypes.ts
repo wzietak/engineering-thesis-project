@@ -9,7 +9,7 @@ export enum CardDirection {
   Reverse = "Reverse",
 }
 
-export enum State {
+export enum flashcardState {
   New = "New",
   Learning = "Learning",
   Review = "Review",

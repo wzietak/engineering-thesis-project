@@ -1,7 +1,8 @@
 import { FSRSState } from "./FSRSState";
-import { FSRS_PARAMETERS, Grade } from "./FSRSTypes";
+import { flashcardState, FSRS_PARAMETERS, Grade } from "./FSRSTypes";
 
 const DESIRED_RETENTION = 0.9;
+const DAY_IN_MILISECONDS = 24 * 60 * 60 * 1000;
 
 export class FSRS {
   private calculateInterval(
@@ -111,5 +112,79 @@ export class FSRS {
     return newDifficulty;
   }
 
-  public calculateCardState(FSRSState: FSRSState) {}
+  public calculateCardState(card: FSRSState, grade: Grade) {
+    let nextStability = card.stability;
+    let nextDifficulty = card.difficulty;
+    let nextReview = card.next_review;
+    let intervalDays = card.interval_days;
+    let nextState = card.state;
+    let lapses = 0;
+
+    let daysSinceLastReview = undefined;
+    let retrievability = undefined;
+
+    if (card.last_review) {
+      daysSinceLastReview =
+        (Date.now() - new Date(card.last_review).getTime()) /
+        DAY_IN_MILISECONDS;
+
+      retrievability = this.calculateRetrievability(
+        daysSinceLastReview,
+        card.stability,
+      );
+    }
+
+    if (card.state === flashcardState.New) {
+      nextStability = this.calculateInitialStability(grade);
+      nextDifficulty = this.calculateInitialDifficulty(grade);
+    } else if (daysSinceLastReview! < 1) {
+      nextStability = this.calculateShortTermStability(card.stability, grade);
+      nextDifficulty = this.calculateDifficulty(grade, card.difficulty);
+    } else if (grade === Grade.Again) {
+      nextStability = this.calculateStabilityAfterLapse(
+        card.difficulty,
+        card.stability,
+        retrievability!,
+      );
+      nextDifficulty = this.calculateDifficulty(grade, card.difficulty);
+      lapses = 1;
+    } else {
+      nextStability = this.calculateStability(
+        card.stability,
+        card.difficulty,
+        grade,
+        retrievability!,
+      );
+      nextDifficulty = this.calculateDifficulty(grade, card.difficulty);
+    }
+
+    intervalDays = this.calculateInterval(DESIRED_RETENTION, nextStability);
+    nextReview = new Date(
+      Date.now() + intervalDays * DAY_IN_MILISECONDS,
+    ).toISOString();
+
+    if (intervalDays >= 1) {
+      nextState = flashcardState.Review;
+    } else {
+      if (card.state === flashcardState.New) {
+        nextState = flashcardState.Learning;
+      } else if (card.state === flashcardState.Review) {
+        nextState = flashcardState.Relearning;
+      }
+    }
+
+    const updatedCardState = {
+      ...card,
+      nextStability,
+      nextDifficulty,
+      last_review: new Date().toISOString(),
+      next_review: nextReview,
+      interval_days: intervalDays,
+      state: nextState,
+      reps: card.reps + 1,
+      lapses: card.lapses + lapses,
+    };
+
+    return updatedCardState;
+  }
 }
