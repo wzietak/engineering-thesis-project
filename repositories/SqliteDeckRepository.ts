@@ -134,7 +134,7 @@ export class SqliteDeckRepository implements DeckRepository {
 
   public async deleteDeck(deckId: string, userId: string): Promise<void> {
     const result = await db.runAsync(
-      "UPDATE decks SET is_deleted = $is_deleted WHERE id = $id AND user_id = $user_id",
+      "UPDATE decks SET is_deleted = $is_deleted, name = name || '_deleted_' || id  WHERE id = $id AND user_id = $user_id",
       { $is_deleted: 1, $user_id: userId, $id: deckId },
     );
   }
