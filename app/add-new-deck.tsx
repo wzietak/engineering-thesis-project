@@ -7,7 +7,7 @@ import { DECK_LANGUAGES } from "@/models/deckLanguages";
 import { globalDeckRepository } from "@/repositories/globalDeckRepository";
 import { AppTheme } from "@/styles/theme";
 import Octicons from "@expo/vector-icons/Octicons";
-import { router, useLocalSearchParams } from "expo-router";
+import { router, useLocalSearchParams, useNavigation } from "expo-router";
 import { useContext, useEffect, useState } from "react";
 import {
   Platform,
@@ -39,6 +39,8 @@ export default function addNewDeck() {
   const [isDeckEmpty, setIsDeckEmpty] = useState(true);
   const [isLoading, setIsLoading] = useState(true);
 
+  const navigation = useNavigation();
+
   useEffect(() => {
     if (deckId) {
       const getDeck = async () => {
@@ -51,6 +53,7 @@ export default function addNewDeck() {
           if (deck === null) {
             router.back();
           } else {
+            navigation.setOptions({title: "Edit deck"});
             setIsEditMode(true);
             setDeckName(deck.name);
 
