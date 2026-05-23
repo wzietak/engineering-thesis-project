@@ -1,16 +1,17 @@
 import { FSRSState } from "./FSRSState";
 import { flashcardState, FSRS_PARAMETERS, Grade } from "./FSRSTypes";
 
-const DESIRED_RETENTION = 0.9;
 export const DAY_IN_MILISECONDS = 24 * 60 * 60 * 1000;
 
 export class FSRS {
+  private DESIRED_RETENTION = 0.9;
+
   private calculateInterval(
-    desiredRetention: number = DESIRED_RETENTION,
+    desiredRetention: number = this.DESIRED_RETENTION,
     stability: number,
   ) {
     const interval =
-      (stability / Math.pow(0.9, -1 / FSRS_PARAMETERS[20]) - 1) *
+      (stability / (Math.pow(0.9, -1 / FSRS_PARAMETERS[20]) - 1)) *
       (Math.pow(desiredRetention, -1 / FSRS_PARAMETERS[20]) - 1);
 
     return interval;
@@ -98,7 +99,7 @@ export class FSRS {
     const e = Math.E;
     const initialDifficulty =
       FSRS_PARAMETERS[4] - Math.pow(e, FSRS_PARAMETERS[5] * (grade - 1)) + 1;
-    return initialDifficulty;
+    return Math.max(initialDifficulty, 1);
   }
 
   private calculateDifficulty(grade: Grade, difficulty: number): number {
@@ -158,7 +159,10 @@ export class FSRS {
       nextDifficulty = this.calculateDifficulty(grade, card.difficulty!);
     }
 
-    intervalDays = this.calculateInterval(DESIRED_RETENTION, nextStability);
+    intervalDays = this.calculateInterval(
+      this.DESIRED_RETENTION,
+      nextStability,
+    );
     nextReview = new Date(
       Date.now() + intervalDays * DAY_IN_MILISECONDS,
     ).toISOString();
@@ -175,8 +179,8 @@ export class FSRS {
 
     const updatedCardState = {
       ...card,
-      nextStability,
-      nextDifficulty,
+      stability: nextStability,
+      difficulty: nextDifficulty,
       last_review: new Date().toISOString(),
       next_review: nextReview,
       interval_days: intervalDays,
@@ -185,6 +189,11 @@ export class FSRS {
       lapses: card.lapses + lapses,
     };
 
-    return updatedCardState;
+    console.log(updatedCardState);
+
+    return {
+      updatedCardState: updatedCardState,
+      retrievability: retrievability,
+    };
   }
 }
