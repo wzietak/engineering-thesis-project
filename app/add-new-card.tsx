@@ -95,8 +95,6 @@ export default function AddNewCard() {
   };
 
   const setDefaultStates = () => {
-    setDeckId(INITIAL_VALUES.deckId);
-    setCardType(INITIAL_VALUES.cardType);
     setCardFront(INITIAL_VALUES.front);
     setCardBack(INITIAL_VALUES.back);
     setUsageExample(INITIAL_VALUES.usageExample);
@@ -450,7 +448,7 @@ export default function AddNewCard() {
               {" Generate with AI "}
             </Text>
           </Pressable>
-          <Text style={[styles.formText, { paddingTop: 0 }]}>Tags</Text>
+          {/* <Text style={[styles.formText, { paddingTop: 0 }]}>Tags</Text>
           <DropdownSelect
             placeholder="Add tags"
             options={[]}
@@ -502,7 +500,7 @@ export default function AddNewCard() {
                 </Text>
               </View>
             }
-          />
+          /> */}
         </ScrollView>
         <View style={styles.buttonContainer}>
           <ConfirmationButton
