@@ -1,9 +1,11 @@
+import { CardType } from "./CardTypes";
+
 export type ExampleSource = "user" | "ai";
 
 export interface Card {
   id: string;
   deck_id: string;
-  card_type: string;
+  card_type: string | CardType;
   front: string;
   back: string;
   example_sentence?: string;
