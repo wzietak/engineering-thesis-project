@@ -2,7 +2,7 @@ import { FSRSState } from "./FSRSState";
 import { flashcardState, FSRS_PARAMETERS, Grade } from "./FSRSTypes";
 
 const DESIRED_RETENTION = 0.9;
-const DAY_IN_MILISECONDS = 24 * 60 * 60 * 1000;
+export const DAY_IN_MILISECONDS = 24 * 60 * 60 * 1000;
 
 export class FSRS {
   private calculateInterval(
@@ -130,7 +130,7 @@ export class FSRS {
 
       retrievability = this.calculateRetrievability(
         daysSinceLastReview,
-        card.stability,
+        card.stability!,
       );
     }
 
@@ -138,24 +138,24 @@ export class FSRS {
       nextStability = this.calculateInitialStability(grade);
       nextDifficulty = this.calculateInitialDifficulty(grade);
     } else if (daysSinceLastReview! < 1) {
-      nextStability = this.calculateShortTermStability(card.stability, grade);
-      nextDifficulty = this.calculateDifficulty(grade, card.difficulty);
+      nextStability = this.calculateShortTermStability(card.stability!, grade);
+      nextDifficulty = this.calculateDifficulty(grade, card.difficulty!);
     } else if (grade === Grade.Again) {
       nextStability = this.calculateStabilityAfterLapse(
-        card.difficulty,
-        card.stability,
+        card.difficulty!,
+        card.stability!,
         retrievability!,
       );
-      nextDifficulty = this.calculateDifficulty(grade, card.difficulty);
+      nextDifficulty = this.calculateDifficulty(grade, card.difficulty!);
       lapses = 1;
     } else {
       nextStability = this.calculateStability(
-        card.stability,
-        card.difficulty,
+        card.stability!,
+        card.difficulty!,
         grade,
         retrievability!,
       );
-      nextDifficulty = this.calculateDifficulty(grade, card.difficulty);
+      nextDifficulty = this.calculateDifficulty(grade, card.difficulty!);
     }
 
     intervalDays = this.calculateInterval(DESIRED_RETENTION, nextStability);
