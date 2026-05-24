@@ -1,12 +1,8 @@
-import { FSRS } from "@/algorithm/FSRS";
-import { FSRSState } from "@/algorithm/FSRSState";
+import {
+  ReviewableCard
+} from "@/algorithm/flashcardReviewRepository.ts";
 import { CardDirection, Grade } from "@/algorithm/FSRSTypes";
 import { useAppTheme } from "@/contexts/ColorThemeContext";
-import { FrontType } from "@/models/FrontTypes";
-import {
-  ReviewableCard,
-  saveCardReview,
-} from "@/repositories/flashcardReviewRepository.ts";
 import { AppTheme } from "@/styles/theme";
 import { useState } from "react";
 import { StyleSheet, View } from "react-native";
@@ -19,30 +15,19 @@ import StandardFront from "./front types/StandardFront";
 type Props = {
   cardData: ReviewableCard;
   onNextCard: () => void;
+  onAssessmentButtonPress: (grade: Grade) => void;
+  isButtonDisabled : boolean;
 };
 
-export default function FlashCardContainer({ cardData, onNextCard }: Props) {
+export default function FlashCardContainer({
+  cardData,
+  onNextCard,
+  onAssessmentButtonPress, isButtonDisabled
+}: Props) {
   const insets = useSafeAreaInsets();
   const { theme } = useAppTheme();
   const styles = createStyles(theme);
   const [isReversed, setIsReversed] = useState(false);
-
-  const fsrs = new FSRS();
-
-  const previousCardState: FSRSState = {
-    id: cardData.id,
-    card_id: cardData.card_id,
-    card_direction: cardData.card_direction,
-    stability: cardData.stability,
-    difficulty: cardData.difficulty,
-    last_review: cardData.last_review,
-    next_review: cardData.next_review,
-    interval_days: cardData.interval_days,
-    state: cardData.state,
-    reps: cardData.reps,
-    lapses: cardData.lapses,
-    updated_at: cardData.updated_at,
-  };
 
   return (
     <View
@@ -79,72 +64,40 @@ export default function FlashCardContainer({ cardData, onNextCard }: Props) {
             style={{ backgroundColor: theme.colors.red }}
             onPress={() => {
               setIsReversed(false);
-              const { updatedCardState, retrievability } =
-                fsrs.calculateCardState(previousCardState, Grade.Again);
-              saveCardReview(previousCardState, updatedCardState, {
-                grade: Grade.Again,
-                retrievability_at_review: retrievability
-                  ? retrievability
-                  : null,
-                exercise_type: FrontType.STANDARD,
-                reviewed_at: new Date().toISOString(),
-              });
+              onAssessmentButtonPress(Grade.Again);
               onNextCard();
             }}
+            isDisabled={isButtonDisabled}
           ></AssessmentButton>
           <AssessmentButton
             buttonText="Hard"
             style={{ backgroundColor: theme.colors.grey_light }}
             onPress={() => {
               setIsReversed(false);
-              const { updatedCardState, retrievability } =
-                fsrs.calculateCardState(previousCardState, Grade.Hard);
-              saveCardReview(previousCardState, updatedCardState, {
-                grade: Grade.Hard,
-                retrievability_at_review: retrievability
-                  ? retrievability
-                  : null,
-                exercise_type: FrontType.STANDARD,
-                reviewed_at: new Date().toISOString(),
-              });
+              onAssessmentButtonPress(Grade.Hard);
               onNextCard();
             }}
+            isDisabled={isButtonDisabled}
           ></AssessmentButton>
           <AssessmentButton
             buttonText="Good"
             style={{ backgroundColor: theme.colors.green }}
             onPress={() => {
               setIsReversed(false);
-              const { updatedCardState, retrievability } =
-                fsrs.calculateCardState(previousCardState, Grade.Good);
-              saveCardReview(previousCardState, updatedCardState, {
-                grade: Grade.Good,
-                retrievability_at_review: retrievability
-                  ? retrievability
-                  : null,
-                exercise_type: FrontType.STANDARD,
-                reviewed_at: new Date().toISOString(),
-              });
+              onAssessmentButtonPress(Grade.Good);
               onNextCard();
             }}
+            isDisabled={isButtonDisabled}
           ></AssessmentButton>
           <AssessmentButton
             buttonText="Easy"
             style={{ backgroundColor: theme.colors.lightblue }}
             onPress={() => {
               setIsReversed(false);
-              const { updatedCardState, retrievability } =
-                fsrs.calculateCardState(previousCardState, Grade.Easy);
-              saveCardReview(previousCardState, updatedCardState, {
-                grade: Grade.Easy,
-                retrievability_at_review: retrievability
-                  ? retrievability
-                  : null,
-                exercise_type: FrontType.STANDARD,
-                reviewed_at: new Date().toISOString(),
-              });
+              onAssessmentButtonPress(Grade.Easy);
               onNextCard();
             }}
+            isDisabled={isButtonDisabled}
           ></AssessmentButton>
         </View>
       )}
