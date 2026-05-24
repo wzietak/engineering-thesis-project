@@ -29,10 +29,11 @@ function ProtectionComponent() {
       <AppHeader
         title={String(props.options.title)}
         showBack={true}
-        showOptions={false}
+        showOptions={true}
         goBack={() => {
           router.back();
         }}
+        undoFlashcard={props.options.undoFlashcard}
       ></AppHeader>
     ),
   };
@@ -42,7 +43,7 @@ function ProtectionComponent() {
       return;
     }
     const unprotectedScreens = ["login", "+not-found"];
-    console.log(currScreen);
+    // console.log(currScreen);
     if (
       !session.currentSession &&
       !unprotectedScreens.includes(currScreen[0])
