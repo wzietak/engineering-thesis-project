@@ -103,8 +103,8 @@ export async function saveCardReview(
     },
   );
 
-  await db.runAsync(
-    "INSERT INTO reviews VALUES ($id, $fsrs_state_id, $grade, $previous_stability, $previous_difficulty, $new_stability, $new_difficulty, $previous_state, $retrievability_at_review, $exercise_type, $elapsed_days, $scheduled_days, $reviewed_at);",
+  const reviewLog = await db.getFirstAsync<{ id: string }>(
+    "INSERT INTO reviews VALUES ($id, $fsrs_state_id, $grade, $previous_stability, $previous_difficulty, $new_stability, $new_difficulty, $previous_state, $retrievability_at_review, $exercise_type, $elapsed_days, $scheduled_days, $reviewed_at) RETURNING id;",
     {
       $id: Crypto.randomUUID(),
       $fsrs_state_id: newCardState.id,
@@ -133,4 +133,29 @@ export async function saveCardReview(
   //   "BAZA DANYCH - FSRS STATES: ",
   //   JSON.stringify(testData2, null, 2),
   // );
+
+  return reviewLog?.id;
+}
+
+export async function undoCardReview(
+  previousCardState: FSRSState,
+  reviewId: string,
+) {
+  await db.runAsync(
+    "UPDATE fsrs_states SET stability = $stability, difficulty = $difficulty, last_review = $last_review, next_review = $next_review, interval_days = $interval_days, state = $state, reps = $reps, lapses = $lapses, updated_at = $updated_at WHERE id = $id",
+    {
+      $id: previousCardState.id,
+      $stability: previousCardState.stability,
+      $difficulty: previousCardState.difficulty,
+      $last_review: previousCardState.last_review,
+      $next_review: previousCardState.next_review,
+      $interval_days: previousCardState.interval_days,
+      $state: previousCardState.state,
+      $reps: previousCardState.reps,
+      $lapses: previousCardState.lapses,
+      $updated_at: new Date().toISOString(),
+    },
+  );
+
+  await db.runAsync("DELETE FROM reviews WHERE id = $id;", { $id: reviewId });
 }
