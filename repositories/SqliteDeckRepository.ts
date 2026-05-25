@@ -63,7 +63,7 @@ export class SqliteDeckRepository implements DeckRepository {
 
   public async getDecks(userId: string): Promise<DeckWithReviewCount[]> {
     const userDecks = await db.getAllAsync<DbDeckRow>(
-      "SELECT d.*, COUNT(CASE WHEN c.is_deleted = 0 AND (f.next_review <= $next_review OR f.state = 'New') THEN 1 END) AS cards_due FROM decks AS d LEFT JOIN cards AS c ON c.deck_id = d.id LEFT JOIN fsrs_states as f ON c.id = f.card_id  WHERE d.user_id = $user_id AND d.is_deleted = $is_deleted GROUP BY d.id",
+      "SELECT d.*, COUNT(CASE WHEN c.is_deleted = 0 AND (f.next_review <= $next_review OR f.state = 'New') THEN 1 END) AS cards_due FROM decks AS d LEFT JOIN cards AS c ON c.deck_id = d.id LEFT JOIN fsrs_states as f ON c.id = f.card_id  WHERE d.user_id = $user_id AND d.is_deleted = $is_deleted GROUP BY d.id ORDER BY created_at",
       {
         $user_id: userId,
         $is_deleted: 0,
