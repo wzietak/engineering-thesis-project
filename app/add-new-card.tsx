@@ -2,8 +2,9 @@ import ConfirmationButton from "@/components/buttons/ConfirmationButton";
 import { AuthContext } from "@/contexts/AuthContext";
 import { useAppTheme } from "@/contexts/ColorThemeContext";
 import { ExampleSource } from "@/models/card";
-import { CARD_TYPE_OPTIONS } from "@/models/CardTypes";
+import { CARD_TYPE_OPTIONS, CardType } from "@/models/CardTypes";
 import { Deck } from "@/models/deck";
+import { createNewCardState } from "@/repositories/flashcardReviewRepository.ts";
 import { globalCardRepository } from "@/repositories/globalCardRepository";
 import { globalDeckRepository } from "@/repositories/globalDeckRepository";
 import { AppTheme } from "@/styles/theme";
@@ -55,11 +56,9 @@ export default function AddNewCard() {
     cardBackErr: "",
   });
 
-  const [deckDropdownOpen, setDeckDropdownOpen] = useState(false);
-  const [cardTypeDropdownOpen, setCardTypeDropdownOpen] = useState(false);
-  const [tagsDropdownOpen, setTagsDropdownOpen] = useState(false);
-
-  const [cardType, setCardType] = useState(INITIAL_VALUES.cardType);
+  const [cardType, setCardType] = useState<CardType | string>(
+    INITIAL_VALUES.cardType,
+  );
   const [deckId, setDeckId] = useState<null | string>(INITIAL_VALUES.deckId);
   const [tags, setTags] = useState(INITIAL_VALUES.tags);
   const [cardFront, setCardFront] = useState(INITIAL_VALUES.front);
@@ -95,8 +94,6 @@ export default function AddNewCard() {
   };
 
   const setDefaultStates = () => {
-    setDeckId(INITIAL_VALUES.deckId);
-    setCardType(INITIAL_VALUES.cardType);
     setCardFront(INITIAL_VALUES.front);
     setCardBack(INITIAL_VALUES.back);
     setUsageExample(INITIAL_VALUES.usageExample);
@@ -154,10 +151,17 @@ export default function AddNewCard() {
       tags: [],
     };
     try {
-      await globalCardRepository.createNewCard(cardData);
+      const result = await globalCardRepository.createNewCard(cardData);
+      if (cardType === CardType.BASIC_AND_REVERSED) {
+        await createNewCardState(result.id, CardType.BASIC);
+        await createNewCardState(result.id, CardType.REVERSED);
+      } else {
+        await createNewCardState(result.id, cardType as CardType);
+      }
       setDefaultStates();
       if (Platform.OS === "android")
         ToastAndroid.show("Card added!", ToastAndroid.SHORT);
+
     } catch (error) {
       console.error("Error during creating new card", error);
     }
@@ -185,7 +189,6 @@ export default function AddNewCard() {
                 }));
               if (value) {
                 const deckData = getDeckData(value as string);
-                console.log(deckData);
                 setSourceLanguage(deckData?.source_language ?? "");
                 setTargetLanguage(deckData?.target_language ?? "");
               }
@@ -252,9 +255,9 @@ export default function AddNewCard() {
           <DropdownSelect
             placeholder="Select card type"
             options={CARD_TYPE_OPTIONS}
-            selectedValue={cardType ? (cardType as string) : undefined}
+            selectedValue={cardType ? (cardType as CardType) : undefined}
             onValueChange={(value) => {
-              setCardType(value as string);
+              setCardType(value as CardType);
               if (errorText.cardTypeErr)
                 setErrorText((prevErrors) => ({
                   ...prevErrors,
@@ -323,11 +326,6 @@ export default function AddNewCard() {
             multiline={true}
             value={cardFront}
             maxLength={100}
-            onFocus={() => {
-              setDeckDropdownOpen(false);
-              setCardTypeDropdownOpen(false);
-              setTagsDropdownOpen(false);
-            }}
             onChangeText={(input) => {
               setCardFront(input);
               if (errorText.cardFrontErr)
@@ -368,11 +366,6 @@ export default function AddNewCard() {
             multiline={true}
             value={cardBack}
             maxLength={100}
-            onFocus={() => {
-              setDeckDropdownOpen(false);
-              setCardTypeDropdownOpen(false);
-              setTagsDropdownOpen(false);
-            }}
             onChangeText={(input) => {
               setCardBack(input);
               if (errorText.cardBackErr)
@@ -417,11 +410,6 @@ export default function AddNewCard() {
             multiline={true}
             value={usageExample}
             maxLength={150}
-            onFocus={() => {
-              setDeckDropdownOpen(false);
-              setCardTypeDropdownOpen(false);
-              setTagsDropdownOpen(false);
-            }}
             onChangeText={(input) => {
               setUsageExample(input);
             }}
@@ -450,7 +438,7 @@ export default function AddNewCard() {
               {" Generate with AI "}
             </Text>
           </Pressable>
-          <Text style={[styles.formText, { paddingTop: 0 }]}>Tags</Text>
+          {/* <Text style={[styles.formText, { paddingTop: 0 }]}>Tags</Text>
           <DropdownSelect
             placeholder="Add tags"
             options={[]}
@@ -502,7 +490,7 @@ export default function AddNewCard() {
                 </Text>
               </View>
             }
-          />
+          /> */}
         </ScrollView>
         <View style={styles.buttonContainer}>
           <ConfirmationButton

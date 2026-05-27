@@ -8,7 +8,7 @@ import Overlay from "@/components/Overlay";
 import { AuthContext } from "@/contexts/AuthContext";
 import { useAppTheme } from "@/contexts/ColorThemeContext";
 import { DBContext } from "@/contexts/DBContext";
-import { Deck } from "@/models/deck";
+import { DeckWithReviewCount } from "@/models/deck";
 import { globalDeckRepository } from "@/repositories/globalDeckRepository";
 import { useFocusEffect, useRouter } from "expo-router";
 import { useCallback, useContext, useState } from "react";
@@ -29,7 +29,7 @@ export default function mainScreen() {
   const session = useContext(AuthContext);
   const DBconnection = useContext(DBContext);
   const [buttonVisible, setButtonVisible] = useState<boolean>(false);
-  const [decks, setDecks] = useState<Deck[]>([]);
+  const [decks, setDecks] = useState<DeckWithReviewCount[]>([]);
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [areDeckOptionsVisible, setDeckOptionsVisible] = useState(false);
   const [pressLocationY, setPressLocationY] = useState<number>();
@@ -75,7 +75,7 @@ export default function mainScreen() {
       setActiveDeckId(null);
       if (Platform.OS === "android")
         ToastAndroid.show("Deck deleted successfully", ToastAndroid.SHORT);
-    }
+    } else return;
   };
 
   return (
@@ -109,7 +109,7 @@ export default function mainScreen() {
             return (
               <DeckComponent
                 label={item.name}
-                cardsDue={0}
+                cardsDue={item.cards_due}
                 backgroundColor={colorPalette[index % colorPalette.length]}
                 onPress={() => {
                   router.push({

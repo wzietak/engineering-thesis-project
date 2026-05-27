@@ -5,15 +5,23 @@ import { StyleSheet, Text, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import ConfirmationButton from "./buttons/ConfirmationButton";
 
-export default function EmptyDeckView() {
+type Props = {
+ noMoreCardsToReview?: boolean;
+}
+
+export default function EmptyDeckView({noMoreCardsToReview = false} : Props) {
   const insets = useSafeAreaInsets();
   const { theme } = useAppTheme();
   const styles = createStyles(theme);
   return (
     <View style={[styles.container, { paddingBottom: insets.bottom + 40 }]}>
-      <Text style={styles.titleText}>No cards here yet</Text>
+      <Text style={styles.titleText}>
+        {noMoreCardsToReview ? "You're all caught up!" : "No cards here yet"}
+      </Text>
       <Text style={styles.descriptionText}>
-        This deck is currently empty. Add some flashcards to start studying!
+        {noMoreCardsToReview
+          ? "No cards to review right now. Come back later."
+          : "This deck is currently empty. Add some flashcards to start studying!"}
       </Text>
       <View style={{ flexGrow: 1 }}></View>
       <ConfirmationButton
@@ -39,12 +47,12 @@ const createStyles = (theme: AppTheme) =>
       paddingBottom: 10,
       fontFamily: theme.fontFamily.bold,
       fontSize: theme.fontSize.lg,
-      color: theme.colors.primary
+      color: theme.colors.primary,
     },
     descriptionText: {
       fontFamily: theme.fontFamily.regular,
       fontSize: theme.fontSize.sm,
       textAlign: "center",
-      color: theme.colors.primary
+      color: theme.colors.primary,
     },
   });

@@ -37,7 +37,9 @@ export default function DeckComponent({
         delayLongPress={350}
       >
         <Text style={styles.deckNameText}>{label}</Text>
-        <Text style={styles.deckTextCardsDue}>{cardsDue} cards due</Text>
+        <Text style={styles.deckTextCardsDue}>
+          {cardsDue} {cardsDue === 1 ? "card due" : "cards due"}
+        </Text>
       </Pressable>
     </View>
   );

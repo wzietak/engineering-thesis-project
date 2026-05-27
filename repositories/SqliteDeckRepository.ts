@@ -1,5 +1,5 @@
 import { db } from "@/db/database";
-import { Deck } from "@/models/deck";
+import { Deck, DeckWithReviewCount } from "@/models/deck";
 import * as Crypto from "expo-crypto";
 import { DeckRepository } from "./DeckRepository";
 
@@ -14,6 +14,7 @@ interface DbDeckRow {
   updated_at: string;
   is_synced: number;
   is_deleted: number;
+  cards_due: number;
 }
 
 export class SqliteDeckRepository implements DeckRepository {
@@ -60,10 +61,14 @@ export class SqliteDeckRepository implements DeckRepository {
     }
   }
 
-  public async getDecks(userId: string): Promise<Deck[]> {
+  public async getDecks(userId: string): Promise<DeckWithReviewCount[]> {
     const userDecks = await db.getAllAsync<DbDeckRow>(
-      "SELECT * FROM decks WHERE user_id = $user_id AND is_deleted = $is_deleted",
-      { $user_id: userId, $is_deleted: 0 },
+      "SELECT d.*, COUNT(CASE WHEN c.is_deleted = 0 AND (f.next_review <= $next_review OR f.state = 'New') THEN 1 END) AS cards_due FROM decks AS d LEFT JOIN cards AS c ON c.deck_id = d.id LEFT JOIN fsrs_states as f ON c.id = f.card_id  WHERE d.user_id = $user_id AND d.is_deleted = $is_deleted GROUP BY d.id ORDER BY created_at",
+      {
+        $user_id: userId,
+        $is_deleted: 0,
+        $next_review: new Date().toISOString(),
+      },
     );
 
     return userDecks.map((row) => ({
@@ -76,6 +81,7 @@ export class SqliteDeckRepository implements DeckRepository {
       updated_at: row.updated_at,
       is_synced: row.is_synced === 1 ? true : false,
       is_deleted: row.is_deleted === 1 ? true : false,
+      cards_due: row.cards_due,
     }));
   }
 
@@ -134,7 +140,7 @@ export class SqliteDeckRepository implements DeckRepository {
 
   public async deleteDeck(deckId: string, userId: string): Promise<void> {
     const result = await db.runAsync(
-      "UPDATE decks SET is_deleted = $is_deleted WHERE id = $id AND user_id = $user_id",
+      "UPDATE decks SET is_deleted = $is_deleted, name = name || '_deleted_' || id  WHERE id = $id AND user_id = $user_id",
       { $is_deleted: 1, $user_id: userId, $id: deckId },
     );
   }

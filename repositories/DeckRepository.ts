@@ -1,4 +1,4 @@
-import { Deck } from "@/models/deck";
+import { Deck, DeckWithReviewCount } from "@/models/deck";
 
 export interface DeckRepository {
   createNewDeck: (
@@ -7,7 +7,7 @@ export interface DeckRepository {
       "id" | "created_at" | "updated_at" | "is_synced" | "is_deleted"
     >,
   ) => Promise<Deck>;
-  getDecks: (userId: string) => Promise<Deck[]>;
+  getDecks: (userId: string) => Promise<DeckWithReviewCount[]>;
   checkIfDeckIsEmpty: (deckId: string) => Promise<boolean>;
   getDeckById: (deckId: string, userId: string) => Promise<Deck | null>;
   updateDeck: (deckData: Deck) => Promise<Deck | null>;

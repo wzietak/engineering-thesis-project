@@ -6,17 +6,23 @@ type Props = {
   style?: ViewStyle;
   buttonText: string;
   onPress?: () => void;
+  isDisabled?: boolean;
 };
 
 export default function AssessmentButton({
   style,
   buttonText,
   onPress,
+  isDisabled = false,
 }: Props) {
   const { theme } = useAppTheme();
   const styles = createStyles(theme);
   return (
-    <Pressable style={[styles.buttonPressable, style]} onPress={onPress}>
+    <Pressable
+      style={[styles.buttonPressable, style]}
+      onPress={onPress}
+      disabled={isDisabled}
+    >
       <Text style={styles.buttonText}>{buttonText}</Text>
     </Pressable>
   );
@@ -37,6 +43,6 @@ const createStyles = (theme: AppTheme) =>
       alignSelf: "center",
       fontFamily: theme.fontFamily.bold,
       fontSize: theme.fontSize.sm,
-      color: "black"
+      color: "black",
     },
   });

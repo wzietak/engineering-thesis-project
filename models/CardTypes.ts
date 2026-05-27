@@ -1,7 +1,7 @@
 /* Single source of truth for card types to prevent 
 any typo-related bugs and make it easier to change them 
 or add new types */
-enum CardType {
+export enum CardType {
   BASIC = "Basic",
   REVERSED = "Reversed",
   BASIC_AND_REVERSED = "Basic and reversed",

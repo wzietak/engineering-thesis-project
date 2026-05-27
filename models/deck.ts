@@ -9,3 +9,7 @@ export interface Deck {
   is_synced: boolean;
   is_deleted: boolean;
 }
+
+export interface DeckWithReviewCount extends Deck {
+  cards_due: number;
+}
