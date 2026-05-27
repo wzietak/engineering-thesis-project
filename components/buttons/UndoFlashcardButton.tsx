@@ -3,13 +3,16 @@ import { AppTheme } from "@/styles/theme";
 import Octicons from "@expo/vector-icons/Octicons";
 import { Pressable, StyleSheet } from "react-native";
 
-export default function UndoFlashcardButton() {
+type Props = {
+  onPress?: () => void | Promise<void>;
+};
+
+export default function UndoFlashcardButton({ onPress }: Props) {
   const { theme } = useAppTheme();
   const styles = createStyles(theme);
 
-
   return (
-    <Pressable style={{}}>
+    <Pressable onPress={onPress} hitSlop={6}>
       <Octicons name="undo" size={24} color="black" />
     </Pressable>
   );
