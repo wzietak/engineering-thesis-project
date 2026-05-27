@@ -29,7 +29,7 @@ function ProtectionComponent() {
       <AppHeader
         title={String(props.options.title)}
         showBack={true}
-        showOptions={true}
+        showOptions={props.options.showOptions ?? false}
         goBack={() => {
           router.back();
         }}
