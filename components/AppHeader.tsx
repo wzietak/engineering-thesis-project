@@ -4,7 +4,6 @@ import Feather from "@expo/vector-icons/Feather";
 import React from "react";
 import { Pressable, StyleSheet, Text, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
-import UndoFlashcardButton from "./buttons/UndoFlashcardButton";
 
 type Props = {
   title: string;
@@ -27,6 +26,7 @@ export default function AppHeader({
 }: Props) {
   const { theme } = useAppTheme();
   const styles = createStyles(theme);
+  const UndoButton = undoFlashcard;
 
   return (
     <SafeAreaView
@@ -46,12 +46,10 @@ export default function AppHeader({
             color={theme.colors.primary}
           />
         </Pressable>
-        {undoFlashcard ? <UndoFlashcardButton /> : null}
+        {UndoButton ? <UndoButton /> : null}
       </View>
       <Text style={styles.headerText}>{title}</Text>
-      <View
-        style={{ alignItems: "flex-end", flex: 1 }}
-      >
+      <View style={{ alignItems: "flex-end", flex: 1 }}>
         <Pressable onPress={showOptions ? openOptions : null} hitSlop={10}>
           <Feather
             name="more-vertical"
