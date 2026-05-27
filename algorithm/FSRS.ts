@@ -189,7 +189,7 @@ export class FSRS {
       lapses: card.lapses + lapses,
     };
 
-    console.log(updatedCardState);
+    // console.log(updatedCardState);
 
     return {
       updatedCardState: updatedCardState,
