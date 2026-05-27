@@ -125,12 +125,21 @@ export async function saveCardReview(
     },
   );
 
-  // const testData = await db.getAllAsync("Select * from reviews");
-  // console.log("BAZA DANYCH  - REVIEWS: ", JSON.stringify(testData, null, 2));
-
-  // const testData2 = await db.getAllAsync("Select * from fsrs_states");
+  // const testData = await db.getAllAsync(
+  //   "Select * from reviews WHERE id = $id;",
+  //   { $id: reviewLog?.id as string },
+  // );
   // console.log(
-  //   "BAZA DANYCH - FSRS STATES: ",
+  //   "BAZA DANYCH  - REVIEWS PO PRZEGLADZIE: ",
+  //   JSON.stringify(testData, null, 2),
+  // );
+
+  // const testData2 = await db.getAllAsync(
+  //   "Select * from fsrs_states WHERE id = $id",
+  //   { $id: newCardState.id },
+  // );
+  // console.log(
+  //   "BAZA DANYCH - FSRS STATES PO PRZEGLADZIE: ",
   //   JSON.stringify(testData2, null, 2),
   // );
 
@@ -158,4 +167,21 @@ export async function undoCardReview(
   );
 
   await db.runAsync("DELETE FROM reviews WHERE id = $id;", { $id: reviewId });
+
+  // const testData = await db.getAllAsync(
+  //   "Select * from reviews ORDER BY id LIMIT 3;",
+  // );
+  // console.log(
+  //   "BAZA DANYCH  - REVIEWS PO UNDO: ",
+  //   JSON.stringify(testData, null, 2),
+  // );
+
+  // const testData2 = await db.getAllAsync(
+  //   "Select * from fsrs_states WHERE id = $id",
+  //   { $id: previousCardState.id },
+  // );
+  // console.log(
+  //   "BAZA DANYCH - FSRS STATES PO UNDO: ",
+  //   JSON.stringify(testData2, null, 2),
+  // );
 }

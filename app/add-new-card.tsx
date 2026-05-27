@@ -1,10 +1,10 @@
+import { createNewCardState } from "@/algorithm/flashcardReviewRepository.ts";
 import ConfirmationButton from "@/components/buttons/ConfirmationButton";
 import { AuthContext } from "@/contexts/AuthContext";
 import { useAppTheme } from "@/contexts/ColorThemeContext";
 import { ExampleSource } from "@/models/card";
 import { CARD_TYPE_OPTIONS, CardType } from "@/models/CardTypes";
 import { Deck } from "@/models/deck";
-import { createNewCardState } from "@/repositories/flashcardReviewRepository.ts";
 import { globalCardRepository } from "@/repositories/globalCardRepository";
 import { globalDeckRepository } from "@/repositories/globalDeckRepository";
 import { AppTheme } from "@/styles/theme";
@@ -161,7 +161,6 @@ export default function AddNewCard() {
       setDefaultStates();
       if (Platform.OS === "android")
         ToastAndroid.show("Card added!", ToastAndroid.SHORT);
-
     } catch (error) {
       console.error("Error during creating new card", error);
     }
