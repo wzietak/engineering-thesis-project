@@ -75,7 +75,7 @@ export default function mainScreen() {
       setActiveDeckId(null);
       if (Platform.OS === "android")
         ToastAndroid.show("Deck deleted successfully", ToastAndroid.SHORT);
-    }
+    } else return;
   };
 
   return (
