@@ -2,22 +2,31 @@ import {
   getCardsForReview,
   ReviewableCard,
   saveCardReview,
+  undoCardReview,
 } from "@/algorithm/flashcardReviewRepository.ts";
 import { FSRS } from "@/algorithm/FSRS";
 import { FSRSState } from "@/algorithm/FSRSState";
 import { Grade } from "@/algorithm/FSRSTypes";
-import undoFlashcardButton from "@/components/buttons/UndoFlashcardButton";
+import AppHeader from "@/components/AppHeader";
+import UndoFlashcardButton from "@/components/buttons/UndoFlashcardButton";
 import EmptyDeckView from "@/components/EmptyDeckView";
-import FlashCardContainer from "@/components/flashcard/FlashCardContainer";
+import FlashCardContainer, {
+  flashcardRef,
+} from "@/components/flashcard/FlashCardContainer";
 import LoadingScreen from "@/components/LoadingScreen";
 import { AuthContext } from "@/contexts/AuthContext";
 import { FrontType } from "@/models/FrontTypes";
 import { globalDeckRepository } from "@/repositories/globalDeckRepository";
-import { router, useLocalSearchParams, useNavigation } from "expo-router";
-import { useContext, useEffect, useState } from "react";
+import {
+  router,
+  Stack,
+  useLocalSearchParams,
+  useNavigation,
+} from "expo-router";
+import { useContext, useEffect, useRef, useState } from "react";
+import { View } from "react-native";
 
 type undoCardData = {
-  fsrsId: string;
   reviewId: string;
   previousFSRSState: FSRSState;
   index: number;
@@ -52,14 +61,19 @@ export default function studyScreen() {
   const { deckId } = useLocalSearchParams<{ deckId: string }>();
   const [isDeckEmpty, setIsDeckEmpty] = useState(true);
   const [isDBProcessing, setIsDBProcessing] = useState<boolean>(false);
+  const [isCardReversed, setIsCardReversed] = useState(false);
+  const [isUndoInProgress, setIsUndoInProgress] = useState(false);
 
   const session = useContext(AuthContext);
   const fsrs = new FSRS();
-  const navigation = useNavigation();
 
   const [undoStack, setUndoStack] = useState<undoCardData[]>([]);
 
+  const flashCardContainerRef = useRef<flashcardRef>(null);
+  const isUndoingRef = useRef(false);
+
   const increaseIndex = () => {
+    if (currentCardIndex < 0) return;
     if (currentCardIndex < cardsForToday.length - 1) {
       setCurrentCardIndex(currentCardIndex + 1);
     } else {
@@ -94,7 +108,6 @@ export default function studyScreen() {
       );
 
       const undoCardData: undoCardData = {
-        fsrsId: cardsForToday[currentCardIndex].id,
         reviewId: reviewId as string,
         previousFSRSState: previousCardState,
         index: currentCardIndex,
@@ -105,6 +118,38 @@ export default function studyScreen() {
       setIsDBProcessing(false);
     }
   };
+
+  const handleUndo = async () => {
+    if (flashCardContainerRef.current?.isReversed) {
+      flashCardContainerRef.current?.showCardFront();
+    } else {
+      if (currentCardIndex > 0 && undoStack.length > 0) {
+        setIsUndoInProgress(true); //flag used to prevent 'undo' icon from blinking during moving between flashcards
+        try {
+          const previousCardData = undoStack[undoStack.length - 1];
+          await undoCardReview(
+            previousCardData.previousFSRSState,
+            previousCardData.reviewId,
+          );
+          setCurrentCardIndex(previousCardData.index);
+          setUndoStack((prev) => prev.slice(0, -1));
+          isUndoingRef.current = true; //function updates the index and sets a flag isUndoingRef
+        } catch (error) {
+          setIsUndoInProgress(false);
+        }
+      }
+    }
+  };
+
+  /* Used separate useEffect for moving from the front of the flashcard to the back of the previous one 
+  We can't call flashCardContainerRef.current?.showCardBack() function directly in handleUndo() because setCurrentCardIndex(previousCardData.index) is asynchronous function so it needs time to check index of the current card. UseEffect enables to flip the card after index has been changed to the previous card - isUndoingRef helps with that.
+  */
+  useEffect(() => {
+    if (isUndoingRef.current) {
+      flashCardContainerRef.current?.showCardBack();
+      isUndoingRef.current = false;
+    }
+  }, [currentCardIndex]);
 
   /* 
   Used 3 different booleans: isLoading, !deckId and isMounted.
@@ -132,7 +177,6 @@ export default function studyScreen() {
         });
       } finally {
         setIsLoading(false);
-        navigation.setOptions({ undoFlashcard: undoFlashcardButton });
       }
     };
     prepareFlashCards();
@@ -154,11 +198,36 @@ export default function studyScreen() {
   }
 
   return (
-    <FlashCardContainer
-      cardData={cardsForToday[currentCardIndex]}
-      onNextCard={increaseIndex}
-      onAssessmentButtonPress={onCardAssessment}
-      isButtonDisabled={isDBProcessing}
-    ></FlashCardContainer>
+    <View style={{ flex: 1 }}>
+      <Stack.Screen options={{ headerShown: false }} />
+      <AppHeader
+        title="Study"
+        showBack={true}
+        goBack={() => {
+          router.back();
+        }}
+        undoFlashcard={
+          undoStack.length > 0 ||
+          isCardReversed ||
+          isDBProcessing ||
+          isUndoInProgress //isDBProcessing and isUndoInProgres flags help to prevent 'undo' icon from blinking during moving between flashcards - in both directions
+            ? () => <UndoFlashcardButton onPress={handleUndo} />
+            : undefined
+        }
+      ></AppHeader>
+      <FlashCardContainer
+        cardData={cardsForToday[currentCardIndex]}
+        onNextCard={increaseIndex}
+        onAssessmentButtonPress={onCardAssessment}
+        isButtonDisabled={isDBProcessing}
+        ref={flashCardContainerRef}
+        onCardFlip={(reversed) => {
+          setIsCardReversed(reversed);
+          if (reversed) {
+            setIsUndoInProgress(false);
+          }
+        }}
+      ></FlashCardContainer>
+    </View>
   );
 }
