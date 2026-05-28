@@ -13,7 +13,7 @@ export default function UndoFlashcardButton({ onPress }: Props) {
 
   return (
     <Pressable onPress={onPress} hitSlop={6}>
-      <Octicons name="undo" size={24} color="black" />
+      <Octicons name="undo" size={24} color={theme.colors.primary} />
     </Pressable>
   );
 }

@@ -13,16 +13,13 @@ import EmptyDeckView from "@/components/EmptyDeckView";
 import FlashCardContainer, {
   flashcardRef,
 } from "@/components/flashcard/FlashCardContainer";
+import FlashcardOptions from "@/components/FlashcardOptions";
 import LoadingScreen from "@/components/LoadingScreen";
+import Overlay from "@/components/Overlay";
 import { AuthContext } from "@/contexts/AuthContext";
 import { FrontType } from "@/models/FrontTypes";
 import { globalDeckRepository } from "@/repositories/globalDeckRepository";
-import {
-  router,
-  Stack,
-  useLocalSearchParams,
-  useNavigation,
-} from "expo-router";
+import { router, Stack, useLocalSearchParams } from "expo-router";
 import { useContext, useEffect, useRef, useState } from "react";
 import { View } from "react-native";
 
@@ -63,6 +60,8 @@ export default function studyScreen() {
   const [isDBProcessing, setIsDBProcessing] = useState<boolean>(false);
   const [isCardReversed, setIsCardReversed] = useState(false);
   const [isUndoInProgress, setIsUndoInProgress] = useState(false);
+  const [areFlashcardOptionsVisible, setFlashcardOptionsVisible] =
+    useState(false);
 
   const session = useContext(AuthContext);
   const fsrs = new FSRS();
@@ -206,6 +205,9 @@ export default function studyScreen() {
         goBack={() => {
           router.back();
         }}
+        openOptions={() =>
+          setFlashcardOptionsVisible(!areFlashcardOptionsVisible)
+        }
         undoFlashcard={
           undoStack.length > 0 ||
           isCardReversed ||
@@ -228,6 +230,26 @@ export default function studyScreen() {
           }
         }}
       ></FlashCardContainer>
+
+      <Overlay
+        visible={areFlashcardOptionsVisible}
+        onPress={() => setFlashcardOptionsVisible(false)}
+      ></Overlay>
+
+      <FlashcardOptions
+        isVisible={areFlashcardOptionsVisible}
+        positionTop={95}
+        onEditPress={() => {
+          router.push({
+            pathname: "/add-new-card",
+            params: {
+              cardId: cardsForToday[currentCardIndex].card_id as string,
+            },
+          });
+          setFlashcardOptionsVisible(false);
+        }}
+        onDeletePress={() => null}
+      ></FlashcardOptions>
     </View>
   );
 }

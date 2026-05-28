@@ -53,6 +53,8 @@ export class SqliteCardRepository implements CardRepository {
           $is_deleted: newCard.is_deleted ? 1 : 0,
         },
       );
+      // const testData = await db.getAllAsync("Select * from cards");
+      // console.log("BAZA DANYCH - CARDS: ", JSON.stringify(testData, null, 2));
       return newCard;
     } catch (error: any) {
       throw error;
@@ -86,7 +88,40 @@ export class SqliteCardRepository implements CardRepository {
     }));
   }
 
-  public async updateCard(cardData: Card): Promise<Card> {
+  public async getCardById(
+    cardId: string,
+    userId: string,
+  ): Promise<Card | null> {
+    const card = await db.getFirstAsync<DbCardRow>(
+      "SELECT * FROM cards WHERE user_id = $user_id AND is_deleted = $is_deleted AND id = $id",
+      { $user_id: userId, $is_deleted: 0, $id: cardId },
+    );
+
+    if (card !== null) {
+      const cardData: Card = {
+        id: card.id,
+        deck_id: card.deck_id,
+        card_type: card.card_type,
+        front: card.front,
+        back: card.back,
+        example_sentence: card.example_sentence ?? "",
+        example_source: card.example_source,
+        user_id: userId,
+        created_at: card.created_at,
+        updated_at: card.updated_at,
+        is_synced: card.is_synced === 1 ? true : false,
+        is_deleted: card.is_deleted === 1 ? true : false,
+        tags: card.tags,
+      };
+      return cardData;
+    }
+
+    return null;
+  }
+
+  public async updateCard(
+    cardData: Omit<Card, "created_at" | "is_synced" | "updated_at">,
+  ): Promise<Card | null> {
     const result = await db.runAsync(
       "UPDATE cards SET deck_id = $deck_id, card_type = $card_type, front = $front, back = $back, example_sentence = $example_sentence, example_source = $example_source, updated_at = $updated_at, is_synced = $is_synced WHERE id = $id AND user_id = $user_id;",
       {
@@ -103,12 +138,12 @@ export class SqliteCardRepository implements CardRepository {
       },
     );
 
-    const updatedCard: Card = {
-      ...cardData,
-      updated_at: new Date().toISOString(),
-      is_synced: false,
-    };
-    return updatedCard;
+    // const updatedCard: Card = {
+    //   ...cardData,
+    //   updated_at: new Date().toISOString(),
+    //   is_synced: false,
+    // };
+    return null;
   }
 
   public async deleteCard(cardId: string, userId: string): Promise<void> {

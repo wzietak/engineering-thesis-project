@@ -1,8 +1,9 @@
 import { createNewCardState } from "@/algorithm/flashcardReviewRepository.ts";
 import ConfirmationButton from "@/components/buttons/ConfirmationButton";
+import LoadingScreen from "@/components/LoadingScreen";
 import { AuthContext } from "@/contexts/AuthContext";
 import { useAppTheme } from "@/contexts/ColorThemeContext";
-import { ExampleSource } from "@/models/card";
+import { Card, ExampleSource } from "@/models/card";
 import { CARD_TYPE_OPTIONS, CardType } from "@/models/CardTypes";
 import { Deck } from "@/models/deck";
 import { globalCardRepository } from "@/repositories/globalCardRepository";
@@ -10,8 +11,13 @@ import { globalDeckRepository } from "@/repositories/globalDeckRepository";
 import { AppTheme } from "@/styles/theme";
 import Octicons from "@expo/vector-icons/Octicons";
 import SimpleLineIcons from "@expo/vector-icons/SimpleLineIcons";
-import { useFocusEffect } from "expo-router";
-import { useCallback, useContext, useState } from "react";
+import {
+  router,
+  useFocusEffect,
+  useLocalSearchParams,
+  useNavigation,
+} from "expo-router";
+import { useCallback, useContext, useEffect, useState } from "react";
 import {
   Platform,
   Pressable,
@@ -71,7 +77,13 @@ export default function AddNewCard() {
   const [sourceLanguage, setSourceLanguage] = useState("");
   const [targetLanguage, setTargetLanguage] = useState("");
 
+  const { cardId } = useLocalSearchParams<{ cardId: string }>();
+  const [isEditMode, setIsEditMode] = useState(cardId ? true : false);
+  const [isLoading, setIsLoading] = useState(true);
+  let initialDeckId: string;
+
   const session = useContext(AuthContext);
+  const navigation = useNavigation();
 
   useFocusEffect(
     useCallback(() => {
@@ -82,6 +94,38 @@ export default function AddNewCard() {
       });
     }, [session?.currentSession?.user.id]),
   );
+
+  useEffect(() => {
+    if (cardId) {
+      const getCard = async () => {
+        try {
+          const userId = session?.currentSession?.user.id;
+          const card: Card | null = await globalCardRepository.getCardById(
+            cardId,
+            userId as string,
+          );
+          if (card === null) router.back();
+          else {
+            navigation.setOptions({ title: "Edit card" });
+            setIsEditMode(true);
+            setDeckId(card.deck_id);
+            setCardType(card.card_type);
+            setCardFront(card.front);
+            setCardBack(card.back);
+            setUsageExample(card.example_sentence ?? "");
+            initialDeckId = card.deck_id;
+          }
+        } catch (error) {
+        } finally {
+          setIsLoading(false);
+        }
+      };
+      getCard();
+    } else {
+      setIsLoading(false);
+      setIsEditMode(false);
+    }
+  }, [cardId]);
 
   const formattedOptions = rawDecks
     .map((deck: Deck) => {
@@ -140,304 +184,360 @@ export default function AddNewCard() {
       return;
     }
 
-    const cardData = {
-      deck_id: deckId,
-      card_type: cardType,
-      front: cardFrontCleaned,
-      back: cardBackCleaned,
-      example_sentence: usageExampleCleaned,
-      example_source: exampleSource,
-      user_id: session?.currentSession?.user.id as string,
-      tags: [],
-    };
     try {
-      const result = await globalCardRepository.createNewCard(cardData);
-      if (cardType === CardType.BASIC_AND_REVERSED) {
-        await createNewCardState(result.id, CardType.BASIC);
-        await createNewCardState(result.id, CardType.REVERSED);
+      if (!isEditMode) {
+        const cardData = {
+          deck_id: deckId,
+          card_type: cardType,
+          front: cardFrontCleaned,
+          back: cardBackCleaned,
+          example_sentence: usageExampleCleaned,
+          example_source: exampleSource,
+          user_id: session?.currentSession?.user.id as string,
+          tags: [],
+        };
+
+        const result = await globalCardRepository.createNewCard(cardData);
+        if (cardType === CardType.BASIC_AND_REVERSED) {
+          await createNewCardState(result.id, CardType.BASIC);
+          await createNewCardState(result.id, CardType.REVERSED);
+        } else {
+          await createNewCardState(result.id, cardType as CardType);
+        }
+        setDefaultStates();
+        if (Platform.OS === "android")
+          ToastAndroid.show("Card added!", ToastAndroid.SHORT);
       } else {
-        await createNewCardState(result.id, cardType as CardType);
+        const cardData = {
+          id: cardId,
+          deck_id: deckId,
+          card_type: cardType,
+          front: cardFrontCleaned,
+          back: cardBackCleaned,
+          example_sentence: usageExampleCleaned,
+          example_source: exampleSource,
+          user_id: session?.currentSession?.user.id as string,
+          tags: [],
+          is_deleted: false,
+        };
+
+        await globalCardRepository.updateCard(cardData);
+        if (cardData.deck_id !== initialDeckId) {
+          router.replace("/");
+        } else {
+          router.back();
+        }
+
+        if (Platform.OS === "android")
+          ToastAndroid.show("Changes saved", ToastAndroid.SHORT);
       }
-      setDefaultStates();
-      if (Platform.OS === "android")
-        ToastAndroid.show("Card added!", ToastAndroid.SHORT);
-    } catch (error) {
-      console.error("Error during creating new card", error);
-    }
+    } catch (error) {}
   };
 
   return (
     <SafeAreaProvider>
       <View style={[styles.container, { paddingBottom: insets.bottom }]}>
-        <ScrollView
-          style={styles.scrollContainer}
-          showsVerticalScrollIndicator={false}
-          keyboardShouldPersistTaps="handled"
-        >
-          <Text style={[styles.formText, { paddingTop: 0 }]}>Deck</Text>
-          <DropdownSelect
-            placeholder="Select deck"
-            options={formattedOptions}
-            selectedValue={deckId ? (deckId as string) : undefined}
-            onValueChange={(value) => {
-              setDeckId(value as string);
-              if (errorText.deckNameErr)
-                setErrorText((prevErrors) => ({
-                  ...prevErrors,
-                  deckNameErr: INITIAL_ERRORS.deckNameErr,
-                }));
-              if (value) {
-                const deckData = getDeckData(value as string);
-                setSourceLanguage(deckData?.source_language ?? "");
-                setTargetLanguage(deckData?.target_language ?? "");
-              }
-            }}
-            primaryColor={theme.colors.purple}
-            isMultiple={false}
-            isSearchable={true}
-            dropdownStyle={{
-              ...styles.dropdown,
-              borderColor: errorText.deckNameErr
-                ? theme.colors.error
-                : theme.colors.primary,
-            }}
-            dropdownContainerStyle={{ marginBottom: 0 }}
-            placeholderStyle={styles.dropdownPlaceholder}
-            selectedItemStyle={{ color: theme.colors.primary }}
-            dropdownIconStyle={styles.dropdownIcon}
-            dropdownIcon={
-              <Octicons
-                name="chevron-down"
-                size={24}
-                color={theme.colors.primary}
-              />
-            }
-            searchControls={{
-              textInputStyle: styles.dropdowntextInput,
-              textInputProps: { placeholderTextColor: theme.colors.primary },
-            }}
-            modalControls={{
-              modalOptionsContainerStyle: {
-                backgroundColor: theme.colors.background,
-              },
-            }}
-            checkboxControls={{
-              checkboxUnselectedColor: theme.colors.background,
-              checkboxStyle: { borderColor: theme.colors.primary },
-              checkboxLabelStyle: { color: theme.colors.primary },
-            }}
-            listEmptyComponent={
-              <View style={{ alignItems: "center" }}>
-                <Text
-                  style={{
-                    color: theme.colors.primary,
-                    fontFamily: theme.fontFamily.regular,
-                  }}
-                >
-                  No options available
-                </Text>
-              </View>
-            }
-          />
-          {errorText.deckNameErr ? (
-            <Text
-              style={[
-                styles.optionalText,
-                { color: theme.colors.error, paddingTop: 5 },
-              ]}
-            >
-              {errorText.deckNameErr}
-            </Text>
-          ) : null}
-
-          <Text style={styles.formText}>Card type</Text>
-          <DropdownSelect
-            placeholder="Select card type"
-            options={CARD_TYPE_OPTIONS}
-            selectedValue={cardType ? (cardType as CardType) : undefined}
-            onValueChange={(value) => {
-              setCardType(value as CardType);
-              if (errorText.cardTypeErr)
-                setErrorText((prevErrors) => ({
-                  ...prevErrors,
-                  cardTypeErr: INITIAL_ERRORS.cardTypeErr,
-                }));
-            }}
-            primaryColor={theme.colors.purple}
-            isMultiple={false}
-            isSearchable={false}
-            dropdownStyle={{
-              ...styles.dropdown,
-              borderColor: errorText.cardTypeErr
-                ? theme.colors.error
-                : theme.colors.primary,
-            }}
-            dropdownContainerStyle={{ marginBottom: 0 }}
-            placeholderStyle={styles.dropdownPlaceholder}
-            selectedItemStyle={{ color: theme.colors.primary }}
-            dropdownIconStyle={styles.dropdownIcon}
-            dropdownIcon={
-              <Octicons
-                name="chevron-down"
-                size={24}
-                color={theme.colors.primary}
-              />
-            }
-            modalControls={{
-              modalOptionsContainerStyle: {
-                backgroundColor: theme.colors.background,
-              },
-            }}
-            checkboxControls={{
-              checkboxUnselectedColor: theme.colors.background,
-              checkboxStyle: { borderColor: theme.colors.primary },
-              checkboxLabelStyle: { color: theme.colors.primary },
-            }}
-          />
-          {errorText.cardTypeErr ? (
-            <Text
-              style={[
-                styles.optionalText,
-                { color: theme.colors.error, paddingTop: 5 },
-              ]}
-            >
-              {errorText.cardTypeErr}
-            </Text>
-          ) : null}
-
-          <View style={styles.inputTextContainer}>
-            <Text style={styles.formText}>Front</Text>
-            {sourceLanguage !== "" ? (
-              <Text style={[styles.optionalText, { paddingTop: 10 }]}>
-                ({sourceLanguage})
-              </Text>
-            ) : null}
-          </View>
-          <TextInput
-            style={[
-              styles.textInput,
-              {
-                borderColor: errorText.cardFrontErr
-                  ? theme.colors.error
-                  : theme.colors.primary,
-              },
-            ]}
-            multiline={true}
-            value={cardFront}
-            maxLength={100}
-            onChangeText={(input) => {
-              setCardFront(input);
-              if (errorText.cardFrontErr)
-                setErrorText((prevErrors) => ({
-                  ...prevErrors,
-                  cardFrontErr: INITIAL_ERRORS.cardFrontErr,
-                }));
-            }}
-          />
-          {errorText.cardFrontErr ? (
-            <Text
-              style={[
-                styles.optionalText,
-                { color: theme.colors.error, paddingTop: 5 },
-              ]}
-            >
-              {errorText.cardFrontErr}
-            </Text>
-          ) : null}
-          <View style={styles.inputTextContainer}>
-            <Text style={styles.formText}>Back</Text>
-            {targetLanguage !== "" ? (
-              <Text style={[styles.optionalText, { paddingTop: 10 }]}>
-                ({targetLanguage})
-              </Text>
-            ) : null}
-          </View>
-
-          <TextInput
-            style={[
-              styles.textInput,
-              {
-                borderColor: errorText.cardBackErr
-                  ? theme.colors.error
-                  : theme.colors.primary,
-              },
-            ]}
-            multiline={true}
-            value={cardBack}
-            maxLength={100}
-            onChangeText={(input) => {
-              setCardBack(input);
-              if (errorText.cardBackErr)
-                setErrorText((prevErrors) => ({
-                  ...prevErrors,
-                  cardBackErr: INITIAL_ERRORS.cardBackErr,
-                }));
-            }}
-          />
-          {errorText.cardBackErr ? (
-            <Text
-              style={[
-                styles.optionalText,
-                { color: theme.colors.error, paddingTop: 5 },
-              ]}
-            >
-              {errorText.cardBackErr}
-            </Text>
-          ) : null}
-          <View
-            style={{
-              flexDirection: "row",
-              alignItems: "center",
-              paddingTop: 10,
-            }}
+        {isLoading ? (
+          <LoadingScreen></LoadingScreen>
+        ) : (
+          <ScrollView
+            style={styles.scrollContainer}
+            showsVerticalScrollIndicator={false}
+            keyboardShouldPersistTaps="handled"
           >
-            <Text style={[styles.formText, { paddingTop: 0 }]}>
-              Example of use
-            </Text>
-            <Text style={styles.optionalText}>(Optional)</Text>
-          </View>
+            <Text style={[styles.formText, { paddingTop: 0 }]}>Deck</Text>
+            <DropdownSelect
+              placeholder="Select deck"
+              options={formattedOptions}
+              selectedValue={deckId ? (deckId as string) : undefined}
+              onValueChange={(value) => {
+                setDeckId(value as string);
+                if (errorText.deckNameErr)
+                  setErrorText((prevErrors) => ({
+                    ...prevErrors,
+                    deckNameErr: INITIAL_ERRORS.deckNameErr,
+                  }));
+                if (value) {
+                  const deckData = getDeckData(value as string);
+                  setSourceLanguage(deckData?.source_language ?? "");
+                  setTargetLanguage(deckData?.target_language ?? "");
+                }
+              }}
+              primaryColor={theme.colors.purple}
+              isMultiple={false}
+              isSearchable={true}
+              dropdownStyle={{
+                ...styles.dropdown,
+                borderColor: errorText.deckNameErr
+                  ? theme.colors.error
+                  : theme.colors.primary,
+              }}
+              dropdownContainerStyle={{ marginBottom: 0 }}
+              placeholderStyle={styles.dropdownPlaceholder}
+              selectedItemStyle={{ color: theme.colors.primary }}
+              dropdownIconStyle={styles.dropdownIcon}
+              dropdownIcon={
+                <Octicons
+                  name="chevron-down"
+                  size={24}
+                  color={theme.colors.primary}
+                />
+              }
+              searchControls={{
+                textInputStyle: styles.dropdowntextInput,
+                textInputProps: { placeholderTextColor: theme.colors.primary },
+              }}
+              modalControls={{
+                modalOptionsContainerStyle: {
+                  backgroundColor: theme.colors.background,
+                },
+              }}
+              checkboxControls={{
+                checkboxUnselectedColor: theme.colors.background,
+                checkboxStyle: { borderColor: theme.colors.primary },
+                checkboxLabelStyle: { color: theme.colors.primary },
+              }}
+              listEmptyComponent={
+                <View style={{ alignItems: "center" }}>
+                  <Text
+                    style={{
+                      color: theme.colors.primary,
+                      fontFamily: theme.fontFamily.regular,
+                    }}
+                  >
+                    No options available
+                  </Text>
+                </View>
+              }
+            />
+            {errorText.deckNameErr ? (
+              <Text
+                style={[
+                  styles.optionalText,
+                  { color: theme.colors.error, paddingTop: 5 },
+                ]}
+              >
+                {errorText.deckNameErr}
+              </Text>
+            ) : null}
 
-          <TextInput
-            style={[
-              styles.textInput,
-              {
-                borderColor: theme.colors.purple,
-                height: 70,
-                textAlignVertical: "top",
-              },
-            ]}
-            multiline={true}
-            value={usageExample}
-            maxLength={150}
-            onChangeText={(input) => {
-              setUsageExample(input);
-            }}
-          />
-          <Pressable style={styles.genwithAIContent}>
-            <SimpleLineIcons
-              name="magic-wand"
-              size={24}
-              color={theme.colors.purple}
-              style={{
-                textShadowRadius: 30,
-                textShadowColor: theme.colors.purple_alpha,
+            <Text style={styles.formText}>Card type</Text>
+            <DropdownSelect
+              placeholder="Select card type"
+              options={CARD_TYPE_OPTIONS}
+              selectedValue={cardType ? (cardType as CardType) : undefined}
+              onValueChange={(value) => {
+                setCardType(value as CardType);
+                if (errorText.cardTypeErr)
+                  setErrorText((prevErrors) => ({
+                    ...prevErrors,
+                    cardTypeErr: INITIAL_ERRORS.cardTypeErr,
+                  }));
+              }}
+              disabled={isEditMode}
+              dropdownHelperTextStyle={{
+                color: theme.colors.primary,
+                fontFamily: theme.fontFamily.regular,
+              }}
+              primaryColor={theme.colors.purple}
+              isMultiple={false}
+              isSearchable={false}
+              dropdownStyle={{
+                ...(isEditMode ? styles.dropdown : styles.dropdownDisabled),
+                borderColor: errorText.cardTypeErr
+                  ? theme.colors.error
+                  : isEditMode
+                    ? theme.colors.grey
+                    : theme.colors.primary,
+              }}
+              dropdownContainerStyle={{ marginBottom: 0 }}
+              placeholderStyle={
+                isEditMode
+                  ? styles.dropdownPlaceholderDisabled
+                  : styles.dropdownPlaceholder
+              }
+              selectedItemStyle={{ color: theme.colors.primary }}
+              dropdownIconStyle={styles.dropdownIcon}
+              dropdownIcon={
+                <Octicons
+                  name="chevron-down"
+                  size={24}
+                  color={isEditMode ? theme.colors.grey : theme.colors.primary}
+                />
+              }
+              modalControls={{
+                modalOptionsContainerStyle: {
+                  backgroundColor: theme.colors.background,
+                },
+              }}
+              checkboxControls={{
+                checkboxUnselectedColor: theme.colors.background,
+                checkboxStyle: { borderColor: theme.colors.primary },
+                checkboxLabelStyle: { color: theme.colors.primary },
               }}
             />
-            <Text
+            {errorText.cardTypeErr ? (
+              <Text
+                style={[
+                  styles.optionalText,
+                  { color: theme.colors.error, paddingTop: 5 },
+                ]}
+              >
+                {errorText.cardTypeErr}
+              </Text>
+            ) : null}
+
+            {isEditMode ? (
+              <Text
+                style={[
+                  styles.optionalText,
+                  {
+                    alignSelf: "flex-start",
+                    color: theme.colors.primary,
+                    lineHeight: 20,
+                    paddingTop: 10,
+                  },
+                ]}
+              >
+                {isEditMode
+                  ? "Card type cannot be changed after creation."
+                  : null}
+              </Text>
+            ) : null}
+
+            <View style={styles.inputTextContainer}>
+              <Text style={styles.formText}>Front</Text>
+              {sourceLanguage !== "" ? (
+                <Text style={[styles.optionalText, { paddingTop: 10 }]}>
+                  ({sourceLanguage})
+                </Text>
+              ) : null}
+            </View>
+            <TextInput
               style={[
-                styles.formText,
+                styles.textInput,
                 {
-                  paddingHorizontal: 10,
-                  color: theme.colors.purple,
-                  textShadowRadius: 30,
-                  textShadowColor: theme.colors.purple_alpha,
+                  borderColor: errorText.cardFrontErr
+                    ? theme.colors.error
+                    : theme.colors.primary,
                 },
               ]}
+              multiline={true}
+              value={cardFront}
+              maxLength={100}
+              onChangeText={(input) => {
+                setCardFront(input);
+                if (errorText.cardFrontErr)
+                  setErrorText((prevErrors) => ({
+                    ...prevErrors,
+                    cardFrontErr: INITIAL_ERRORS.cardFrontErr,
+                  }));
+              }}
+            />
+            {errorText.cardFrontErr ? (
+              <Text
+                style={[
+                  styles.optionalText,
+                  { color: theme.colors.error, paddingTop: 5 },
+                ]}
+              >
+                {errorText.cardFrontErr}
+              </Text>
+            ) : null}
+            <View style={styles.inputTextContainer}>
+              <Text style={styles.formText}>Back</Text>
+              {targetLanguage !== "" ? (
+                <Text style={[styles.optionalText, { paddingTop: 10 }]}>
+                  ({targetLanguage})
+                </Text>
+              ) : null}
+            </View>
+
+            <TextInput
+              style={[
+                styles.textInput,
+                {
+                  borderColor: errorText.cardBackErr
+                    ? theme.colors.error
+                    : theme.colors.primary,
+                },
+              ]}
+              multiline={true}
+              value={cardBack}
+              maxLength={100}
+              onChangeText={(input) => {
+                setCardBack(input);
+                if (errorText.cardBackErr)
+                  setErrorText((prevErrors) => ({
+                    ...prevErrors,
+                    cardBackErr: INITIAL_ERRORS.cardBackErr,
+                  }));
+              }}
+            />
+            {errorText.cardBackErr ? (
+              <Text
+                style={[
+                  styles.optionalText,
+                  { color: theme.colors.error, paddingTop: 5 },
+                ]}
+              >
+                {errorText.cardBackErr}
+              </Text>
+            ) : null}
+            <View
+              style={{
+                flexDirection: "row",
+                alignItems: "center",
+                paddingTop: 10,
+              }}
             >
-              {" Generate with AI "}
-            </Text>
-          </Pressable>
-          {/* <Text style={[styles.formText, { paddingTop: 0 }]}>Tags</Text>
+              <Text style={[styles.formText, { paddingTop: 0 }]}>
+                Example of use
+              </Text>
+              <Text style={styles.optionalText}>(Optional)</Text>
+            </View>
+
+            <TextInput
+              style={[
+                styles.textInput,
+                {
+                  borderColor: theme.colors.purple,
+                  height: 70,
+                  textAlignVertical: "top",
+                },
+              ]}
+              multiline={true}
+              value={usageExample}
+              maxLength={150}
+              onChangeText={(input) => {
+                setUsageExample(input);
+              }}
+            />
+            <Pressable style={styles.genwithAIContent}>
+              <SimpleLineIcons
+                name="magic-wand"
+                size={24}
+                color={theme.colors.purple}
+                style={{
+                  textShadowRadius: 30,
+                  textShadowColor: theme.colors.purple_alpha,
+                }}
+              />
+              <Text
+                style={[
+                  styles.formText,
+                  {
+                    paddingHorizontal: 10,
+                    color: theme.colors.purple,
+                    textShadowRadius: 30,
+                    textShadowColor: theme.colors.purple_alpha,
+                  },
+                ]}
+              >
+                {" Generate with AI "}
+              </Text>
+            </Pressable>
+            {/* <Text style={[styles.formText, { paddingTop: 0 }]}>Tags</Text>
           <DropdownSelect
             placeholder="Add tags"
             options={[]}
@@ -490,7 +590,8 @@ export default function AddNewCard() {
               </View>
             }
           /> */}
-        </ScrollView>
+          </ScrollView>
+        )}
         <View style={styles.buttonContainer}>
           <ConfirmationButton
             buttonText="Save"
@@ -589,5 +690,19 @@ const createStyles = (theme: AppTheme) =>
       flexDirection: "row",
       alignSelf: "flex-start",
       alignItems: "center",
+    },
+    dropdownDisabled: {
+      height: 50,
+      minHeight: 45,
+      paddingVertical: 0,
+      paddingHorizontal: 10,
+      borderWidth: 1,
+      borderRadius: theme.borderRadius.sm,
+      borderColor: theme.colors.grey,
+      backgroundColor: theme.colors.background,
+    },
+    dropdownPlaceholderDisabled: {
+      color: theme.colors.grey,
+      fontFamily: theme.fontFamily.regular,
     },
   });
