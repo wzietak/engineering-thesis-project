@@ -158,22 +158,25 @@ export default function studyScreen() {
   3) isMounted - prevents unfinished queries if the user quickly navigates back before the DB promise resolves
   */
   useEffect(() => {
-    let isMounted = true;
     if (!deckId) return;
+    let isMounted = true;
+
     const prepareFlashCards = async () => {
       try {
+        setIsLoading(true);
         if (!isMounted) return;
+
         const isEmpty = await globalDeckRepository.checkIfDeckIsEmpty(deckId);
         setIsDeckEmpty(isEmpty);
         if (isEmpty) return;
-        getCardsForReview(
+
+        const cards = await getCardsForReview(
           session?.currentSession?.user.id as string,
           deckId,
-        ).then((cards) => {
-          const readyCards = cards as ReviewableCard[];
-          if (!isMounted) return;
-          setCardsForToday(readyCards);
-        });
+        );
+        if (!isMounted) return;
+        const readyCards = cards as ReviewableCard[];
+        setCardsForToday(readyCards);
       } finally {
         setIsLoading(false);
       }
@@ -186,15 +189,10 @@ export default function studyScreen() {
     };
   }, [deckId]);
 
-  if (isLoading) {
-    return <LoadingScreen></LoadingScreen>;
-  }
-  if (isDeckEmpty) {
-    return <EmptyDeckView></EmptyDeckView>;
-  }
-  if (cardsForToday.length === 0) {
+  if (isLoading) return <LoadingScreen></LoadingScreen>;
+  if (isDeckEmpty) return <EmptyDeckView></EmptyDeckView>;
+  if (cardsForToday.length === 0)
     return <EmptyDeckView noMoreCardsToReview={true}></EmptyDeckView>;
-  }
 
   return (
     <View style={{ flex: 1 }}>
