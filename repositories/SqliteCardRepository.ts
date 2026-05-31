@@ -122,8 +122,8 @@ export class SqliteCardRepository implements CardRepository {
   public async updateCard(
     cardData: Omit<Card, "created_at" | "is_synced" | "updated_at">,
   ): Promise<Card | null> {
-    const result = await db.runAsync(
-      "UPDATE cards SET deck_id = $deck_id, card_type = $card_type, front = $front, back = $back, example_sentence = $example_sentence, example_source = $example_source, updated_at = $updated_at, is_synced = $is_synced WHERE id = $id AND user_id = $user_id;",
+    const result = await db.getFirstAsync(
+      "UPDATE cards SET deck_id = $deck_id, card_type = $card_type, front = $front, back = $back, example_sentence = $example_sentence, example_source = $example_source, updated_at = $updated_at, is_synced = $is_synced WHERE id = $id AND user_id = $user_id RETURNING *;",
       {
         $id: cardData.id,
         $user_id: cardData.user_id,
@@ -138,12 +138,7 @@ export class SqliteCardRepository implements CardRepository {
       },
     );
 
-    // const updatedCard: Card = {
-    //   ...cardData,
-    //   updated_at: new Date().toISOString(),
-    //   is_synced: false,
-    // };
-    return null;
+    return result as Card;
   }
 
   public async deleteCard(cardId: string, userId: string): Promise<void> {

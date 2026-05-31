@@ -221,7 +221,7 @@ export default function AddNewCard() {
           is_deleted: false,
         };
 
-        await globalCardRepository.updateCard(cardData);
+        const updatedCard = await globalCardRepository.updateCard(cardData);
         if (cardData.deck_id !== initialDeckId) {
           router.replace("/");
         } else {
