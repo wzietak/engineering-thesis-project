@@ -8,6 +8,7 @@ import { CARD_TYPE_OPTIONS, CardType } from "@/models/CardTypes";
 import { Deck } from "@/models/deck";
 import { globalCardRepository } from "@/repositories/globalCardRepository";
 import { globalDeckRepository } from "@/repositories/globalDeckRepository";
+import { generateSentence } from "@/services/aiService";
 import { AppTheme } from "@/styles/theme";
 import { eventProvider } from "@/utils/eventProvider";
 import Octicons from "@expo/vector-icons/Octicons";
@@ -16,7 +17,7 @@ import {
   router,
   useFocusEffect,
   useLocalSearchParams,
-  useNavigation
+  useNavigation,
 } from "expo-router";
 import { useCallback, useContext, useEffect, useState } from "react";
 import {
@@ -517,7 +518,19 @@ export default function AddNewCard() {
                 setUsageExample(input);
               }}
             />
-            <Pressable style={styles.genwithAIContent}>
+            <Pressable
+              disabled={targetLanguage ? false : true}
+              style={styles.genwithAIContent}
+              onPress={async () => {
+                if (cardBack && cardBack !== "") {
+                  const exampleSentence = await generateSentence(
+                    targetLanguage,
+                    cardBack,
+                  );
+                  setUsageExample(exampleSentence["sentence"]);
+                }
+              }}
+            >
               <SimpleLineIcons
                 name="magic-wand"
                 size={24}
