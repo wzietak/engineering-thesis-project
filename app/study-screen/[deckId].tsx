@@ -9,20 +9,21 @@ import { FSRSState } from "@/algorithm/FSRSState";
 import { Grade } from "@/algorithm/FSRSTypes";
 import AppHeader from "@/components/AppHeader";
 import UndoFlashcardButton from "@/components/buttons/UndoFlashcardButton";
+import DeleteConfirmationAlert from "@/components/DeleteConfirmationAlert";
 import EmptyDeckView from "@/components/EmptyDeckView";
 import FlashCardContainer, {
   flashcardRef,
 } from "@/components/flashcard/FlashCardContainer";
+import FlashcardOptions from "@/components/FlashcardOptions";
 import LoadingScreen from "@/components/LoadingScreen";
+import Overlay from "@/components/Overlay";
 import { AuthContext } from "@/contexts/AuthContext";
+import { Card } from "@/models/card";
 import { FrontType } from "@/models/FrontTypes";
+import { globalCardRepository } from "@/repositories/globalCardRepository";
 import { globalDeckRepository } from "@/repositories/globalDeckRepository";
-import {
-  router,
-  Stack,
-  useLocalSearchParams,
-  useNavigation,
-} from "expo-router";
+import { eventProvider } from "@/utils/eventProvider";
+import { router, Stack, useLocalSearchParams } from "expo-router";
 import { useContext, useEffect, useRef, useState } from "react";
 import { View } from "react-native";
 
@@ -63,6 +64,9 @@ export default function studyScreen() {
   const [isDBProcessing, setIsDBProcessing] = useState<boolean>(false);
   const [isCardReversed, setIsCardReversed] = useState(false);
   const [isUndoInProgress, setIsUndoInProgress] = useState(false);
+  const [areFlashcardOptionsVisible, setFlashcardOptionsVisible] =
+    useState(false);
+  const [isDeleteModalVisible, setIsDeleteModalVisible] = useState(false);
 
   const session = useContext(AuthContext);
   const fsrs = new FSRS();
@@ -151,6 +155,55 @@ export default function studyScreen() {
     }
   }, [currentCardIndex]);
 
+  useEffect(() => {
+    const handleCardUpdate = (updatedCard: Card) => {
+      setCardsForToday((prevCards) =>
+        prevCards.map((card) => {
+          if (card.card_id === updatedCard.id) {
+            return {
+              ...card,
+              front: updatedCard.front,
+              back: updatedCard.back,
+              example_sentence: updatedCard.example_sentence,
+            } as ReviewableCard;
+          }
+          return card;
+        }),
+      );
+    };
+
+    const handleCardRemoval = (removedCardId: string) => {
+      setUndoStack((prevUndoStack) =>
+        prevUndoStack.filter(
+          (card) => card.previousFSRSState.card_id !== removedCardId,
+        ),
+      );
+      setCardsForToday((prevCards) => {
+        const newCardsForToday = prevCards.filter(
+          (card) => card.card_id !== removedCardId,
+        );
+        setCurrentCardIndex((currentCardIndex) => {
+         
+          if (currentCardIndex >= newCardsForToday.length) {
+            setTimeout(() => {
+              router.dismissAll();
+            }, 0);
+          }
+          return currentCardIndex;
+        });
+        return newCardsForToday;
+      });
+    };
+
+    eventProvider.on("onCardEdited", handleCardUpdate);
+    eventProvider.on("onCardRemovedFromSession", handleCardRemoval);
+
+    return () => {
+      eventProvider.off("onCardEdited", handleCardUpdate);
+      eventProvider.off("onCardRemovedFromSession", handleCardRemoval);
+    };
+  }, []);
+
   /* 
   Used 3 different booleans: isLoading, !deckId and isMounted.
   They all prevents app from null exceptions when user moves too fast between decks.
@@ -159,22 +212,25 @@ export default function studyScreen() {
   3) isMounted - prevents unfinished queries if the user quickly navigates back before the DB promise resolves
   */
   useEffect(() => {
-    let isMounted = true;
     if (!deckId) return;
+    let isMounted = true;
+
     const prepareFlashCards = async () => {
       try {
+        setIsLoading(true);
         if (!isMounted) return;
+
         const isEmpty = await globalDeckRepository.checkIfDeckIsEmpty(deckId);
         setIsDeckEmpty(isEmpty);
         if (isEmpty) return;
-        getCardsForReview(
+
+        const cards = await getCardsForReview(
           session?.currentSession?.user.id as string,
           deckId,
-        ).then((cards) => {
-          const readyCards = cards as ReviewableCard[];
-          if (!isMounted) return;
-          setCardsForToday(readyCards);
-        });
+        );
+        if (!isMounted) return;
+        const readyCards = cards as ReviewableCard[];
+        setCardsForToday(readyCards);
       } finally {
         setIsLoading(false);
       }
@@ -187,15 +243,22 @@ export default function studyScreen() {
     };
   }, [deckId]);
 
-  if (isLoading) {
-    return <LoadingScreen></LoadingScreen>;
-  }
-  if (isDeckEmpty) {
-    return <EmptyDeckView></EmptyDeckView>;
-  }
-  if (cardsForToday.length === 0) {
-    return <EmptyDeckView noMoreCardsToReview={true}></EmptyDeckView>;
-  }
+  if (isLoading) return <LoadingScreen></LoadingScreen>;
+  if (isDeckEmpty)
+    return (
+      <View style={{ flex: 1 }}>
+        <Stack.Screen options={{ headerShown: true }} />
+        <EmptyDeckView></EmptyDeckView>
+      </View>
+    );
+  if (cardsForToday.length === 0)
+    return (
+      <View style={{ flex: 1 }}>
+        <Stack.Screen options={{ headerShown: true }} />
+        <EmptyDeckView noMoreCardsToReview={true}></EmptyDeckView>
+      </View>
+    );
+  if (!cardsForToday[currentCardIndex]) return null;
 
   return (
     <View style={{ flex: 1 }}>
@@ -206,6 +269,9 @@ export default function studyScreen() {
         goBack={() => {
           router.back();
         }}
+        openOptions={() =>
+          setFlashcardOptionsVisible(!areFlashcardOptionsVisible)
+        }
         undoFlashcard={
           undoStack.length > 0 ||
           isCardReversed ||
@@ -216,6 +282,7 @@ export default function studyScreen() {
         }
       ></AppHeader>
       <FlashCardContainer
+        key={cardsForToday[currentCardIndex].card_id}
         cardData={cardsForToday[currentCardIndex]}
         onNextCard={increaseIndex}
         onAssessmentButtonPress={onCardAssessment}
@@ -228,6 +295,49 @@ export default function studyScreen() {
           }
         }}
       ></FlashCardContainer>
+
+      <Overlay
+        visible={areFlashcardOptionsVisible}
+        onPress={() => setFlashcardOptionsVisible(false)}
+      ></Overlay>
+
+      <FlashcardOptions
+        isVisible={areFlashcardOptionsVisible}
+        positionTop={95}
+        onEditPress={() => {
+          router.push({
+            pathname: "/add-new-card",
+            params: {
+              cardId: cardsForToday[currentCardIndex].card_id as string,
+              // returnTo: "/study-screen/[deckId]?deckId=${deckId}",
+            },
+          });
+          setFlashcardOptionsVisible(false);
+        }}
+        onDeletePress={() => {
+          setIsDeleteModalVisible(true);
+          setFlashcardOptionsVisible(false);
+        }}
+      ></FlashcardOptions>
+      {isDeleteModalVisible ? (
+        <DeleteConfirmationAlert
+          onCancel={() => setIsDeleteModalVisible(false)}
+          onDelete={async () => {
+            await globalCardRepository.deleteCard(
+              cardsForToday[currentCardIndex].card_id as string,
+              session?.currentSession?.user.id as string,
+            );
+            eventProvider.emit(
+              "onCardRemovedFromSession",
+              cardsForToday[currentCardIndex].card_id as string,
+            );
+            setIsDeleteModalVisible(false);
+          }}
+          onClose={() => setIsDeleteModalVisible(false)}
+          mainText="Delete card?"
+          additionalText="This flashcard will be permanently deleted."
+        ></DeleteConfirmationAlert>
+      ) : null}
     </View>
   );
 }

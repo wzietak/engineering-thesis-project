@@ -187,6 +187,8 @@ export default function mainScreen() {
           onCancel={() => setIsDeleteModalVisible(false)}
           onDelete={handleDelete}
           onClose={() => setIsDeleteModalVisible(false)}
+          mainText="Delete deck?"
+          additionalText="This deck and all its flaschards will be permanently deleted."
         ></DeleteConfirmationAlert>
       ) : null}
     </View>

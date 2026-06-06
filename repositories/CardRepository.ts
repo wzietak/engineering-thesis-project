@@ -12,6 +12,7 @@ export type Filters = {
 export interface CardRepository {
   createNewCard: (cardData: Omit<Card, "id">) => Promise<Card>;
   getCards: (userId:string, deckId:string, filters?: Filters) => Promise<Card[]>;
-  updateCard: (cardData: Card) => Promise<Card>;
+  updateCard: (cardData: Card) => Promise<Card | null>;
   deleteCard: (cardId: string, userId: string) => Promise<void>;
+  getCardById: (cardId : string, userId: string) => Promise<Card | null>
 }
