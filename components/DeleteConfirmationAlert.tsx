@@ -6,11 +6,15 @@ type Props = {
   onClose: () => void;
   onDelete: () => void;
   onCancel: () => void;
+  mainText: string;
+  additionalText: string;
 };
 export default function DeleteConfirmationAlert({
   onClose,
   onDelete,
   onCancel,
+  mainText,
+  additionalText,
 }: Props) {
   const { theme } = useAppTheme();
   const styles = createStyles(theme);
@@ -21,7 +25,7 @@ export default function DeleteConfirmationAlert({
         onPress={onClose}
       >
         <View style={styles.mainContainer}>
-          <Text style={styles.mainText}>Delete deck?</Text>
+          <Text style={styles.mainText}>{mainText}</Text>
           <Text
             style={[
               styles.mainText,
@@ -31,7 +35,7 @@ export default function DeleteConfirmationAlert({
               },
             ]}
           >
-            This deck and all its flaschards will be permanently deleted.
+            {additionalText}
           </Text>
           <View style={styles.buttonsContainer}>
             <Pressable style={[styles.button]} onPress={onCancel}>
