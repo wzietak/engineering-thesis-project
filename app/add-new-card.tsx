@@ -9,13 +9,14 @@ import { Deck } from "@/models/deck";
 import { globalCardRepository } from "@/repositories/globalCardRepository";
 import { globalDeckRepository } from "@/repositories/globalDeckRepository";
 import { AppTheme } from "@/styles/theme";
+import { eventProvider } from "@/utils/eventProvider";
 import Octicons from "@expo/vector-icons/Octicons";
 import SimpleLineIcons from "@expo/vector-icons/SimpleLineIcons";
 import {
   router,
   useFocusEffect,
   useLocalSearchParams,
-  useNavigation,
+  useNavigation
 } from "expo-router";
 import { useCallback, useContext, useEffect, useState } from "react";
 import {
@@ -80,7 +81,7 @@ export default function AddNewCard() {
   const { cardId } = useLocalSearchParams<{ cardId: string }>();
   const [isEditMode, setIsEditMode] = useState(cardId ? true : false);
   const [isLoading, setIsLoading] = useState(true);
-  let initialDeckId: string;
+  const [initialDeckId, setInitialDeckId] = useState<string>();
 
   const session = useContext(AuthContext);
   const navigation = useNavigation();
@@ -113,7 +114,7 @@ export default function AddNewCard() {
             setCardFront(card.front);
             setCardBack(card.back);
             setUsageExample(card.example_sentence ?? "");
-            initialDeckId = card.deck_id;
+            setInitialDeckId(card.deck_id);
           }
         } catch (error) {
         } finally {
@@ -222,9 +223,12 @@ export default function AddNewCard() {
         };
 
         const updatedCard = await globalCardRepository.updateCard(cardData);
-        if (cardData.deck_id !== initialDeckId) {
-          router.replace("/");
-        } else {
+        if (updatedCard) {
+          if (updatedCard.deck_id !== initialDeckId) {
+            eventProvider.emit("onCardRemovedFromSession", updatedCard.id);
+          } else {
+            eventProvider.emit("onCardEdited", updatedCard);
+          }
           router.back();
         }
 
