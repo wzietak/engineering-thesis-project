@@ -8,6 +8,7 @@ import { CARD_TYPE_OPTIONS, CardType } from "@/models/CardTypes";
 import { Deck } from "@/models/deck";
 import { globalCardRepository } from "@/repositories/globalCardRepository";
 import { globalDeckRepository } from "@/repositories/globalDeckRepository";
+import { generateSentence } from "@/services/aiService";
 import { AppTheme } from "@/styles/theme";
 import { eventProvider } from "@/utils/eventProvider";
 import Octicons from "@expo/vector-icons/Octicons";
@@ -16,13 +17,12 @@ import {
   router,
   useFocusEffect,
   useLocalSearchParams,
-  useNavigation
+  useNavigation,
 } from "expo-router";
 import { useCallback, useContext, useEffect, useState } from "react";
 import {
   Platform,
   Pressable,
-  ScrollView,
   StyleSheet,
   Text,
   TextInput,
@@ -30,6 +30,7 @@ import {
   View,
 } from "react-native";
 import DropdownSelect from "react-native-input-select";
+import { KeyboardAwareScrollView } from "react-native-keyboard-aware-scroll-view";
 import {
   SafeAreaProvider,
   useSafeAreaInsets,
@@ -50,6 +51,7 @@ const INITIAL_ERRORS = {
   cardTypeErr: "",
   cardFrontErr: "",
   cardBackErr: "",
+  AIGeneratingError: "",
 };
 
 export default function AddNewCard() {
@@ -61,6 +63,7 @@ export default function AddNewCard() {
     cardTypeErr: "",
     cardFrontErr: "",
     cardBackErr: "",
+    AIGeneratingError: "",
   });
 
   const [cardType, setCardType] = useState<CardType | string>(
@@ -82,6 +85,7 @@ export default function AddNewCard() {
   const [isEditMode, setIsEditMode] = useState(cardId ? true : false);
   const [isLoading, setIsLoading] = useState(true);
   const [initialDeckId, setInitialDeckId] = useState<string>();
+  const [isAIthinking, setIsAIThinking] = useState(false);
 
   const session = useContext(AuthContext);
   const navigation = useNavigation();
@@ -127,6 +131,8 @@ export default function AddNewCard() {
       setIsEditMode(false);
     }
   }, [cardId]);
+
+
 
   const formattedOptions = rawDecks
     .map((deck: Deck) => {
@@ -244,10 +250,12 @@ export default function AddNewCard() {
         {isLoading ? (
           <LoadingScreen></LoadingScreen>
         ) : (
-          <ScrollView
+          <KeyboardAwareScrollView
             style={styles.scrollContainer}
             showsVerticalScrollIndicator={false}
             keyboardShouldPersistTaps="handled"
+            enableAutomaticScroll={true}
+            enableOnAndroid={true}
           >
             <Text style={[styles.formText, { paddingTop: 0 }]}>Deck</Text>
             <DropdownSelect
@@ -476,6 +484,11 @@ export default function AddNewCard() {
                     ...prevErrors,
                     cardBackErr: INITIAL_ERRORS.cardBackErr,
                   }));
+                if (errorText.AIGeneratingError)
+                  setErrorText((prevErrors) => ({
+                    ...prevErrors,
+                    AIGeneratingError: INITIAL_ERRORS.AIGeneratingError,
+                  }));
               }}
             />
             {errorText.cardBackErr ? (
@@ -505,42 +518,132 @@ export default function AddNewCard() {
               style={[
                 styles.textInput,
                 {
-                  borderColor: theme.colors.purple,
+                  borderColor: targetLanguage
+                    ? theme.colors.purple
+                    : theme.colors.primary,
                   height: 70,
                   textAlignVertical: "top",
                 },
               ]}
+              editable={!isAIthinking}
               multiline={true}
               value={usageExample}
               maxLength={150}
               onChangeText={(input) => {
                 setUsageExample(input);
+                setExampleSource("user");
+                if (errorText.AIGeneratingError)
+                  setErrorText((prevErrors) => ({
+                    ...prevErrors,
+                    AIGeneratingError: INITIAL_ERRORS.AIGeneratingError,
+                  }));
               }}
             />
-            <Pressable style={styles.genwithAIContent}>
-              <SimpleLineIcons
-                name="magic-wand"
-                size={24}
-                color={theme.colors.purple}
-                style={{
-                  textShadowRadius: 30,
-                  textShadowColor: theme.colors.purple_alpha,
-                }}
-              />
+            {errorText.AIGeneratingError ? (
               <Text
                 style={[
-                  styles.formText,
-                  {
-                    paddingHorizontal: 10,
-                    color: theme.colors.purple,
-                    textShadowRadius: 30,
-                    textShadowColor: theme.colors.purple_alpha,
-                  },
+                  styles.optionalText,
+                  { color: theme.colors.error, paddingTop: 5 },
                 ]}
               >
-                {" Generate with AI "}
+                {errorText.AIGeneratingError}
               </Text>
-            </Pressable>
+            ) : null}
+            {targetLanguage ? (
+              <Pressable
+                disabled={isAIthinking ? true : false}
+                style={styles.genwithAIContent}
+                onPress={async () => {
+                  setErrorText((prevErrors) => ({
+                    ...prevErrors,
+                    AIGeneratingError: INITIAL_ERRORS.AIGeneratingError,
+                  }));
+                  if (!cardBack || cardBack.trim() === "") {
+                    setErrorText((prevErrors) => ({
+                      ...prevErrors,
+                      cardBackErr: "Back of the card cannot be empty.",
+                    }));
+                    return;
+                  }
+                  setIsAIThinking(true);
+                  try {
+                    const exampleSentence = await generateSentence(
+                      targetLanguage,
+                      cardBack,
+                    );
+                    if (exampleSentence["isValid"] === false) {
+                      if (exampleSentence["errorReason"] === "gibberish") {
+                        setErrorText((prevErrors) => ({
+                          ...prevErrors,
+                          AIGeneratingError:
+                            "This doesn't look like a valid word or expression. Please check for typos and try again.",
+                        }));
+                      } else if (
+                        exampleSentence["errorReason"] === "wrong_language"
+                      ) {
+                        setErrorText((prevErrors) => ({
+                          ...prevErrors,
+                          AIGeneratingError: `Please ensure your term or expression is in the target language (${targetLanguage}).`,
+                        }));
+                      } else if (
+                        exampleSentence["errorReason"] === "wrong_length"
+                      ) {
+                        setErrorText((prevErrors) => ({
+                          ...prevErrors,
+                          AIGeneratingError:
+                            "Please enter a single word or a short expression (max 5 words) rather than a full sentence.",
+                        }));
+                      }
+                    } else {
+                      setUsageExample(exampleSentence["sentence"]);
+                      setExampleSource("ai");
+                    }
+                  } catch (error: any) {
+                    switch (error.message) {
+                      case "quota_exceeded":
+                        if (Platform.OS === "android") {
+                          ToastAndroid.show(
+                            "Too many requests",
+                            ToastAndroid.SHORT,
+                          );
+                        }
+                        break;
+                      case "api_error":
+                        if (Platform.OS === "android") {
+                          ToastAndroid.show("API Error", ToastAndroid.SHORT);
+                        }
+                        break;
+                    }
+                  } finally {
+                    setIsAIThinking(false);
+                  }
+                }}
+              >
+                <SimpleLineIcons
+                  name="magic-wand"
+                  size={24}
+                  color={theme.colors.purple}
+                  style={{
+                    textShadowRadius: 30,
+                    textShadowColor: theme.colors.purple_alpha,
+                  }}
+                />
+                <Text
+                  style={[
+                    styles.formText,
+                    {
+                      paddingHorizontal: 10,
+                      color: theme.colors.purple,
+                      textShadowRadius: 30,
+                      textShadowColor: theme.colors.purple_alpha,
+                    },
+                  ]}
+                >
+                  {isAIthinking ? "Generating..." : " Generate with AI "}
+                </Text>
+              </Pressable>
+            ) : null}
+
             {/* <Text style={[styles.formText, { paddingTop: 0 }]}>Tags</Text>
           <DropdownSelect
             placeholder="Add tags"
@@ -594,7 +697,7 @@ export default function AddNewCard() {
               </View>
             }
           /> */}
-          </ScrollView>
+          </KeyboardAwareScrollView>
         )}
         <View style={styles.buttonContainer}>
           <ConfirmationButton
