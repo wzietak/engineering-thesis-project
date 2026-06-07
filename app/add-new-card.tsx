@@ -51,6 +51,7 @@ const INITIAL_ERRORS = {
   cardTypeErr: "",
   cardFrontErr: "",
   cardBackErr: "",
+  AIGeneratingError: "",
 };
 
 export default function AddNewCard() {
@@ -62,6 +63,7 @@ export default function AddNewCard() {
     cardTypeErr: "",
     cardFrontErr: "",
     cardBackErr: "",
+    AIGeneratingError: "",
   });
 
   const [cardType, setCardType] = useState<CardType | string>(
@@ -83,6 +85,7 @@ export default function AddNewCard() {
   const [isEditMode, setIsEditMode] = useState(cardId ? true : false);
   const [isLoading, setIsLoading] = useState(true);
   const [initialDeckId, setInitialDeckId] = useState<string>();
+  const [isAIthinking, setIsAIThinking] = useState(false);
 
   const session = useContext(AuthContext);
   const navigation = useNavigation();
@@ -506,54 +509,112 @@ export default function AddNewCard() {
               style={[
                 styles.textInput,
                 {
-                  borderColor: theme.colors.purple,
+                  borderColor: targetLanguage
+                    ? theme.colors.purple
+                    : theme.colors.primary,
                   height: 70,
                   textAlignVertical: "top",
                 },
               ]}
+              editable={!isAIthinking}
               multiline={true}
               value={usageExample}
               maxLength={150}
               onChangeText={(input) => {
                 setUsageExample(input);
+                if (errorText.AIGeneratingError)
+                  setErrorText((prevErrors) => ({
+                    ...prevErrors,
+                    AIGeneratingError: INITIAL_ERRORS.AIGeneratingError,
+                  }));
               }}
             />
-            <Pressable
-              disabled={targetLanguage ? false : true}
-              style={styles.genwithAIContent}
-              onPress={async () => {
-                if (cardBack && cardBack !== "") {
+            {errorText.AIGeneratingError ? (
+              <Text
+                style={[
+                  styles.optionalText,
+                  { color: theme.colors.error, paddingTop: 5 },
+                ]}
+              >
+                {errorText.AIGeneratingError}
+              </Text>
+            ) : null}
+            {targetLanguage ? (
+              <Pressable
+                disabled={isAIthinking ? true : false}
+                style={styles.genwithAIContent}
+                onPress={async () => {
+                  setErrorText((prevErrors) => ({
+                    ...prevErrors,
+                    AIGeneratingError: INITIAL_ERRORS.AIGeneratingError,
+                  }));
+                  if (!cardBack || cardBack.trim() === "") {
+                    setErrorText((prevErrors) => ({
+                      ...prevErrors,
+                      cardBackErr: "Back of the card cannot be empty.",
+                    }));
+                    return;
+                  }
+                  setIsAIThinking(true);
                   const exampleSentence = await generateSentence(
                     targetLanguage,
                     cardBack,
                   );
-                  setUsageExample(exampleSentence["sentence"]);
-                }
-              }}
-            >
-              <SimpleLineIcons
-                name="magic-wand"
-                size={24}
-                color={theme.colors.purple}
-                style={{
-                  textShadowRadius: 30,
-                  textShadowColor: theme.colors.purple_alpha,
+                  if (exampleSentence["isValid"] === false) {
+                    if (exampleSentence["errorReason"] === "gibberish") {
+                      setErrorText((prevErrors) => ({
+                        ...prevErrors,
+                        AIGeneratingError:
+                          "This doesn't look like a valid word or expression. Please check for typos and try again.",
+                      }));
+                    } else if (
+                      exampleSentence["errorReason"] === "wrong_language"
+                    ) {
+                      setErrorText((prevErrors) => ({
+                        ...prevErrors,
+                        AIGeneratingError: `Please ensure your term or expression is in the target language (${targetLanguage}).`,
+                      }));
+                    } else if (
+                      exampleSentence["errorReason"] === "wrong_length"
+                    ) {
+                      setErrorText((prevErrors) => ({
+                        ...prevErrors,
+                        AIGeneratingError:
+                          "Please enter a single word or a short expression (max 5 words) rather than a full sentence.",
+                      }));
+                    }
+                    return;
+                  } else {
+                    setUsageExample(exampleSentence["sentence"]);
+                    setIsAIThinking(false);
+                  }
                 }}
-              />
-              <Text
-                style={[
-                  styles.formText,
-                  {
-                    paddingHorizontal: 10,
-                    color: theme.colors.purple,
+              >
+                <SimpleLineIcons
+                  name="magic-wand"
+                  size={24}
+                  color={theme.colors.purple}
+                  style={{
                     textShadowRadius: 30,
                     textShadowColor: theme.colors.purple_alpha,
-                  },
-                ]}
-              >
-                {" Generate with AI "}
-              </Text>
-            </Pressable>
+                  }}
+                />
+                <Text
+                  style={[
+                    styles.formText,
+                    {
+                      paddingHorizontal: 10,
+                      color: theme.colors.purple,
+                      textShadowRadius: 30,
+                      textShadowColor: theme.colors.purple_alpha,
+                    },
+                  ]}
+                >
+                  {isAIthinking ? "Generating..." : " Generate with AI "}
+                </Text>
+              </Pressable>
+            ) : null}
+
             {/* <Text style={[styles.formText, { paddingTop: 0 }]}>Tags</Text>
           <DropdownSelect
             placeholder="Add tags"
