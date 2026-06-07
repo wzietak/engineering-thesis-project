@@ -1,3 +1,4 @@
+import { CardForBrowse } from "@/app/(drawer)/browse-cards";
 import { db } from "@/db/database";
 import { Card, ExampleSource } from "@/models/card";
 import * as Crypto from "expo-crypto";
@@ -117,6 +118,15 @@ export class SqliteCardRepository implements CardRepository {
     }
 
     return null;
+  }
+
+  public async getAllCardsByUser(userId: string): Promise<CardForBrowse[]> {
+    const allUserCards = await db.getAllAsync<CardForBrowse>(
+      "SELECT c.id as cardId, c.deck_id as deckId, c.front as cardFront, c.back as cardBack, d.name as deckName, MIN(fs.next_review) as nextReview FROM cards as c JOIN decks as d ON c.deck_id = d.id LEFT JOIN fsrs_States as fs ON c.id = fs.card_id WHERE c.user_id = $user_id AND c.is_deleted = $is_deleted AND d.is_deleted = $is_deleted GROUP BY c.id",
+      { $user_id: userId, $is_deleted: 0 },
+    );
+
+    return allUserCards;
   }
 
   public async updateCard(
