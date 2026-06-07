@@ -11,6 +11,7 @@ type Colors = {
   purple: string;
   purple_alpha: string;
   lightpurple: string;
+  lightpurple_alpha: string;
   red: string;
   background_alpha: string;
   error: string;
@@ -57,6 +58,7 @@ export const lightTheme: Colors = {
   purple: "#a580e6",
   purple_alpha: "#a580e65f",
   lightpurple: "#e1d0ff",
+  lightpurple_alpha: "#e1d0ffb9",
   red: "#ffa0a0",
   background_alpha: "rgba(255, 255, 255, 0.2)",
   error: "red",
@@ -77,6 +79,7 @@ export const darkTheme: Colors = {
   purple: "#7458a9",
   purple_alpha: "#7861a43a",
   lightpurple: "#6d5f87",
+  lightpurple_alpha: "#6d5f87c9",
   red: "#8a5858",
   background_alpha: "rgba(20, 25, 41, 0.2)",
   error: "#8d0707",
