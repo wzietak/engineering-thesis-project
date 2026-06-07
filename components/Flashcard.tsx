@@ -61,7 +61,7 @@ type Props = {
   onMoveLeft?: () => void;
 };
 
-export default function Flashcard({
+export default function FlashcardComponent({
   cardId,
   cardFront,
   cardBack,
@@ -147,7 +147,7 @@ const createStyles = (theme: AppTheme) =>
     deckNamePill: {
       padding: 3,
       paddingHorizontal: 10,
-      backgroundColor: theme.colors.lightpurple,
+      backgroundColor: theme.colors.lightpurple_alpha,
       justifyContent: "center",
       alignItems: "center",
       borderRadius: theme.borderRadius.sm,
