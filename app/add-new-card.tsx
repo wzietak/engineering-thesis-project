@@ -480,6 +480,11 @@ export default function AddNewCard() {
                     ...prevErrors,
                     cardBackErr: INITIAL_ERRORS.cardBackErr,
                   }));
+                if (errorText.AIGeneratingError)
+                  setErrorText((prevErrors) => ({
+                    ...prevErrors,
+                    AIGeneratingError: INITIAL_ERRORS.AIGeneratingError,
+                  }));
               }}
             />
             {errorText.cardBackErr ? (
@@ -522,6 +527,7 @@ export default function AddNewCard() {
               maxLength={150}
               onChangeText={(input) => {
                 setUsageExample(input);
+                setExampleSource("user");
                 if (errorText.AIGeneratingError)
                   setErrorText((prevErrors) => ({
                     ...prevErrors,
@@ -556,36 +562,55 @@ export default function AddNewCard() {
                     return;
                   }
                   setIsAIThinking(true);
-                  const exampleSentence = await generateSentence(
-                    targetLanguage,
-                    cardBack,
-                  );
-                  if (exampleSentence["isValid"] === false) {
-                    if (exampleSentence["errorReason"] === "gibberish") {
-                      setErrorText((prevErrors) => ({
-                        ...prevErrors,
-                        AIGeneratingError:
-                          "This doesn't look like a valid word or expression. Please check for typos and try again.",
-                      }));
-                    } else if (
-                      exampleSentence["errorReason"] === "wrong_language"
-                    ) {
-                      setErrorText((prevErrors) => ({
-                        ...prevErrors,
-                        AIGeneratingError: `Please ensure your term or expression is in the target language (${targetLanguage}).`,
-                      }));
-                    } else if (
-                      exampleSentence["errorReason"] === "wrong_length"
-                    ) {
-                      setErrorText((prevErrors) => ({
-                        ...prevErrors,
-                        AIGeneratingError:
-                          "Please enter a single word or a short expression (max 5 words) rather than a full sentence.",
-                      }));
+                  try {
+                    const exampleSentence = await generateSentence(
+                      targetLanguage,
+                      cardBack,
+                    );
+                    if (exampleSentence["isValid"] === false) {
+                      if (exampleSentence["errorReason"] === "gibberish") {
+                        setErrorText((prevErrors) => ({
+                          ...prevErrors,
+                          AIGeneratingError:
+                            "This doesn't look like a valid word or expression. Please check for typos and try again.",
+                        }));
+                      } else if (
+                        exampleSentence["errorReason"] === "wrong_language"
+                      ) {
+                        setErrorText((prevErrors) => ({
+                          ...prevErrors,
+                          AIGeneratingError: `Please ensure your term or expression is in the target language (${targetLanguage}).`,
+                        }));
+                      } else if (
+                        exampleSentence["errorReason"] === "wrong_length"
+                      ) {
+                        setErrorText((prevErrors) => ({
+                          ...prevErrors,
+                          AIGeneratingError:
+                            "Please enter a single word or a short expression (max 5 words) rather than a full sentence.",
+                        }));
+                      }
+                    } else {
+                      setUsageExample(exampleSentence["sentence"]);
+                      setExampleSource("ai");
                     }
-                    return;
-                  } else {
-                    setUsageExample(exampleSentence["sentence"]);
+                  } catch (error: any) {
+                    switch (error.message) {
+                      case "quota_exceeded":
+                        if (Platform.OS === "android") {
+                          ToastAndroid.show(
+                            "Too many requests",
+                            ToastAndroid.SHORT,
+                          );
+                        }
+                        break;
+                      case "api_error":
+                        if (Platform.OS === "android") {
+                          ToastAndroid.show("API Error", ToastAndroid.SHORT);
+                        }
+                        break;
+                    }
+                  } finally {
                     setIsAIThinking(false);
                   }
                 }}
