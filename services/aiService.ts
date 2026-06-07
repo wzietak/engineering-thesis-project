@@ -17,6 +17,10 @@ export async function generateSentence(targetLanguage: string, word: string) {
     console.log(response.text as string);
     return JSON.parse(response.text as string);
   } catch (error: any) {
-    console.log(error);
+    if(error.message.includes("429") || error.message.includes("Quota exceeded")){
+        throw new Error("quota_exceeded");
+    } else{
+        throw new Error("api_error");
+    }
   }
 }
