@@ -23,7 +23,6 @@ import { useCallback, useContext, useEffect, useState } from "react";
 import {
   Platform,
   Pressable,
-  ScrollView,
   StyleSheet,
   Text,
   TextInput,
@@ -31,6 +30,7 @@ import {
   View,
 } from "react-native";
 import DropdownSelect from "react-native-input-select";
+import { KeyboardAwareScrollView } from "react-native-keyboard-aware-scroll-view";
 import {
   SafeAreaProvider,
   useSafeAreaInsets,
@@ -131,6 +131,8 @@ export default function AddNewCard() {
       setIsEditMode(false);
     }
   }, [cardId]);
+
+
 
   const formattedOptions = rawDecks
     .map((deck: Deck) => {
@@ -248,10 +250,12 @@ export default function AddNewCard() {
         {isLoading ? (
           <LoadingScreen></LoadingScreen>
         ) : (
-          <ScrollView
+          <KeyboardAwareScrollView
             style={styles.scrollContainer}
             showsVerticalScrollIndicator={false}
             keyboardShouldPersistTaps="handled"
+            enableAutomaticScroll={true}
+            enableOnAndroid={true}
           >
             <Text style={[styles.formText, { paddingTop: 0 }]}>Deck</Text>
             <DropdownSelect
@@ -693,7 +697,7 @@ export default function AddNewCard() {
               </View>
             }
           /> */}
-          </ScrollView>
+          </KeyboardAwareScrollView>
         )}
         <View style={styles.buttonContainer}>
           <ConfirmationButton
