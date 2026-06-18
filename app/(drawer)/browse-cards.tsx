@@ -1,13 +1,15 @@
+import DeckPill from "@/components/DeckPill";
 import FlashcardComponent from "@/components/Flashcard";
 import { AuthContext } from "@/contexts/AuthContext";
 import { useAppTheme } from "@/contexts/ColorThemeContext";
 import { DBContext } from "@/contexts/DBContext";
 import { globalCardRepository } from "@/repositories/globalCardRepository";
+import { globalDeckRepository } from "@/repositories/globalDeckRepository";
 import { AppTheme } from "@/styles/theme";
 import { router, useFocusEffect } from "expo-router";
 import { useCallback, useContext, useState } from "react";
-import { StyleSheet, View } from "react-native";
-import { FlatList } from "react-native-gesture-handler";
+import { StyleSheet, Text, View } from "react-native";
+import { FlatList, ScrollView } from "react-native-gesture-handler";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 export type CardForBrowse = {
@@ -28,6 +30,7 @@ export default function browseCards() {
 
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [cards, setCards] = useState<CardForBrowse[]>([]);
+  const [decks, setDecks] = useState<{ id: string; name: string }[]>();
 
   const userId = session?.currentSession?.user.id as string;
 
@@ -48,15 +51,24 @@ export default function browseCards() {
         .finally(() => {
           setIsLoading(false);
         });
+
+      globalDeckRepository.getDecks(userId).then((fetchedDecks) => {
+        setDecks(fetchedDecks);
+      });
     }, [DBconnection.isReady, userId]),
   );
 
   return (
     <View style={[styles.mainContainer, { paddingBottom: insets.bottom }]}>
+      <ScrollView horizontal={true} style={styles.scrollContainer}>
+        <DeckPill></DeckPill>
+      </ScrollView>
+
       <FlatList
         contentContainerStyle={styles.scrollContainer}
         keyExtractor={(item) => item.cardId}
         data={cards}
+        showsVerticalScrollIndicator={false}
         renderItem={({ item, index }) => {
           return (
             <FlashcardComponent
@@ -74,6 +86,11 @@ export default function browseCards() {
             ></FlashcardComponent>
           );
         }}
+        ListHeaderComponent={
+          <View style={{ paddingVertical: 5 }}>
+            <Text style={styles.textStyle}>Showing {cards.length} cards</Text>
+          </View>
+        }
       ></FlatList>
     </View>
   );
@@ -82,12 +99,18 @@ export default function browseCards() {
 const createStyles = (theme: AppTheme) =>
   StyleSheet.create({
     mainContainer: {
+      paddingHorizontal: 20,
       flex: 1,
       backgroundColor: theme.colors.background,
       flexDirection: "column",
+      // gap: 5,
     },
     scrollContainer: {
-      paddingHorizontal: 20,
       paddingBottom: 10,
+    },
+    textStyle: {
+      fontFamily: theme.fontFamily.regular,
+      fontSize: theme.fontSize.x_sm,
+      color: theme.colors.blue,
     },
   });
