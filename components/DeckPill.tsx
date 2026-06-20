@@ -1,19 +1,23 @@
 import { useAppTheme } from "@/contexts/ColorThemeContext";
 import { AppTheme } from "@/styles/theme";
-import { StyleSheet, Text, View } from "react-native";
+import { Pressable, StyleSheet, Text, View } from "react-native";
 
 type Props = {
   deckId?: string;
   deckName?: string;
+  onPress: () => void;
 };
 
-export default function DeckPill({ deckId, deckName }: Props) {
+export default function DeckPill({ deckId, deckName, onPress }: Props) {
   const { theme } = useAppTheme();
   const styles = createStyles(theme);
   return (
-    <View style={styles.deckNamePill}>
-      <Text style={styles.textStyle}> {!deckId && !deckName ? "All decks" : deckName} </Text>
-    </View>
+    <Pressable style={styles.deckNamePill} onPress={onPress}>
+      <Text style={styles.textStyle}>
+        {" "}
+        {!deckId && !deckName ? "All decks" : deckName}{" "}
+      </Text>
+    </Pressable>
   );
 }
 
@@ -29,7 +33,7 @@ const createStyles = (theme: AppTheme) =>
       borderRadius: theme.borderRadius.md,
       borderColor: theme.colors.primary,
       borderWidth: 1,
-    //   alignSelf: "center",
+      //   alignSelf: "center",
     },
     textStyle: {
       fontFamily: theme.fontFamily.regular,
