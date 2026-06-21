@@ -41,14 +41,17 @@ export default function browseCards() {
     let result = cards;
     if (selectedDeckId !== "")
       result = cards.filter((c) => c.deckId === selectedDeckId);
-    const query = (searchQuery || "").trim().toLowerCase();
-    if (query === "") return result;
 
-    result = cards.filter(
-      (c) =>
-        (c.cardFront || "").toLowerCase().includes(query) ||
-        (c.cardBack || "").toLowerCase().includes(query),
-    );
+    const query = (searchQuery || "").trim().toLowerCase();
+
+    if (query !== "") {
+      result = result.filter(
+        (c) =>
+          (c.cardFront || "").toLowerCase().includes(query) ||
+          (c.cardBack || "").toLowerCase().includes(query),
+      );
+    }
+
     return result;
   }, [cards, selectedDeckId, searchQuery]);
 
