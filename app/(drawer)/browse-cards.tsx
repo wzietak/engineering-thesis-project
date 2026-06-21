@@ -7,7 +7,7 @@ import { globalCardRepository } from "@/repositories/globalCardRepository";
 import { globalDeckRepository } from "@/repositories/globalDeckRepository";
 import { AppTheme } from "@/styles/theme";
 import { router, useFocusEffect } from "expo-router";
-import { useCallback, useContext, useState } from "react";
+import { useCallback, useContext, useMemo, useState } from "react";
 import { StyleSheet, Text, View } from "react-native";
 import { FlatList, ScrollView } from "react-native-gesture-handler";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
@@ -31,8 +31,14 @@ export default function browseCards() {
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [cards, setCards] = useState<CardForBrowse[]>([]);
   const [decks, setDecks] = useState<{ id: string; name: string }[]>();
+  const [selectedDeckId, setSelectedDeckId] = useState<string>("");
 
   const userId = session?.currentSession?.user.id as string;
+
+  const filteredCards = useMemo(() => {
+    if (selectedDeckId === "") return cards;
+    return cards.filter((c) => c.deckId === selectedDeckId);
+  }, [cards, selectedDeckId]);
 
   useFocusEffect(
     useCallback(() => {
@@ -60,14 +66,39 @@ export default function browseCards() {
 
   return (
     <View style={[styles.mainContainer, { paddingBottom: insets.bottom }]}>
-      <ScrollView horizontal={true} style={styles.scrollContainer}>
-        <DeckPill></DeckPill>
+      <ScrollView
+        horizontal={true}
+        style={[styles.scrollContainer]}
+        showsHorizontalScrollIndicator={false}
+      >
+        <DeckPill
+          onPress={() => {
+            setSelectedDeckId("");
+          }}
+          backgroundCol={selectedDeckId ? "" : theme.colors.lightpurple}
+        ></DeckPill>
+        {decks?.map((deck) => {
+          return (
+            <DeckPill
+              key={deck.id}
+              deckId={deck.id}
+              deckName={deck.name}
+              onPress={() => {
+                setSelectedDeckId(deck.id);
+              }}
+              backgroundCol={
+                selectedDeckId === deck.id ? theme.colors.lightpurple : ""
+              }
+            ></DeckPill>
+          );
+        })}
       </ScrollView>
 
       <FlatList
-        contentContainerStyle={styles.scrollContainer}
+        style={{ height: "100%" }}
+        contentContainerStyle={[styles.scrollContainer]}
         keyExtractor={(item) => item.cardId}
-        data={cards}
+        data={filteredCards}
         showsVerticalScrollIndicator={false}
         renderItem={({ item, index }) => {
           return (
@@ -87,8 +118,16 @@ export default function browseCards() {
           );
         }}
         ListHeaderComponent={
-          <View style={{ paddingVertical: 5 }}>
-            <Text style={styles.textStyle}>Showing {cards.length} cards</Text>
+          <View
+            style={{
+              paddingVertical: 5,
+            }}
+          >
+            <Text style={styles.textStyle}>
+              {filteredCards.length === 1
+                ? `Showing ${filteredCards.length} card`
+                : `Showing ${filteredCards.length} cards`}
+            </Text>
           </View>
         }
       ></FlatList>
@@ -102,8 +141,6 @@ const createStyles = (theme: AppTheme) =>
       paddingHorizontal: 20,
       flex: 1,
       backgroundColor: theme.colors.background,
-      flexDirection: "column",
-      // gap: 5,
     },
     scrollContainer: {
       paddingBottom: 10,
