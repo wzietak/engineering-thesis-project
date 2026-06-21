@@ -38,9 +38,19 @@ export default function browseCards() {
   const userId = session?.currentSession?.user.id as string;
 
   const filteredCards = useMemo(() => {
-    if (selectedDeckId === "") return cards;
-    return cards.filter((c) => c.deckId === selectedDeckId);
-  }, [cards, selectedDeckId]);
+    let result = cards;
+    if (selectedDeckId !== "")
+      result = cards.filter((c) => c.deckId === selectedDeckId);
+    const query = (searchQuery || "").trim().toLowerCase();
+    if (query === "") return result;
+
+    result = cards.filter(
+      (c) =>
+        (c.cardFront || "").toLowerCase().includes(query) ||
+        (c.cardBack || "").toLowerCase().includes(query),
+    );
+    return result;
+  }, [cards, selectedDeckId, searchQuery]);
 
   useFocusEffect(
     useCallback(() => {
