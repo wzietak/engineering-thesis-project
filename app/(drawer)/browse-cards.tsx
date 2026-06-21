@@ -6,9 +6,10 @@ import { DBContext } from "@/contexts/DBContext";
 import { globalCardRepository } from "@/repositories/globalCardRepository";
 import { globalDeckRepository } from "@/repositories/globalDeckRepository";
 import { AppTheme } from "@/styles/theme";
+import Octicons from "@expo/vector-icons/Octicons";
 import { router, useFocusEffect } from "expo-router";
 import { useCallback, useContext, useMemo, useState } from "react";
-import { StyleSheet, Text, View } from "react-native";
+import { Pressable, StyleSheet, Text, TextInput, View } from "react-native";
 import { FlatList, ScrollView } from "react-native-gesture-handler";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
@@ -32,6 +33,7 @@ export default function browseCards() {
   const [cards, setCards] = useState<CardForBrowse[]>([]);
   const [decks, setDecks] = useState<{ id: string; name: string }[]>();
   const [selectedDeckId, setSelectedDeckId] = useState<string>("");
+  const [searchQuery, setSearchQuery] = useState<string>("");
 
   const userId = session?.currentSession?.user.id as string;
 
@@ -95,6 +97,7 @@ export default function browseCards() {
       </ScrollView>
 
       <FlatList
+        keyboardShouldPersistTaps="handled"
         style={{ height: "100%" }}
         contentContainerStyle={[styles.scrollContainer]}
         keyExtractor={(item) => item.cardId}
@@ -123,6 +126,33 @@ export default function browseCards() {
               paddingVertical: 5,
             }}
           >
+            <View style={styles.textInput}>
+              <View style={{ flexDirection: "row", gap: 10 }}>
+                <Octicons name="search" size={20} color={theme.colors.blue} />
+                <TextInput
+                  value={searchQuery}
+                  style={{
+                    padding: 0,
+                    width: "85%",
+                    textOverflow: "clip",
+                    color: theme.colors.primary,
+                    fontFamily: theme.fontFamily.regular,
+                  }}
+                  placeholder="Search front or back..."
+                  placeholderTextColor={theme.colors.grey}
+                  onChangeText={(input) => {
+                    setSearchQuery(input.toLowerCase());
+                  }}
+                ></TextInput>
+              </View>
+              <Pressable
+                style={{ paddingRight: 5, opacity: searchQuery === "" ? 0 : 1 }}
+                hitSlop={25}
+                onPress={() => setSearchQuery("")}
+              >
+                <Octicons name="x" size={20} color={theme.colors.blue} />
+              </Pressable>
+            </View>
             <Text style={styles.textStyle}>
               {filteredCards.length === 1
                 ? `Showing ${filteredCards.length} card`
@@ -149,5 +179,14 @@ const createStyles = (theme: AppTheme) =>
       fontFamily: theme.fontFamily.regular,
       fontSize: theme.fontSize.x_sm,
       color: theme.colors.blue,
+    },
+    textInput: {
+      marginBottom: 10,
+      paddingVertical: 10,
+      paddingRight: 10,
+      flexDirection: "row",
+      justifyContent: "space-between",
+      borderBottomWidth: 1,
+      borderColor: theme.colors.blue,
     },
   });
