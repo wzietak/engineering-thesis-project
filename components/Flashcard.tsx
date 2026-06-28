@@ -1,6 +1,12 @@
 import { useAppTheme } from "@/contexts/ColorThemeContext";
 import { AppTheme } from "@/styles/theme";
+import Octicons from "@expo/vector-icons/Octicons";
+import { default as React } from "react";
 import { Pressable, StyleSheet, Text, View } from "react-native";
+import { GestureHandlerRootView } from "react-native-gesture-handler";
+import ReanimatedSwipeable, {
+  SwipeDirection,
+} from "react-native-gesture-handler/ReanimatedSwipeable";
 
 const getRelativeReviewTime = (isoString: string) => {
   if (!isoString) return "unknown";
@@ -51,14 +57,37 @@ const getRelativeReviewTime = (isoString: string) => {
   return `in ${seconds}s`;
 };
 
+function rightActions() {
+  const { theme } = useAppTheme();
+  const styles = createStyles(theme);
+  return (
+    <View
+      style={[
+        {
+          height: 90,
+          width: "100%",
+          marginVertical: 5,
+          padding: 10,
+          backgroundColor: theme.colors.red,
+          borderRadius: theme.borderRadius.sm,
+          justifyContent: "center",
+          alignItems: "flex-end",
+        },
+      ]}
+    >
+      <Octicons name="trash" size={24} color={theme.colors.background} />
+    </View>
+  );
+}
+
 type Props = {
   cardId: string;
   cardFront: string;
   cardBack: string;
   deckName: string;
   nextReview: string;
-  onPress?: () => void;
-  onMoveLeft?: () => void;
+  onPress: () => void;
+  onSwipeDelete: () => void;
 };
 
 export default function FlashcardComponent({
@@ -68,59 +97,69 @@ export default function FlashcardComponent({
   deckName,
   nextReview,
   onPress,
-  onMoveLeft,
+  onSwipeDelete,
 }: Props) {
   const { theme } = useAppTheme();
   const styles = createStyles(theme);
+
   return (
-    <View style={styles.cardContainer}>
-      <Pressable style={styles.cardPressable} onPress={onPress}>
-        <View style={[styles.halfContainer]}>
-          <Text
-            style={styles.cardFrontText}
-            numberOfLines={1}
-            ellipsizeMode="tail"
-          >
-            {cardFront}
-          </Text>
-          <Text
-            style={styles.cardBackText}
-            numberOfLines={1}
-            ellipsizeMode="tail"
-          >
-            {cardBack}
-          </Text>
-        </View>
-
-        <View style={[styles.halfContainer]}>
-          <View style={styles.deckNamePill}>
-            <Text style={styles.deckNameText}>{deckName}</Text>
-          </View>
-
-          <View
-            style={{
-              width: "100%",
-              height: "65%",
-              flexDirection: "column",
-              alignItems: "flex-end",
-              justifyContent: "flex-end",
-            }}
-          >
-            <Text style={[styles.nextReviewText, { textAlign: "right" }]}>
-              Next review:{" "}
+    <GestureHandlerRootView>
+      <ReanimatedSwipeable
+        renderRightActions={rightActions}
+        onSwipeableOpen={(direction) => {
+          if (direction === SwipeDirection.RIGHT) onSwipeDelete;
+        }}
+      >
+        <View style={styles.cardContainer}>
+          <Pressable style={styles.cardPressable} onPress={onPress}>
+            <View style={[styles.halfContainer]}>
               <Text
-                style={[
-                  styles.nextReviewText,
-                  { fontFamily: theme.fontFamily.bold },
-                ]}
+                style={styles.cardFrontText}
+                numberOfLines={1}
+                ellipsizeMode="tail"
               >
-                {getRelativeReviewTime(nextReview)}
+                {cardFront}
               </Text>
-            </Text>
-          </View>
+              <Text
+                style={styles.cardBackText}
+                numberOfLines={1}
+                ellipsizeMode="tail"
+              >
+                {cardBack}
+              </Text>
+            </View>
+
+            <View style={[styles.halfContainer]}>
+              <View style={styles.deckNamePill}>
+                <Text style={styles.deckNameText}>{deckName}</Text>
+              </View>
+
+              <View
+                style={{
+                  width: "100%",
+                  height: "65%",
+                  flexDirection: "column",
+                  alignItems: "flex-end",
+                  justifyContent: "flex-end",
+                }}
+              >
+                <Text style={[styles.nextReviewText, { textAlign: "right" }]}>
+                  Next review:{" "}
+                  <Text
+                    style={[
+                      styles.nextReviewText,
+                      { fontFamily: theme.fontFamily.bold },
+                    ]}
+                  >
+                    {getRelativeReviewTime(nextReview)}
+                  </Text>
+                </Text>
+              </View>
+            </View>
+          </Pressable>
         </View>
-      </Pressable>
-    </View>
+      </ReanimatedSwipeable>
+    </GestureHandlerRootView>
   );
 }
 
