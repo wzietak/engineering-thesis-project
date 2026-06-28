@@ -8,7 +8,7 @@ import { globalDeckRepository } from "@/repositories/globalDeckRepository";
 import { AppTheme } from "@/styles/theme";
 import Octicons from "@expo/vector-icons/Octicons";
 import { router, useFocusEffect } from "expo-router";
-import { useCallback, useContext, useMemo, useState } from "react";
+import { useCallback, useContext, useMemo, useRef, useState } from "react";
 import { Pressable, StyleSheet, Text, TextInput, View } from "react-native";
 import { FlatList, ScrollView } from "react-native-gesture-handler";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
@@ -35,12 +35,38 @@ export default function browseCards() {
   const [selectedDeckId, setSelectedDeckId] = useState<string>("");
   const [searchQuery, setSearchQuery] = useState<string>("");
 
+  const [deletedCardIDs, setDeletedCardIDs] = useState<string[]>([]);
+  const deleteTimers = useRef<{ [key: string]: ReturnType<typeof setTimeout> }>(
+    {},
+  );
+
   const userId = session?.currentSession?.user.id as string;
+
+  const handleSwipeDelete = (cardId: string) => {
+    setDeletedCardIDs((prev) => [...prev, cardId]);
+    deleteTimers.current[cardId] = setTimeout(() => {
+      setCards((prev) => prev.filter((c) => c.cardId !== cardId));
+      setDeletedCardIDs((prev) => prev.filter((id) => id !== cardId));
+      delete deleteTimers.current[cardId];
+    }, 3000);
+  };
+
+  const handleUndoDelete = (cardId: string) => {
+    if (deleteTimers.current[cardId]) {
+      clearTimeout(deleteTimers.current[cardId]);
+      delete deleteTimers.current[cardId];
+    }
+    setDeletedCardIDs((prev) => prev.filter((id) => id !== cardId));
+  };
 
   const filteredCards = useMemo(() => {
     let result = cards;
     if (selectedDeckId !== "")
       result = cards.filter((c) => c.deckId === selectedDeckId);
+
+    if (deletedCardIDs.length > 0) {
+      result = result.filter((c) => !deletedCardIDs.includes(c.cardId));
+    }
 
     const query = (searchQuery || "").trim().toLowerCase();
 
@@ -76,6 +102,8 @@ export default function browseCards() {
       globalDeckRepository.getDecks(userId).then((fetchedDecks) => {
         setDecks(fetchedDecks);
       });
+
+      setSearchQuery("");
     }, [DBconnection.isReady, userId]),
   );
 
@@ -91,6 +119,7 @@ export default function browseCards() {
             setSelectedDeckId("");
           }}
           backgroundCol={selectedDeckId ? "" : theme.colors.lightpurple}
+          textCol={selectedDeckId === "" ? "black" : theme.colors.primary}
         ></DeckPill>
         {decks?.map((deck) => {
           return (
@@ -103,6 +132,9 @@ export default function browseCards() {
               }}
               backgroundCol={
                 selectedDeckId === deck.id ? theme.colors.lightpurple : ""
+              }
+              textCol={
+                selectedDeckId === deck.id ? "black" : theme.colors.primary
               }
             ></DeckPill>
           );
@@ -130,6 +162,7 @@ export default function browseCards() {
                   params: { cardId: item.cardId },
                 });
               }}
+              onSwipeDelete={() => handleSwipeDelete(item.cardId)}
             ></FlashcardComponent>
           );
         }}
