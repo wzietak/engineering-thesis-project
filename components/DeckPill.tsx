@@ -7,6 +7,7 @@ type Props = {
   deckName?: string;
   onPress: () => void;
   backgroundCol?: string;
+  textCol?: string;
 };
 
 export default function DeckPill({
@@ -14,6 +15,7 @@ export default function DeckPill({
   deckName,
   onPress,
   backgroundCol,
+  textCol,
 }: Props) {
   const { theme } = useAppTheme();
   const styles = createStyles(theme);
@@ -29,7 +31,12 @@ export default function DeckPill({
       ]}
       onPress={onPress}
     >
-      <Text style={styles.textStyle}>
+      <Text
+        style={[
+          styles.textStyle,
+          { color: textCol ? textCol : theme.colors.primary },
+        ]}
+      >
         {" "}
         {!deckId && !deckName ? "All decks" : deckName}{" "}
       </Text>
