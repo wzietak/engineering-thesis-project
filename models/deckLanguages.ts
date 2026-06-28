@@ -7,8 +7,11 @@ enum DeckLanguage {
   GERMAN = "German",
   SPANISH = "Spanish",
   ITALIAN = "Italian",
-  POLISH = "Polish"
+  POLISH = "Polish",
+  HUNGARIAN = "Hungarian",
+  URDU = "Urdu",
 }
+
 /* Mapping array for dropdown components */
 export const DECK_LANGUAGES = [
   { label: "English", value: DeckLanguage.ENGLISH },
@@ -16,4 +19,6 @@ export const DECK_LANGUAGES = [
   { label: "Spanish", value: DeckLanguage.SPANISH },
   { label: "Italian", value: DeckLanguage.ITALIAN },
   { label: "Polish", value: DeckLanguage.POLISH },
+  { label: "Hungarian", value: DeckLanguage.HUNGARIAN },
+  { label: "Urdu", value: DeckLanguage.URDU },
 ];
