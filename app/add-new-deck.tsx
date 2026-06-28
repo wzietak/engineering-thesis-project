@@ -53,7 +53,7 @@ export default function addNewDeck() {
           if (deck === null) {
             router.back();
           } else {
-            navigation.setOptions({title: "Edit deck"});
+            navigation.setOptions({ title: "Edit deck" });
             setIsEditMode(true);
             setDeckName(deck.name);
 
@@ -94,6 +94,10 @@ export default function addNewDeck() {
         sourceLanguage !== undefined)
     ) {
       setlangError("Both languages are required to enable AI assistance.");
+      return;
+    }
+    if (sourceLanguage === targetLanguage) {
+      setlangError("Please select two different languages.");
       return;
     }
 
