@@ -4,9 +4,7 @@ import Octicons from "@expo/vector-icons/Octicons";
 import { default as React } from "react";
 import { Pressable, StyleSheet, Text, View } from "react-native";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
-import ReanimatedSwipeable, {
-  SwipeDirection,
-} from "react-native-gesture-handler/ReanimatedSwipeable";
+import ReanimatedSwipeable from "react-native-gesture-handler/ReanimatedSwipeable";
 
 const getRelativeReviewTime = (isoString: string) => {
   if (!isoString) return "unknown";
@@ -106,9 +104,7 @@ export default function FlashcardComponent({
     <GestureHandlerRootView>
       <ReanimatedSwipeable
         renderRightActions={rightActions}
-        onSwipeableOpen={(direction) => {
-          if (direction === SwipeDirection.RIGHT) onSwipeDelete;
-        }}
+        onSwipeableOpen={(direction) => onSwipeDelete()}
       >
         <View style={styles.cardContainer}>
           <Pressable style={styles.cardPressable} onPress={onPress}>
