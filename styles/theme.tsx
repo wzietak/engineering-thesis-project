@@ -14,6 +14,7 @@ type Colors = {
   lightpurple_alpha: string;
   red: string;
   background_alpha: string;
+  primary_alpha: string;
   error: string;
   icon: string;
   overlay: string;
@@ -61,6 +62,7 @@ export const lightTheme: Colors = {
   lightpurple_alpha: "#e1d0ffb9",
   red: "#ffa0a0",
   background_alpha: "rgba(255, 255, 255, 0.2)",
+  primary_alpha: "rgba(0, 0, 0, 0.9)",
   error: "red",
   icon: "@/assets/icons/splash-icon-light-android.png",
   overlay: "rgba(20, 25, 41, 0.2)",
@@ -82,6 +84,7 @@ export const darkTheme: Colors = {
   lightpurple_alpha: "#6d5f87c9",
   red: "#8a5858",
   background_alpha: "rgba(20, 25, 41, 0.2)",
+  primary_alpha: "rgba(112, 121, 168, 0.9)",
   error: "#8d0707",
   icon: "@/assets/icons/splash-icon-dark-android.png",
   overlay: "rgba(20, 25, 41, 0.38)",
