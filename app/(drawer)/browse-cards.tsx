@@ -1,14 +1,21 @@
+import DeckPill from "@/components/DeckPill";
 import FlashcardComponent from "@/components/Flashcard";
+import UndoSnackbar from "@/components/UndoSnackbar";
 import { AuthContext } from "@/contexts/AuthContext";
 import { useAppTheme } from "@/contexts/ColorThemeContext";
 import { DBContext } from "@/contexts/DBContext";
 import { globalCardRepository } from "@/repositories/globalCardRepository";
+import { globalDeckRepository } from "@/repositories/globalDeckRepository";
 import { AppTheme } from "@/styles/theme";
+import Octicons from "@expo/vector-icons/Octicons";
 import { router, useFocusEffect } from "expo-router";
-import { useCallback, useContext, useState } from "react";
-import { StyleSheet, View } from "react-native";
-import { FlatList } from "react-native-gesture-handler";
+import { useCallback, useContext, useMemo, useRef, useState } from "react";
+import { Pressable, StyleSheet, Text, TextInput, View } from "react-native";
+import { FlatList, ScrollView } from "react-native-gesture-handler";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
+
+const session = useContext(AuthContext);
+const userId = session?.currentSession?.user.id;
 
 export type CardForBrowse = {
   cardId: string;
@@ -28,8 +35,62 @@ export default function browseCards() {
 
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [cards, setCards] = useState<CardForBrowse[]>([]);
+  const [decks, setDecks] = useState<{ id: string; name: string }[]>();
+  const [selectedDeckId, setSelectedDeckId] = useState<string>("");
+  const [searchQuery, setSearchQuery] = useState<string>("");
+  const [isUndoSnackBarVisible, setIsUndoSnackBarVisible] =
+    useState<boolean>(false);
+
+  const [deletedCardIDs, setDeletedCardIDs] = useState<string[]>([]);
+  const deleteTimers = useRef<{ [key: string]: ReturnType<typeof setTimeout> }>(
+    {},
+  );
 
   const userId = session?.currentSession?.user.id as string;
+
+  const handleSwipeDelete = (cardId: string) => {
+    setDeletedCardIDs((prev) => [...prev, cardId]);
+    setIsUndoSnackBarVisible(true);
+
+    deleteTimers.current[cardId] = setTimeout(() => {
+      if (userId) globalCardRepository.deleteCard(cardId, userId);
+
+      setCards((prev) => prev.filter((c) => c.cardId !== cardId));
+      setDeletedCardIDs((prev) => prev.filter((id) => id !== cardId));
+      delete deleteTimers.current[cardId];
+      setIsUndoSnackBarVisible(false);
+    }, 3000);
+  };
+
+  const handleUndoDelete = (cardId: string) => {
+    setIsUndoSnackBarVisible(false);
+    if (deleteTimers.current[cardId]) {
+      clearTimeout(deleteTimers.current[cardId]);
+      delete deleteTimers.current[cardId];
+    }
+    setDeletedCardIDs((prev) => prev.filter((id) => id !== cardId));
+  };
+
+  const filteredCards = useMemo(() => {
+    let result = cards;
+    if (deletedCardIDs.length > 0) {
+      result = result.filter((c) => !deletedCardIDs.includes(c.cardId));
+    }
+    if (selectedDeckId !== "")
+      result = result.filter((c) => c.deckId === selectedDeckId);
+
+    const query = (searchQuery || "").trim().toLowerCase();
+
+    if (query !== "") {
+      result = result.filter(
+        (c) =>
+          (c.cardFront || "").toLowerCase().includes(query) ||
+          (c.cardBack || "").toLowerCase().includes(query),
+      );
+    }
+
+    return result;
+  }, [cards, selectedDeckId, searchQuery, deletedCardIDs]);
 
   useFocusEffect(
     useCallback(() => {
@@ -48,15 +109,73 @@ export default function browseCards() {
         .finally(() => {
           setIsLoading(false);
         });
+
+      globalDeckRepository.getDecks(userId).then((fetchedDecks) => {
+        setDecks(fetchedDecks);
+      });
+
+      setSearchQuery("");
+
+      return () => {
+        const pendingCardIDs = Object.keys(deleteTimers.current);
+        if (pendingCardIDs.length > 0) {
+          pendingCardIDs.forEach((cardId) => {
+            clearTimeout(deleteTimers.current[cardId]);
+            delete deleteTimers.current[cardId];
+            if (userId) {
+              globalCardRepository.deleteCard(cardId, userId);
+            }
+          });
+          setDeletedCardIDs([]);
+          setIsUndoSnackBarVisible(false);
+          setSelectedDeckId("");
+        }
+      };
     }, [DBconnection.isReady, userId]),
   );
 
   return (
     <View style={[styles.mainContainer, { paddingBottom: insets.bottom }]}>
+      <ScrollView
+        horizontal={true}
+        style={[styles.scrollContainer]}
+        showsHorizontalScrollIndicator={false}
+      >
+        <DeckPill
+          onPress={() => {
+            setSelectedDeckId("");
+          }}
+          backgroundCol={selectedDeckId ? "" : theme.colors.lightpurple}
+          textCol={selectedDeckId === "" ? "black" : theme.colors.primary}
+        ></DeckPill>
+        {decks?.map((deck) => {
+          return (
+            <DeckPill
+              key={deck.id}
+              deckId={deck.id}
+              deckName={deck.name}
+              onPress={() => {
+                setSelectedDeckId(deck.id);
+                globalCardRepository.testCardsInDeck(deck.id);
+              }}
+              backgroundCol={
+                selectedDeckId === deck.id ? theme.colors.lightpurple : ""
+              }
+              textCol={
+                selectedDeckId === deck.id ? "black" : theme.colors.primary
+              }
+            ></DeckPill>
+          );
+        })}
+      </ScrollView>
+
       <FlatList
-        contentContainerStyle={styles.scrollContainer}
+        keyboardShouldPersistTaps="handled"
+        style={{ height: "100%" }}
+        contentContainerStyle={[styles.scrollContainer]}
         keyExtractor={(item) => item.cardId}
-        data={cards}
+        data={filteredCards}
+        showsVerticalScrollIndicator={false}
         renderItem={({ item, index }) => {
           return (
             <FlashcardComponent
@@ -71,10 +190,57 @@ export default function browseCards() {
                   params: { cardId: item.cardId },
                 });
               }}
+              onSwipeDelete={() => handleSwipeDelete(item.cardId)}
             ></FlashcardComponent>
           );
         }}
+        ListHeaderComponent={
+          <View
+            style={{
+              paddingVertical: 5,
+            }}
+          >
+            <View style={styles.textInput}>
+              <View style={{ flexDirection: "row", gap: 10 }}>
+                <Octicons name="search" size={20} color={theme.colors.blue} />
+                <TextInput
+                  value={searchQuery}
+                  style={{
+                    padding: 0,
+                    width: "85%",
+                    textOverflow: "clip",
+                    color: theme.colors.primary,
+                    fontFamily: theme.fontFamily.regular,
+                  }}
+                  placeholder="Search front or back..."
+                  placeholderTextColor={theme.colors.grey}
+                  onChangeText={(input) => {
+                    setSearchQuery(input.toLowerCase());
+                  }}
+                ></TextInput>
+              </View>
+              <Pressable
+                style={{ paddingRight: 5, opacity: searchQuery === "" ? 0 : 1 }}
+                hitSlop={25}
+                onPress={() => setSearchQuery("")}
+              >
+                <Octicons name="x" size={20} color={theme.colors.blue} />
+              </Pressable>
+            </View>
+            <Text style={styles.textStyle}>
+              {filteredCards.length === 1
+                ? `Showing ${filteredCards.length} card`
+                : `Showing ${filteredCards.length} cards`}
+            </Text>
+          </View>
+        }
       ></FlatList>
+      <UndoSnackbar
+        onUndo={() => {
+          handleUndoDelete(deletedCardIDs[deletedCardIDs.length - 1]);
+        }}
+        isVisible={isUndoSnackBarVisible}
+      ></UndoSnackbar>
     </View>
   );
 }
@@ -82,12 +248,25 @@ export default function browseCards() {
 const createStyles = (theme: AppTheme) =>
   StyleSheet.create({
     mainContainer: {
+      paddingHorizontal: 20,
       flex: 1,
       backgroundColor: theme.colors.background,
-      flexDirection: "column",
     },
     scrollContainer: {
-      paddingHorizontal: 20,
       paddingBottom: 10,
+    },
+    textStyle: {
+      fontFamily: theme.fontFamily.regular,
+      fontSize: theme.fontSize.x_sm,
+      color: theme.colors.blue,
+    },
+    textInput: {
+      marginBottom: 10,
+      paddingVertical: 10,
+      paddingRight: 10,
+      flexDirection: "row",
+      justifyContent: "space-between",
+      borderBottomWidth: 1,
+      borderColor: theme.colors.blue,
     },
   });
