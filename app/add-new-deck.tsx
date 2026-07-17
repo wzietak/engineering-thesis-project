@@ -96,7 +96,11 @@ export default function addNewDeck() {
       setlangError("Both languages are required to enable AI assistance.");
       return;
     }
-    if (sourceLanguage === targetLanguage) {
+    if (
+      sourceLanguage === targetLanguage &&
+      sourceLanguage !== "" &&
+      targetLanguage !== ""
+    ) {
       setlangError("Please select two different languages.");
       return;
     }
