@@ -48,21 +48,6 @@ export default function browseCards() {
 
   const userId = session?.currentSession?.user.id as string;
 
-  useFocusEffect(
-    useCallback(() => {
-      return () => {
-        if (deletedCardIDs.length > 0) {
-          deletedCardIDs.forEach((cardId) => {
-            clearTimeout(cardId);
-            if (userId) {
-              globalCardRepository.deleteCard(cardId, userId);
-            }
-          });
-        }
-      };
-    }, [userId]),
-  );
-
   const handleSwipeDelete = (cardId: string) => {
     setDeletedCardIDs((prev) => [...prev, cardId]);
     setIsUndoSnackBarVisible(true);
@@ -130,6 +115,22 @@ export default function browseCards() {
       });
 
       setSearchQuery("");
+
+      return () => {
+        const pendingCardIDs = Object.keys(deleteTimers.current);
+        if (pendingCardIDs.length > 0) {
+          pendingCardIDs.forEach((cardId) => {
+            clearTimeout(deleteTimers.current[cardId]);
+            delete deleteTimers.current[cardId];
+            if (userId) {
+              globalCardRepository.deleteCard(cardId, userId);
+            }
+          });
+          setDeletedCardIDs([]);
+          setIsUndoSnackBarVisible(false);
+          setSelectedDeckId("");
+        }
+      };
     }, [DBconnection.isReady, userId]),
   );
 
@@ -155,6 +156,7 @@ export default function browseCards() {
               deckName={deck.name}
               onPress={() => {
                 setSelectedDeckId(deck.id);
+                globalCardRepository.testCardsInDeck(deck.id);
               }}
               backgroundCol={
                 selectedDeckId === deck.id ? theme.colors.lightpurple : ""
