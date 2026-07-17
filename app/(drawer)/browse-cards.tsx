@@ -1,5 +1,6 @@
 import DeckPill from "@/components/DeckPill";
 import FlashcardComponent from "@/components/Flashcard";
+import UndoSnackbar from "@/components/UndoSnackbar";
 import { AuthContext } from "@/contexts/AuthContext";
 import { useAppTheme } from "@/contexts/ColorThemeContext";
 import { DBContext } from "@/contexts/DBContext";
@@ -12,6 +13,9 @@ import { useCallback, useContext, useMemo, useRef, useState } from "react";
 import { Pressable, StyleSheet, Text, TextInput, View } from "react-native";
 import { FlatList, ScrollView } from "react-native-gesture-handler";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
+
+const session = useContext(AuthContext);
+const userId = session?.currentSession?.user.id;
 
 export type CardForBrowse = {
   cardId: string;
@@ -34,6 +38,8 @@ export default function browseCards() {
   const [decks, setDecks] = useState<{ id: string; name: string }[]>();
   const [selectedDeckId, setSelectedDeckId] = useState<string>("");
   const [searchQuery, setSearchQuery] = useState<string>("");
+  const [isUndoSnackBarVisible, setIsUndoSnackBarVisible] =
+    useState<boolean>(false);
 
   const [deletedCardIDs, setDeletedCardIDs] = useState<string[]>([]);
   const deleteTimers = useRef<{ [key: string]: ReturnType<typeof setTimeout> }>(
@@ -42,16 +48,39 @@ export default function browseCards() {
 
   const userId = session?.currentSession?.user.id as string;
 
+  useFocusEffect(
+    useCallback(() => {
+      return () => {
+        if (deletedCardIDs.length > 0) {
+          deletedCardIDs.forEach((cardId) => {
+            clearTimeout(cardId);
+            if (userId) {
+              globalCardRepository.deleteCard(cardId, userId);
+            }
+          });
+        }
+      };
+    }, [userId]),
+  );
+
   const handleSwipeDelete = (cardId: string) => {
     setDeletedCardIDs((prev) => [...prev, cardId]);
+    setIsUndoSnackBarVisible(true);
+    console.log("deleted CardIDs in handleSwipeDelete: ", deletedCardIDs);
+
     deleteTimers.current[cardId] = setTimeout(() => {
+      if (userId) globalCardRepository.deleteCard(cardId, userId);
+
       setCards((prev) => prev.filter((c) => c.cardId !== cardId));
       setDeletedCardIDs((prev) => prev.filter((id) => id !== cardId));
       delete deleteTimers.current[cardId];
+      setIsUndoSnackBarVisible(false);
     }, 3000);
   };
 
   const handleUndoDelete = (cardId: string) => {
+    setIsUndoSnackBarVisible(false);
+    console.log("handleUndoDelete...");
     if (deleteTimers.current[cardId]) {
       clearTimeout(deleteTimers.current[cardId]);
       delete deleteTimers.current[cardId];
@@ -61,12 +90,11 @@ export default function browseCards() {
 
   const filteredCards = useMemo(() => {
     let result = cards;
-    if (selectedDeckId !== "")
-      result = cards.filter((c) => c.deckId === selectedDeckId);
-
     if (deletedCardIDs.length > 0) {
       result = result.filter((c) => !deletedCardIDs.includes(c.cardId));
     }
+    if (selectedDeckId !== "")
+      result = result.filter((c) => c.deckId === selectedDeckId);
 
     const query = (searchQuery || "").trim().toLowerCase();
 
@@ -79,7 +107,7 @@ export default function browseCards() {
     }
 
     return result;
-  }, [cards, selectedDeckId, searchQuery]);
+  }, [cards, selectedDeckId, searchQuery, deletedCardIDs]);
 
   useFocusEffect(
     useCallback(() => {
@@ -207,6 +235,13 @@ export default function browseCards() {
           </View>
         }
       ></FlatList>
+      <UndoSnackbar
+        onUndo={() => {
+          handleUndoDelete(deletedCardIDs[deletedCardIDs.length - 1]);
+          console.log("deletedCardIDs: ", deletedCardIDs);
+        }}
+        isVisible={isUndoSnackBarVisible}
+      ></UndoSnackbar>
     </View>
   );
 }
