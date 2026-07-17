@@ -66,7 +66,6 @@ export default function browseCards() {
   const handleSwipeDelete = (cardId: string) => {
     setDeletedCardIDs((prev) => [...prev, cardId]);
     setIsUndoSnackBarVisible(true);
-    console.log("deleted CardIDs in handleSwipeDelete: ", deletedCardIDs);
 
     deleteTimers.current[cardId] = setTimeout(() => {
       if (userId) globalCardRepository.deleteCard(cardId, userId);
@@ -80,7 +79,6 @@ export default function browseCards() {
 
   const handleUndoDelete = (cardId: string) => {
     setIsUndoSnackBarVisible(false);
-    console.log("handleUndoDelete...");
     if (deleteTimers.current[cardId]) {
       clearTimeout(deleteTimers.current[cardId]);
       delete deleteTimers.current[cardId];
@@ -238,7 +236,6 @@ export default function browseCards() {
       <UndoSnackbar
         onUndo={() => {
           handleUndoDelete(deletedCardIDs[deletedCardIDs.length - 1]);
-          console.log("deletedCardIDs: ", deletedCardIDs);
         }}
         isVisible={isUndoSnackBarVisible}
       ></UndoSnackbar>
