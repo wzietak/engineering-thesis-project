@@ -24,7 +24,6 @@ function createMockFSRSState(overrides?: Partial<FSRSState>) {
 
 describe("FSRS algorithm", () => {
   describe("Flashcard first review", () => {
-    //opisujemy co dokładnie testujemy
     it("Initial values for 'Again' should be: difficulty = 6.4133, stability = 0.212, interval = 0.212", () => {
       const grade = Grade.Again;
 
@@ -32,12 +31,24 @@ describe("FSRS algorithm", () => {
 
       const result = fsrs.calculateCardState(flashcardState, grade);
 
-      expect(result.updatedCardState.difficulty).toEqual(6.4133);
+      expect(result.updatedCardState.difficulty).toBeCloseTo(6.4133, 4);
 
       expect(result.updatedCardState.stability).toEqual(0.212);
 
       expect(result.updatedCardState.interval_days).toEqual(0.212);
+    });
 
+    it("Initial values for 'Hard' should be close to: difficulty = 5.112171, stability = 1.2931, interval = 1.2931", () => {
+      const grade = Grade.Hard;
+      const flashcardState = createMockFSRSState();
+
+      const result = fsrs.calculateCardState(flashcardState, grade);
+
+      expect(result.updatedCardState.difficulty).toBeCloseTo(5.112171, 6);
+
+      expect(result.updatedCardState.stability).toEqual(1.2931);
+
+      expect(result.updatedCardState.interval_days).toEqual(1.2931);
     });
   });
 });
