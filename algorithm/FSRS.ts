@@ -69,11 +69,8 @@ export class FSRS {
           w16 *
           Math.pow(e, FSRS_PARAMETERS[8]) *
           (11 - difficulty) *
-          Math.pow(
-            stability,
-            -FSRS_PARAMETERS[9] *
-              (Math.pow(e, FSRS_PARAMETERS[10] * (1 - retrievability)) - 1),
-          ));
+          Math.pow(stability, -FSRS_PARAMETERS[9]) *
+          (Math.pow(e, FSRS_PARAMETERS[10] * (1 - retrievability)) - 1));
 
     return newStability;
   }
