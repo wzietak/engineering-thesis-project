@@ -10,14 +10,14 @@ function createMockFSRSState(overrides?: Partial<FSRSState>) {
     id: "test-id",
     card_id: "test-card-id",
     card_direction: CardDirection.Forward,
-    stability: null,
-    difficulty: null,
-    last_review: null,
-    next_review: null,
-    interval_days: null,
-    state: flashcardState.New,
-    reps: 0,
-    lapses: 0,
+    stability: overrides?.stability ?? null,
+    difficulty: overrides?.difficulty ?? null,
+    last_review: overrides?.last_review ?? null,
+    next_review: overrides?.next_review ?? null,
+    interval_days: overrides?.interval_days ?? null,
+    state: overrides?.state ?? flashcardState.New,
+    reps: overrides?.reps ?? 0,
+    lapses: overrides?.lapses ?? 0,
     updated_at: fixedDate,
   };
 }
@@ -143,7 +143,8 @@ describe("FSRS algorithm", () => {
       const flashcardState = createMockFSRSState();
       let grade = Grade.Hard;
       const result1 = fsrs.calculateCardState(flashcardState, grade);
-      console.log("Hard: ", result1);
+
+      expect(result1.updatedCardState.difficulty).toBeGreaterThan(5);
 
       currentTimestamp +=
         result1.updatedCardState.interval_days * DAY_IN_MILISECONDS;
@@ -152,7 +153,6 @@ describe("FSRS algorithm", () => {
       grade = Grade.Good;
 
       const result2 = fsrs.calculateCardState(result1.updatedCardState, grade);
-      console.log("Good: ", result2);
 
       expect(result2.updatedCardState.interval_days).toBeGreaterThan(1.2931);
       expect(result2.updatedCardState.stability).toBeGreaterThan(1.2931);
@@ -165,25 +165,83 @@ describe("FSRS algorithm", () => {
       grade = Grade.Easy;
 
       const result3 = fsrs.calculateCardState(result2.updatedCardState, grade);
-      console.log("Easy: ", result3);
 
-      //   expect(result3.updatedCardState.interval_days).toBeCloseTo(49.631349, 6);
-      //   expect(result3.updatedCardState.stability).toBeCloseTo(49.631349, 6);
-      //   expect(result3.updatedCardState.difficulty).toBeLessThan(2.116986);
-
-      //   currentTimestamp +=
-      //     result3.updatedCardState.interval_days * DAY_IN_MILISECONDS;
-      //   jest.setSystemTime(currentTimestamp);
-
-      //   const result4 = fsrs.calculateCardState(result3.updatedCardState, grade);
-
-      //   expect(result4.updatedCardState.interval_days).toBeCloseTo(
-      //     173.5842934,
-      //     6,
-      //   );
-      //   expect(result4.updatedCardState.stability).toBeCloseTo(173.5842934, 6);
-      //   expect(result4.updatedCardState.difficulty).toBeLessThan(2.115868);
+      expect(result3.updatedCardState.interval_days).toBeGreaterThan(
+        5.22306 * 2,
+      );
+      expect(result3.updatedCardState.stability).toBeGreaterThan(5.22306 + 10);
+      expect(result3.updatedCardState.difficulty).toBeLessThan(5.108059);
     });
+
+    afterAll(() => {
+      jest.useRealTimers();
+    });
+  });
+
+  describe("Forgetting and relearning scenarios", () => {
+    beforeAll(() => {
+      jest.useFakeTimers();
+    });
+    it("should transition mature cards to Relearning and drop stability more severely for a high-difficulty card than a low-difficulty card upon an Again rating", () => {
+      let currentTimestamp = new Date("2026-07-18T12:00:00Z").getTime();
+      const grade = Grade.Again;
+
+      const matureFlashcardHighDiff = createMockFSRSState({
+        state: flashcardState.Review,
+        stability: 10.0,
+        interval_days: 10.0,
+        difficulty: 8.0,
+        reps: 8,
+        last_review: new Date(currentTimestamp).toISOString(),
+      });
+
+      const matureFlashcardLowDiff = createMockFSRSState({
+        state: flashcardState.Review,
+        stability: 10.0,
+        interval_days: 10.0,
+        difficulty: 3.0,
+        reps: 8,
+        last_review: new Date(currentTimestamp).toISOString(),
+      });
+
+      currentTimestamp +=
+        matureFlashcardHighDiff.interval_days! * DAY_IN_MILISECONDS;
+      jest.setSystemTime(currentTimestamp);
+
+      const resultHighDiff = fsrs.calculateCardState(
+        matureFlashcardHighDiff,
+        grade,
+      );
+
+      const resultLowDiff = fsrs.calculateCardState(
+        matureFlashcardLowDiff,
+        grade,
+      );
+
+      expect(resultHighDiff.updatedCardState.stability).toBeLessThan(
+        resultLowDiff.updatedCardState.stability,
+      );
+      expect(resultHighDiff.updatedCardState.stability).toBeLessThan(
+        matureFlashcardHighDiff.stability! / 2,
+      );
+      expect(resultLowDiff.updatedCardState.stability).toBeLessThan(
+        matureFlashcardLowDiff.stability! / 2,
+      );
+
+      expect(resultLowDiff.updatedCardState.state).toBe(
+        flashcardState.Relearning,
+      );
+      expect(resultHighDiff.updatedCardState.state).toBe(
+        flashcardState.Relearning,
+      );
+
+      expect(resultLowDiff.updatedCardState.lapses).toBe(1);
+      expect(resultHighDiff.updatedCardState.lapses).toBe(1);
+    });
+
+    it("", () => {});
+
+    it("", () => {});
 
     afterAll(() => {
       jest.useRealTimers();
