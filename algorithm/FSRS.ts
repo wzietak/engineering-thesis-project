@@ -116,7 +116,7 @@ export class FSRS {
     let nextReview = card.next_review;
     let intervalDays = card.interval_days;
     let nextState = card.state;
-    let lapses = 0;
+    let addedLapses = 0;
 
     let daysSinceLastReview = undefined;
     let retrievability = undefined;
@@ -145,7 +145,7 @@ export class FSRS {
         retrievability!,
       );
       nextDifficulty = this.calculateDifficulty(grade, card.difficulty!);
-      lapses = 1;
+      addedLapses = 1;
     } else {
       nextStability = this.calculateStability(
         card.stability!,
@@ -164,14 +164,16 @@ export class FSRS {
       Date.now() + intervalDays * DAY_IN_MILISECONDS,
     ).toISOString();
 
-    if (intervalDays >= 1) {
+    if (
+      (card.state === flashcardState.Review ||
+        card.state === flashcardState.Relearning) &&
+      grade === Grade.Again
+    ) {
+      nextState = flashcardState.Relearning;
+    } else if (intervalDays >= 1) {
       nextState = flashcardState.Review;
-    } else {
-      if (card.state === flashcardState.New) {
-        nextState = flashcardState.Learning;
-      } else if (card.state === flashcardState.Review) {
-        nextState = flashcardState.Relearning;
-      }
+    } else if (card.state === flashcardState.New) {
+      nextState = flashcardState.Learning;
     }
 
     const updatedCardState = {
@@ -183,7 +185,7 @@ export class FSRS {
       interval_days: intervalDays,
       state: nextState,
       reps: card.reps + 1,
-      lapses: card.lapses + lapses,
+      lapses: card.lapses + addedLapses,
     };
 
     // console.log(updatedCardState);
