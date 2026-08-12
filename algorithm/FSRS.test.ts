@@ -239,9 +239,67 @@ describe("FSRS algorithm", () => {
       expect(resultHighDiff.updatedCardState.lapses).toBe(1);
     });
 
-    it("", () => {});
+    it("should keep the card in Relearning, increment lapses (when interval is equal or longer than 1 day), and apply diminishing stability penalties upon consecutive Again ratings", () => {
+      let currentTimestamp = new Date("2026-07-18T12:00:00Z").getTime();
+      const grade = Grade.Again;
 
-    it("", () => {});
+      const matureFlashcard = createMockFSRSState({
+        state: flashcardState.Review,
+        stability: 10.0,
+        interval_days: 10.0,
+        difficulty: 4.5,
+        reps: 8,
+        last_review: new Date(currentTimestamp).toISOString(),
+      });
+
+      currentTimestamp += matureFlashcard.interval_days! * DAY_IN_MILISECONDS;
+      jest.setSystemTime(currentTimestamp);
+
+      const firstReview = fsrs.calculateCardState(matureFlashcard, grade);
+      console.log("first review with Again: ", firstReview);
+
+      expect(firstReview.updatedCardState.state).toBe(
+        flashcardState.Relearning,
+      );
+      expect(firstReview.updatedCardState.lapses).toBe(1);
+      expect(firstReview.updatedCardState.difficulty).toBeGreaterThan(
+        matureFlashcard.difficulty! * 1.5,
+      );
+      expect(firstReview.updatedCardState.stability).toBeLessThan(
+        matureFlashcard.stability! / 2,
+      );
+
+      currentTimestamp += 2 * DAY_IN_MILISECONDS;
+      jest.setSystemTime(currentTimestamp);
+
+      const secondReview = fsrs.calculateCardState(
+        firstReview.updatedCardState,
+        grade,
+      );
+      console.log("second review with Again: ", secondReview);
+
+      expect(secondReview.updatedCardState.state).toBe(
+        flashcardState.Relearning,
+      );
+      expect(secondReview.updatedCardState.lapses).toBe(2);
+      expect(secondReview.updatedCardState.difficulty).toBeGreaterThanOrEqual(
+        9,
+      );
+      expect(secondReview.updatedCardState.difficulty).toBeLessThan(10);
+      expect(secondReview.updatedCardState.stability).toBeLessThan(
+        firstReview.updatedCardState.stability,
+      );
+
+      const firstStabilityDrop =
+        matureFlashcard.stability! - firstReview.updatedCardState.stability;
+      const secondStabilityDrop =
+        firstReview.updatedCardState.stability -
+        secondReview.updatedCardState.stability;
+
+      expect(secondStabilityDrop).toBeLessThan(firstStabilityDrop);
+    });
+
+    it("should transition the card from Relearning back to Review and increase stability upon a positive rating", () => {});
 
     afterAll(() => {
       jest.useRealTimers();
