@@ -14,7 +14,7 @@ export class FSRS {
       (stability / (Math.pow(0.9, -1 / FSRS_PARAMETERS[20]) - 1)) *
       (Math.pow(desiredRetention, -1 / FSRS_PARAMETERS[20]) - 1);
 
-    return interval;
+    return Math.min(interval, 36500);
   }
 
   private calculateRetrievability(
@@ -69,11 +69,8 @@ export class FSRS {
           w16 *
           Math.pow(e, FSRS_PARAMETERS[8]) *
           (11 - difficulty) *
-          Math.pow(
-            stability,
-            -FSRS_PARAMETERS[9] *
-              (Math.pow(e, FSRS_PARAMETERS[10] * (1 - retrievability)) - 1),
-          ));
+          Math.pow(stability, -FSRS_PARAMETERS[9]) *
+          (Math.pow(e, FSRS_PARAMETERS[10] * (1 - retrievability)) - 1));
 
     return newStability;
   }
@@ -110,7 +107,7 @@ export class FSRS {
       FSRS_PARAMETERS[7] * this.calculateInitialDifficulty(4) +
       (1 - FSRS_PARAMETERS[7]) * rawDifficulty;
 
-    return newDifficulty;
+    return Math.max(newDifficulty, 1);
   }
 
   public calculateCardState(card: FSRSState, grade: Grade) {
@@ -119,7 +116,7 @@ export class FSRS {
     let nextReview = card.next_review;
     let intervalDays = card.interval_days;
     let nextState = card.state;
-    let lapses = 0;
+    let addedLapses = 0;
 
     let daysSinceLastReview = undefined;
     let retrievability = undefined;
@@ -148,7 +145,7 @@ export class FSRS {
         retrievability!,
       );
       nextDifficulty = this.calculateDifficulty(grade, card.difficulty!);
-      lapses = 1;
+      addedLapses = 1;
     } else {
       nextStability = this.calculateStability(
         card.stability!,
@@ -167,14 +164,16 @@ export class FSRS {
       Date.now() + intervalDays * DAY_IN_MILISECONDS,
     ).toISOString();
 
-    if (intervalDays >= 1) {
+    if (
+      (card.state === flashcardState.Review ||
+        card.state === flashcardState.Relearning) &&
+      grade === Grade.Again
+    ) {
+      nextState = flashcardState.Relearning;
+    } else if (intervalDays >= 1) {
       nextState = flashcardState.Review;
-    } else {
-      if (card.state === flashcardState.New) {
-        nextState = flashcardState.Learning;
-      } else if (card.state === flashcardState.Review) {
-        nextState = flashcardState.Relearning;
-      }
+    } else if (card.state === flashcardState.New) {
+      nextState = flashcardState.Learning;
     }
 
     const updatedCardState = {
@@ -186,10 +185,9 @@ export class FSRS {
       interval_days: intervalDays,
       state: nextState,
       reps: card.reps + 1,
-      lapses: card.lapses + lapses,
+      lapses: card.lapses + addedLapses,
     };
 
-    // console.log(updatedCardState);
 
     return {
       updatedCardState: updatedCardState,

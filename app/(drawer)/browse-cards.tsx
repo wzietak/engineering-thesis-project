@@ -156,7 +156,6 @@ export default function browseCards() {
               deckName={deck.name}
               onPress={() => {
                 setSelectedDeckId(deck.id);
-                globalCardRepository.testCardsInDeck(deck.id);
               }}
               backgroundCol={
                 selectedDeckId === deck.id ? theme.colors.lightpurple : ""
