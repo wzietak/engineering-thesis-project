@@ -14,7 +14,7 @@ export class FSRS {
       (stability / (Math.pow(0.9, -1 / FSRS_PARAMETERS[20]) - 1)) *
       (Math.pow(desiredRetention, -1 / FSRS_PARAMETERS[20]) - 1);
 
-    return interval;
+    return Math.min(interval, 36500);
   }
 
   private calculateRetrievability(
@@ -107,7 +107,7 @@ export class FSRS {
       FSRS_PARAMETERS[7] * this.calculateInitialDifficulty(4) +
       (1 - FSRS_PARAMETERS[7]) * rawDifficulty;
 
-    return newDifficulty;
+    return Math.max(newDifficulty, 1);
   }
 
   public calculateCardState(card: FSRSState, grade: Grade) {
@@ -188,7 +188,6 @@ export class FSRS {
       lapses: card.lapses + addedLapses,
     };
 
-    // console.log(updatedCardState);
 
     return {
       updatedCardState: updatedCardState,
