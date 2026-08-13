@@ -463,4 +463,63 @@ describe("FSRS algorithm", () => {
       jest.useRealTimers();
     });
   });
+
+  describe("Boundary and safety tests", () => {
+    beforeAll(() => {
+      jest.useFakeTimers();
+    });
+
+    it("should keep difficulty, stability and interval within valid bounds after 50 consecutive Again ratings", () => {
+      let currentTimestamp = Date.now();
+      const grade = Grade.Again;
+
+      let mockFlashcard = createMockFSRSState();
+
+      for (let i = 0; i < 50; i++) {
+        const review = fsrs.calculateCardState(mockFlashcard, grade);
+        mockFlashcard = review.updatedCardState;
+
+        currentTimestamp += Math.round(
+          mockFlashcard.interval_days! * DAY_IN_MILISECONDS,
+        );
+        jest.setSystemTime(currentTimestamp);
+      }
+
+      expect(mockFlashcard.difficulty).toBeGreaterThanOrEqual(1);
+      expect(mockFlashcard.difficulty).toBeLessThanOrEqual(10);
+
+      expect(mockFlashcard.stability).toBeGreaterThan(0);
+      expect(mockFlashcard.interval_days).toBeGreaterThan(0);
+      expect(mockFlashcard.interval_days).toBeLessThanOrEqual(36500);
+    });
+
+    it("should keep difficulty, stability and interval within valid bounds after 50 consecutive Easy ratings", () => {
+      let currentTimestamp = Date.now();
+      const grade = Grade.Easy;
+      let mockFlashcard2 = createMockFSRSState();
+
+      for (let i = 0; i < 50; i++) {
+        const review = fsrs.calculateCardState(mockFlashcard2, grade);
+        mockFlashcard2 = review.updatedCardState;
+
+        currentTimestamp += Math.round(
+          mockFlashcard2.interval_days! * DAY_IN_MILISECONDS,
+        );
+        jest.setSystemTime(currentTimestamp);
+      }
+
+      expect(mockFlashcard2.difficulty).toBeGreaterThanOrEqual(1);
+      expect(mockFlashcard2.difficulty).toBeLessThanOrEqual(10);
+
+      expect(mockFlashcard2.stability).toBeGreaterThanOrEqual(0);
+      expect(mockFlashcard2.interval_days).toBeGreaterThan(0);
+      expect(mockFlashcard2.interval_days).toBeLessThanOrEqual(36500);
+
+      expect(Number.isFinite(mockFlashcard2.stability)).toBe(true);
+    });
+
+    afterAll(() => {
+      jest.useRealTimers();
+    });
+  });
 });
