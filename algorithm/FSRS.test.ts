@@ -256,7 +256,6 @@ describe("FSRS algorithm", () => {
       jest.setSystemTime(currentTimestamp);
 
       const firstReview = fsrs.calculateCardState(matureFlashcard, grade);
-      console.log("first review with Again: ", firstReview);
 
       expect(firstReview.updatedCardState.state).toBe(
         flashcardState.Relearning,
@@ -276,7 +275,6 @@ describe("FSRS algorithm", () => {
         firstReview.updatedCardState,
         grade,
       );
-      console.log("second review with Again: ", secondReview);
 
       expect(secondReview.updatedCardState.state).toBe(
         flashcardState.Relearning,
@@ -299,7 +297,167 @@ describe("FSRS algorithm", () => {
       expect(secondStabilityDrop).toBeLessThan(firstStabilityDrop);
     });
 
-    it("should transition the card from Relearning back to Review and increase stability upon a positive rating", () => {});
+    it("should transition the card from Relearning back to Review, decrease difficulty and increase stability upon a positive rating", () => {
+      let currentTimestamp = new Date("2026-07-18T12:00:00Z").getTime();
+      let grade = Grade.Good;
+
+      const mockFlashcard = createMockFSRSState({
+        state: flashcardState.Relearning,
+        stability: 0.42,
+        interval_days: 0.42,
+        difficulty: 9.39,
+        reps: 8,
+        lapses: 2,
+        last_review: new Date(currentTimestamp).toISOString(),
+      });
+
+      currentTimestamp += mockFlashcard.interval_days! * DAY_IN_MILISECONDS;
+      jest.setSystemTime(currentTimestamp);
+
+      const firstReview = fsrs.calculateCardState(mockFlashcard, grade);
+
+      expect(firstReview.updatedCardState.stability).toBeGreaterThan(0.42);
+      expect(firstReview.updatedCardState.difficulty).toBeLessThan(9.39);
+      expect(firstReview.updatedCardState.state).toBe(
+        flashcardState.Relearning,
+      );
+
+      currentTimestamp +=
+        firstReview.updatedCardState.interval_days * DAY_IN_MILISECONDS;
+      jest.setSystemTime(currentTimestamp);
+      grade = Grade.Easy;
+
+      const secondReview = fsrs.calculateCardState(
+        firstReview.updatedCardState,
+        grade,
+      );
+
+      expect(secondReview.updatedCardState.stability).toBeGreaterThan(
+        firstReview.updatedCardState.stability,
+      );
+      expect(secondReview.updatedCardState.difficulty).toBeLessThan(
+        firstReview.updatedCardState.difficulty,
+      );
+      expect(secondReview.updatedCardState.state).toBe(
+        flashcardState.Relearning,
+      );
+
+      currentTimestamp +=
+        secondReview.updatedCardState.interval_days * DAY_IN_MILISECONDS;
+      jest.setSystemTime(currentTimestamp);
+
+      const thirdReview = fsrs.calculateCardState(
+        secondReview.updatedCardState,
+        grade,
+      );
+
+      expect(thirdReview.updatedCardState.stability).toBeGreaterThan(
+        firstReview.updatedCardState.stability,
+      );
+      expect(thirdReview.updatedCardState.difficulty).toBeLessThan(
+        firstReview.updatedCardState.difficulty,
+      );
+      expect(thirdReview.updatedCardState.interval_days).toBeGreaterThanOrEqual(
+        1,
+      );
+      expect(thirdReview.updatedCardState.state).toBe(flashcardState.Review);
+    });
+
+    afterAll(() => {
+      jest.useRealTimers();
+    });
+  });
+
+  describe("Review timing effects and overdue cards", () => {
+    beforeAll(() => {
+      jest.useFakeTimers();
+    });
+    it("should reward a late positive review with a significantly higher stability compared to an on-time review", () => {
+      let currentTimestamp = new Date("2026-07-18T12:00:00Z").getTime();
+      let grade = Grade.Good;
+
+      const mockFlashcard = createMockFSRSState({
+        state: flashcardState.Review,
+        stability: 10.0,
+        interval_days: 10.0,
+        difficulty: 4.5,
+        reps: 8,
+        last_review: new Date(currentTimestamp).toISOString(),
+      });
+
+      currentTimestamp += mockFlashcard.interval_days! * DAY_IN_MILISECONDS;
+      jest.setSystemTime(currentTimestamp);
+      const onTimeReview = fsrs.calculateCardState(mockFlashcard, grade);
+
+      currentTimestamp += 5 * DAY_IN_MILISECONDS;
+      jest.setSystemTime(currentTimestamp);
+
+      const lateReview = fsrs.calculateCardState(mockFlashcard, grade);
+
+      const onTimeReviewStabilityDifference =
+        onTimeReview.updatedCardState.stability - mockFlashcard.stability!;
+      const lateReviewStabilityDifference =
+        lateReview.updatedCardState.stability - mockFlashcard.stability!;
+
+      expect(onTimeReviewStabilityDifference).toBeLessThan(
+        lateReviewStabilityDifference,
+      );
+    });
+
+    afterAll(() => {
+      jest.useRealTimers();
+    });
+  });
+
+  describe("Short-term reviews and double-click prevention", () => {
+    beforeAll(() => {
+      jest.useFakeTimers();
+    });
+    it("should apply short-term stability formula and prevent lapse increments when a mature card is reviewed multiple times on the same day", () => {
+      let currentTimestamp = new Date("2026-07-18T12:00:00Z").getTime();
+      let grade = Grade.Again;
+      const matureFlashcard = createMockFSRSState({
+        state: flashcardState.Review,
+        stability: 10.0,
+        interval_days: 10.0,
+        difficulty: 4.5,
+        reps: 8,
+        last_review: new Date(currentTimestamp).toISOString(),
+      });
+
+      currentTimestamp += 1000;
+      jest.setSystemTime(currentTimestamp);
+
+      const sameDayReview = fsrs.calculateCardState(matureFlashcard, grade);
+
+      expect(sameDayReview.updatedCardState.lapses).toBe(
+        matureFlashcard.lapses,
+      );
+      expect(sameDayReview.updatedCardState.state).toBe(
+        flashcardState.Relearning,
+      );
+      expect(sameDayReview.updatedCardState.stability).toBeLessThan(
+        matureFlashcard.stability! / 3,
+      );
+
+      currentTimestamp += 1000;
+      jest.setSystemTime(currentTimestamp);
+
+      const sameDayReview2 = fsrs.calculateCardState(
+        sameDayReview.updatedCardState,
+        grade,
+      );
+
+      expect(sameDayReview2.updatedCardState.lapses).toBe(
+        sameDayReview.updatedCardState.lapses,
+      );
+      expect(sameDayReview2.updatedCardState.state).toBe(
+        flashcardState.Relearning,
+      );
+      expect(sameDayReview2.updatedCardState.stability).toBeLessThan(
+        sameDayReview.updatedCardState.stability / 3,
+      );
+    });
 
     afterAll(() => {
       jest.useRealTimers();
