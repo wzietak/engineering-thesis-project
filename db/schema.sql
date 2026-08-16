@@ -44,6 +44,7 @@ CREATE TABLE IF NOT EXISTS fsrs_states (
     reps SMALLINT NOT NULL DEFAULT 0,
     lapses SMALLINT NOT NULL DEFAULT 0,
     updated_at timestamptz NOT NULL DEFAULT now(),
+    is_synced INT NOT NULL DEFAULT 0,
     FOREIGN KEY(card_id) REFERENCES cards(id) ON DELETE CASCADE
 );
 
@@ -61,6 +62,7 @@ CREATE TABLE IF NOT EXISTS reviews (
     elapsed_days INT NOT NULL,
     scheduled_days SMALLINT NOT NULL,
     reviewed_at timestamptz NOT NULL DEFAULT now(),
+    is_synced INT NOT NULL DEFAULT 0,
     FOREIGN KEY(fsrs_state_id) REFERENCES fsrs_states(id) ON DELETE SET NULL
 );
 
@@ -107,6 +109,7 @@ CREATE TABLE IF NOT EXISTS fsrs_states (
     reps INTEGER NOT NULL DEFAULT 0,
     lapses INTEGER NOT NULL DEFAULT 0,
     updated_at text NOT NULL,
+    is_synced INTEGER NOT NULL DEFAULT 0,
     FOREIGN KEY(card_id) REFERENCES cards(id) ON DELETE CASCADE
 );
 
@@ -124,5 +127,6 @@ CREATE TABLE IF NOT EXISTS reviews (
     elapsed_days INTEGER NOT NULL,
     scheduled_days INTEGER NOT NULL,
     reviewed_at text NOT NULL,
+    is_synced INTEGER NOT NULL DEFAULT 0,
     FOREIGN KEY(fsrs_state_id) REFERENCES fsrs_states(id) ON DELETE SET NULL
 );

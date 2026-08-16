@@ -52,6 +52,7 @@ export async function initDB() {
     reps INTEGER NOT NULL DEFAULT 0,
     lapses INTEGER NOT NULL DEFAULT 0,
     updated_at text NOT NULL,
+    is_synced INTEGER NOT NULL DEFAULT 0,
     FOREIGN KEY(card_id) REFERENCES cards(id) ON DELETE CASCADE
 );`);
 
@@ -70,6 +71,7 @@ export async function initDB() {
     elapsed_days INTEGER NOT NULL,
     scheduled_days INTEGER NOT NULL,
     reviewed_at text NOT NULL,
+    is_synced INTEGER NOT NULL DEFAULT 0,
     FOREIGN KEY(fsrs_state_id) REFERENCES fsrs_states(id) ON DELETE SET NULL
 );`);
     return true;
