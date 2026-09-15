@@ -12,4 +12,5 @@ export interface DeckRepository {
   getDeckById: (deckId: string, userId: string) => Promise<Deck | null>;
   updateDeck: (deckData: Deck) => Promise<Deck | null>;
   deleteDeck: (deckId: string, userId: string) => Promise<void>;
+  getUnsyncedDecks : (userId : string) => Promise<Deck[]>
 }

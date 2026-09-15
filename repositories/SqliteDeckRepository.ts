@@ -144,4 +144,25 @@ export class SqliteDeckRepository implements DeckRepository {
       { $is_deleted: 1, $user_id: userId, $id: deckId },
     );
   }
+
+  public async getUnsyncedDecks(userId: string): Promise<Deck[]> {
+    const decks = await db.getAllAsync<DbDeckRow>(
+      "SELECT * FROM decks WHERE user_id = $user_id AND is_synced = $is_synced",
+      {
+        $user_id: userId,
+        $is_synced: 0,
+      },
+    );
+     return decks.map((row) => ({
+      id: row.id,
+      name: row.name,
+      source_language: row.source_language,
+      target_language: row.target_language,
+      user_id: row.user_id,
+      created_at: row.created_at,
+      updated_at: row.updated_at,
+      is_synced: row.is_synced === 1 ? true : false,
+      is_deleted: row.is_deleted === 1 ? true : false,
+    }));
+  }
 }
