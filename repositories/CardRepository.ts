@@ -21,4 +21,7 @@ export interface CardRepository {
   deleteCard: (cardId: string, userId: string) => Promise<void>;
   getCardById: (cardId: string, userId: string) => Promise<Card | null>;
   getAllCardsByUser: (userId: string) => Promise<CardForBrowse[]>;
+  getUnsyncedCards: (userId: string) => Promise<Omit<Card, "is_synced">[]>;
+  updateUnsyncedCards: (cardsToUpsert: any[]) => Promise<void>;
+  markCardsAsSynced: (userId : string, cardsIds : string[]) => Promise<void>;
 }
