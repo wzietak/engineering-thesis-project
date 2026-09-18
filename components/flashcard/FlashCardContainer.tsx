@@ -1,6 +1,6 @@
-import { ReviewableCard } from "@/algorithm/flashcardReviewRepository.ts";
 import { CardDirection, Grade } from "@/algorithm/FSRSTypes";
 import { useAppTheme } from "@/contexts/ColorThemeContext";
+import { ReviewableCard } from "@/repositories/flashcardReviewRepository.ts";
 import { AppTheme } from "@/styles/theme";
 import { useEffect, useImperativeHandle, useState } from "react";
 import { StyleSheet, View } from "react-native";
@@ -22,7 +22,7 @@ type Props = {
   onAssessmentButtonPress: (grade: Grade) => void;
   isButtonDisabled: boolean;
   ref: React.Ref<flashcardRef>;
-  onCardFlip?: (isReversed : boolean) => void;
+  onCardFlip?: (isReversed: boolean) => void;
 };
 
 export default function FlashCardContainer({
@@ -30,7 +30,8 @@ export default function FlashCardContainer({
   onNextCard,
   onAssessmentButtonPress,
   isButtonDisabled,
-  ref, onCardFlip
+  ref,
+  onCardFlip,
 }: Props) {
   const insets = useSafeAreaInsets();
   const { theme } = useAppTheme();
@@ -48,10 +49,10 @@ export default function FlashCardContainer({
 
   //useEffect added to pass isReversed state to the parent component on its value change
   useEffect(() => {
-    if(onCardFlip){
+    if (onCardFlip) {
       onCardFlip(isReversed);
     }
-  }, [isReversed])
+  }, [isReversed]);
 
   return (
     <View

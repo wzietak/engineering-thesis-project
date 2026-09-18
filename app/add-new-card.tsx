@@ -1,4 +1,3 @@
-import { createNewCardState } from "@/algorithm/flashcardReviewRepository.ts";
 import ConfirmationButton from "@/components/buttons/ConfirmationButton";
 import LoadingScreen from "@/components/LoadingScreen";
 import { AuthContext } from "@/contexts/AuthContext";
@@ -6,6 +5,7 @@ import { useAppTheme } from "@/contexts/ColorThemeContext";
 import { Card, ExampleSource } from "@/models/card";
 import { CARD_TYPE_OPTIONS, CardType } from "@/models/CardTypes";
 import { Deck } from "@/models/deck";
+import { createNewCardState } from "@/repositories/flashcardReviewRepository.ts";
 import { globalCardRepository } from "@/repositories/globalCardRepository";
 import { globalDeckRepository } from "@/repositories/globalDeckRepository";
 import { generateSentence } from "@/services/aiService";
@@ -14,26 +14,26 @@ import { eventProvider } from "@/utils/eventProvider";
 import Octicons from "@expo/vector-icons/Octicons";
 import SimpleLineIcons from "@expo/vector-icons/SimpleLineIcons";
 import {
-  router,
-  useFocusEffect,
-  useLocalSearchParams,
-  useNavigation,
+    router,
+    useFocusEffect,
+    useLocalSearchParams,
+    useNavigation,
 } from "expo-router";
 import { useCallback, useContext, useEffect, useState } from "react";
 import {
-  Platform,
-  Pressable,
-  StyleSheet,
-  Text,
-  TextInput,
-  ToastAndroid,
-  View,
+    Platform,
+    Pressable,
+    StyleSheet,
+    Text,
+    TextInput,
+    ToastAndroid,
+    View,
 } from "react-native";
 import DropdownSelect from "react-native-input-select";
 import { KeyboardAwareScrollView } from "react-native-keyboard-aware-scroll-view";
 import {
-  SafeAreaProvider,
-  useSafeAreaInsets,
+    SafeAreaProvider,
+    useSafeAreaInsets,
 } from "react-native-safe-area-context";
 
 const INITIAL_VALUES = {
@@ -131,8 +131,6 @@ export default function AddNewCard() {
       setIsEditMode(false);
     }
   }, [cardId]);
-
-
 
   const formattedOptions = rawDecks
     .map((deck: Deck) => {

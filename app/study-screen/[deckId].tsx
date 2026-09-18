@@ -1,9 +1,3 @@
-import {
-  getCardsForReview,
-  ReviewableCard,
-  saveCardReview,
-  undoCardReview,
-} from "@/algorithm/flashcardReviewRepository.ts";
 import { FSRS } from "@/algorithm/FSRS";
 import { FSRSState } from "@/algorithm/FSRSState";
 import { Grade } from "@/algorithm/FSRSTypes";
@@ -12,7 +6,7 @@ import UndoFlashcardButton from "@/components/buttons/UndoFlashcardButton";
 import DeleteConfirmationAlert from "@/components/DeleteConfirmationAlert";
 import EmptyDeckView from "@/components/EmptyDeckView";
 import FlashCardContainer, {
-  flashcardRef,
+    flashcardRef,
 } from "@/components/flashcard/FlashCardContainer";
 import FlashcardOptions from "@/components/FlashcardOptions";
 import LoadingScreen from "@/components/LoadingScreen";
@@ -20,6 +14,12 @@ import Overlay from "@/components/Overlay";
 import { AuthContext } from "@/contexts/AuthContext";
 import { Card } from "@/models/card";
 import { FrontType } from "@/models/FrontTypes";
+import {
+    getCardsForReview,
+    ReviewableCard,
+    saveCardReview,
+    undoCardReview,
+} from "@/repositories/flashcardReviewRepository.ts";
 import { globalCardRepository } from "@/repositories/globalCardRepository";
 import { globalDeckRepository } from "@/repositories/globalDeckRepository";
 import { eventProvider } from "@/utils/eventProvider";
@@ -183,7 +183,6 @@ export default function studyScreen() {
           (card) => card.card_id !== removedCardId,
         );
         setCurrentCardIndex((currentCardIndex) => {
-         
           if (currentCardIndex >= newCardsForToday.length) {
             setTimeout(() => {
               router.dismissAll();
