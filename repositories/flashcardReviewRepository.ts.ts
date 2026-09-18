@@ -1,5 +1,5 @@
 import { DAY_IN_MILISECONDS } from "@/algorithm/FSRS";
-import { FSRSState } from "@/algorithm/FSRSState";
+import { FSRSState, localFSRSState } from "@/algorithm/FSRSState";
 import { CardDirection, flashcardState, Grade } from "@/algorithm/FSRSTypes";
 import { db } from "@/db/database";
 import { Card } from "@/models/card";
@@ -147,4 +147,64 @@ export async function undoCardReview(
   );
 
   await db.runAsync("DELETE FROM reviews WHERE id = $id;", { $id: reviewId });
+}
+
+export async function getUnsyncedFSRSStates(
+  userId: string,
+): Promise<FSRSState[]> {
+  const FSRSStates = await db.getAllAsync<localFSRSState>(
+    "SELECT * FROM fsrs_states fs JOIN cards c on c.id = fs.card_id WHERE c.user_id = $user_id AND is_synced = $is_synced",
+    {
+      $user_id: userId,
+      $is_synced: 0,
+    },
+  );
+  return FSRSStates.map((row) => ({
+    id: row.id,
+    card_id: row.card_id,
+    card_direction: row.card_direction,
+    stability: row.stability,
+    difficulty: row.difficulty,
+    last_review: row.last_review,
+    next_review: row.next_review,
+    interval_days: row.interval_days,
+    state: row.state,
+    reps: row.reps,
+    lapses: row.lapses,
+    updated_at: row.updated_at,
+  }));
+}
+export async function updateUnsyncedFSRSStates(
+  statesToUpsert: any[],
+): Promise<void> {
+  for (const state of statesToUpsert) {
+    await db.runAsync(
+      "INSERT INTO fsrs_states (id, card_id,card_direction, stability, difficulty,    last_review, next_review, interval_days,    state, reps, lapses, updated_at, is_synced)VALUES ($id, $card_id, $card_direction, $stability, $difficulty, $last_review, $next_review, $interval_days, $state, $reps, $lapses, $updated_at, $is_synced) ON CONFLICT (id) DO UPDATE SET card_direction = excluded.card_direction, stability = excluded.stability, difficulty = excluded.difficulty,    last_review = excluded.last_review, next_review = excluded.next_review, interval_days = excluded.interval_days,    state = excluded.state, reps = excluded.reps, lapses = excluded.lapses, updated_at = excluded.updated_at, is_synced = excluded.is_synced",
+      {
+        $id: state.id,
+        $card_id: state.card_id,
+        $card_direction: state.card_direction,
+        $stability: state.stability,
+        $difficulty: state.difficulty,
+        $last_review: state.last_review,
+        $next_review: state.next_review,
+        $interval_days: state.interval_days,
+        $state: state.state,
+        $reps: state.reps,
+        $lapses: state.lapses,
+        $updated_at: state.updated_at,
+        $is_synced: 1,
+      },
+    );
+  }
+}
+
+export async function markFSRSStatesAsSynced(
+  statesIds: string[],
+): Promise<void> {
+  for (const stateId of statesIds) {
+    await db.runAsync("UPDATE fsrs_states SET is_synced = 1 WHERE id = $id", {
+      $id: stateId,
+    });
+  }
 }
