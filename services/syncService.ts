@@ -1,6 +1,9 @@
 import {
   getUnsyncedFSRSStates,
+  getUnsyncedReviews,
+  insertReviewsLocally,
   markFSRSStatesAsSynced,
+  markReviewsAsSynced,
   updateUnsyncedFSRSStates,
 } from "@/repositories/flashcardReviewRepository.ts";
 import { globalCardRepository } from "@/repositories/globalCardRepository";
@@ -8,20 +11,28 @@ import { globalDeckRepository } from "@/repositories/globalDeckRepository";
 import { supabase } from "@/utils/supabase";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 
-const lastSync = (userId: string) => `@lastSyncTime_${userId}`;
+const LAST_SYNC_KEY = (userId: string) => `@lastSyncTime_${userId}`;
 
 export async function syncData(userId: string) {
   try {
-    const lastSyncTime = await AsyncStorage.getItem(`@lastSyncTime_${userId}`);
-  } catch (error) {
-    return null;
-  }
-}
+    const lastSyncTime = await AsyncStorage.getItem(LAST_SYNC_KEY(userId));
 
-export async function setLastSyncTime(lastSyncTime: string, userId: string) {
-  try {
-    await AsyncStorage.setItem(lastSync(userId), lastSyncTime);
-  } catch (error) {}
+    const currentSyncTime = new Date().toISOString();
+
+    pullDecks(userId, lastSyncTime);
+    pullCards(userId, lastSyncTime);
+    pullFSRSStates(userId, lastSyncTime);
+    pullReviews(lastSyncTime);
+
+    pushDecks(userId);
+    pushCards(userId);
+    pushFSRSStates(userId);
+    pushReviews(userId);
+
+    await AsyncStorage.setItem(LAST_SYNC_KEY(userId), currentSyncTime);
+  } catch (error) {
+    console.log("ERROR during synchronization: ", error);
+  }
 }
 
 async function pullDecks(userId: string, lastSyncTime: string | null) {
@@ -225,27 +236,51 @@ async function pullFSRSStates(userId: string, lastSyncTime: string | null) {
   }
 }
 
-async function pushFSRSStates(userId : string) {
-   const localUnsyncedStates =
-    await getUnsyncedFSRSStates(userId);
+async function pushFSRSStates(userId: string) {
+  const localUnsyncedStates = await getUnsyncedFSRSStates(userId);
 
   if (localUnsyncedStates.length > 0) {
-    const { error } = await supabase.from("fsrs_states").upsert(localUnsyncedStates);
+    const { error } = await supabase
+      .from("fsrs_states")
+      .upsert(localUnsyncedStates);
 
     if (error) {
       console.log(error);
       return;
     }
-    await markFSRSStatesAsSynced(
-      localUnsyncedStates.map((state) => state.id),
-    );
+    await markFSRSStatesAsSynced(localUnsyncedStates.map((state) => state.id));
   }
 }
 
-async function pullReviews() {
- 
+async function pullReviews(lastSyncTime: string | null) {
+  let query = supabase.from("reviews").select("*");
+
+  if (lastSyncTime) {
+    query = query.gt("reviewed_at", lastSyncTime);
+  }
+
+  const { data: serverReviews, error } = await query;
+  if (error) {
+    console.log(error);
+    return;
+  }
+  if (!serverReviews || serverReviews.length === 0) return;
+
+  await insertReviewsLocally(serverReviews);
 }
 
+async function pushReviews(userId: string) {
+  const localUnsyncedReviews = await getUnsyncedReviews(userId);
 
+  if (localUnsyncedReviews.length > 0) {
+    const { error } = await supabase
+      .from("reviews")
+      .upsert(localUnsyncedReviews);
 
-async function pushReviews() {}
+    if (error) {
+      console.log(error);
+      return;
+    }
+    await markReviewsAsSynced(localUnsyncedReviews.map((review) => review.id));
+  }
+}
