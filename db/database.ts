@@ -74,6 +74,15 @@ export async function initDB() {
     is_synced INTEGER NOT NULL DEFAULT 0,
     FOREIGN KEY(fsrs_state_id) REFERENCES fsrs_states(id) ON DELETE SET NULL
 );`);
+
+    const createIndex1 = await db.execAsync(
+      `CREATE INDEX IF NOT EXISTS reviews_fsrs_state_id_idx on reviews(fsrs_state_id);`,
+    );
+
+    const createIndex2 = await db.execAsync(
+      `CREATE INDEX IF NOT EXISTS reviews_is_synced_idx on reviews(is_synced);`,
+    );
+
     return true;
   } catch (error) {
     console.log(error);
