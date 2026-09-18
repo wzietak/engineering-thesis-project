@@ -1,6 +1,7 @@
 import { DAY_IN_MILISECONDS } from "@/algorithm/FSRS";
 import { FSRSState, localFSRSState } from "@/algorithm/FSRSState";
 import { CardDirection, flashcardState, Grade } from "@/algorithm/FSRSTypes";
+import { ReviewLog } from "@/algorithm/ReviewLog";
 import { db } from "@/db/database";
 import { Card } from "@/models/card";
 import { CardType } from "@/models/CardTypes";
@@ -205,6 +206,65 @@ export async function markFSRSStatesAsSynced(
   for (const stateId of statesIds) {
     await db.runAsync("UPDATE fsrs_states SET is_synced = 1 WHERE id = $id", {
       $id: stateId,
+    });
+  }
+}
+
+export async function insertReviewsLocally(
+  reviewsToInsert: any[],
+): Promise<void> {
+  for (const review of reviewsToInsert) {
+    await db.runAsync(
+      "INSERT OR IGNORE INTO reviews (id, fsrs_state_id, grade,    previous_stability, previous_difficulty, new_stability, new_difficulty, previous_state, retrievability_at_review, exercise_type,  elapsed_days, scheduled_days, reviewed_at,   is_synced) VALUES ($id, $fsrs_state_id, $grade, $previous_stability, $previous_difficulty, $new_stability, $new_difficulty, $previous_state, $retrievability_at_review, $exercise_type,  $elapsed_days, $scheduled_days, $reviewed_at,  $is_synced)",
+      {
+        $id: review.id,
+        $fsrs_state_id: review.fsrs_state_id,
+        $grade: review.grade,
+        $previous_stability: review.previous_stability,
+        $previous_difficulty: review.previous_difficulty,
+        $new_stability: review.new_stability,
+        $new_difficulty: review.new_difficulty,
+        $previous_state: review.previous_state,
+        $retrievability_at_review: review.retrievability_at_review,
+        $exercise_type: review.exercise_type,
+        $elapsed_days: review.elapsed_days,
+        $scheduled_days: review.scheduled_days,
+        $reviewed_at: review.reviewed_at,
+        $is_synced: 1,
+      },
+    );
+  }
+}
+
+export async function getUnsyncedReviews(userId: string) {
+  const reviewLogs = await db.getAllAsync<ReviewLog>(
+    "SELECT * FROM reviews r JOIN fsrs_states fs on fs.id = r.fsrs_state_id JOIN cards c on c.id = fs.card_id WHERE c.user_id = $user_id AND is_synced = $is_synced",
+    {
+      $user_id: userId,
+      $is_synced: 0,
+    },
+  );
+  return reviewLogs.map((row) => ({
+    id: row.id,
+    fsrs_state_id: row.fsrs_state_id,
+    grade: row.grade,
+    previous_stability: row.previous_stability,
+    previous_difficulty: row.previous_difficulty,
+    new_stability: row.new_stability,
+    new_difficulty: row.new_difficulty,
+    previous_state: row.previous_state,
+    retrievability_at_review: row.retrievability_at_review,
+    exercise_type: row.exercise_type,
+    elapsed_days: row.elapsed_days,
+    scheduled_days: row.scheduled_days,
+    reviewed_at: row.reviewed_at,
+  }));
+}
+
+export async function markReviewsAsSynced(reviewsIds: string[]): Promise<void> {
+  for (const reviewId of reviewsIds) {
+    await db.runAsync("UPDATE reviews SET is_synced = 1 WHERE id = $id", {
+      $id: reviewId,
     });
   }
 }
