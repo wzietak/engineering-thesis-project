@@ -43,7 +43,7 @@ export async function createNewCardState(
   };
 
   await db.runAsync(
-    "INSERT INTO fsrs_states VALUES ($id, $card_id, $card_direction, $stability, $difficulty, $last_review, $next_review, $interval_days, $state, $reps, $lapses, $updated_at);",
+    "INSERT INTO fsrs_states VALUES ($id, $card_id, $card_direction, $stability, $difficulty, $last_review, $next_review, $interval_days, $state, $reps, $lapses, $updated_at,0);",
     {
       $id: newCardState.id,
       $card_id: newCardState.card_id,
@@ -87,7 +87,7 @@ export async function saveCardReview(
   reviewDetails: reviewDetails,
 ) {
   await db.runAsync(
-    "UPDATE fsrs_states SET stability = $stability, difficulty = $difficulty, last_review = $last_review, next_review = $next_review, interval_days = $interval_days, state = $state, reps = $reps, lapses = $lapses, updated_at = $updated_at WHERE id = $id",
+    "UPDATE fsrs_states SET stability = $stability, difficulty = $difficulty, last_review = $last_review, next_review = $next_review, interval_days = $interval_days, state = $state, reps = $reps, lapses = $lapses, updated_at = $updated_at, is_synced = 0 WHERE id = $id",
     {
       $id: newCardState.id,
       $stability: newCardState.stability,
@@ -103,7 +103,7 @@ export async function saveCardReview(
   );
 
   const reviewLog = await db.getFirstAsync<{ id: string }>(
-    "INSERT INTO reviews VALUES ($id, $fsrs_state_id, $grade, $previous_stability, $previous_difficulty, $new_stability, $new_difficulty, $previous_state, $retrievability_at_review, $exercise_type, $elapsed_days, $scheduled_days, $reviewed_at) RETURNING id;",
+    "INSERT INTO reviews VALUES ($id, $fsrs_state_id, $grade, $previous_stability, $previous_difficulty, $new_stability, $new_difficulty, $previous_state, $retrievability_at_review, $exercise_type, $elapsed_days, $scheduled_days, $reviewed_at, is_synced = 0) RETURNING id;",
     {
       $id: Crypto.randomUUID(),
       $fsrs_state_id: newCardState.id,
@@ -132,7 +132,7 @@ export async function undoCardReview(
   reviewId: string,
 ) {
   await db.runAsync(
-    "UPDATE fsrs_states SET stability = $stability, difficulty = $difficulty, last_review = $last_review, next_review = $next_review, interval_days = $interval_days, state = $state, reps = $reps, lapses = $lapses, updated_at = $updated_at WHERE id = $id",
+    "UPDATE fsrs_states SET stability = $stability, difficulty = $difficulty, last_review = $last_review, next_review = $next_review, interval_days = $interval_days, state = $state, reps = $reps, lapses = $lapses, updated_at = $updated_at, is_synced = 0 WHERE id = $id",
     {
       $id: previousCardState.id,
       $stability: previousCardState.stability,
