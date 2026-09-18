@@ -1,3 +1,4 @@
+import { FSRS } from "./FSRS";
 import { CardDirection, flashcardState } from "./FSRSTypes";
 
 export interface FSRSState {
@@ -13,4 +14,8 @@ export interface FSRSState {
   reps: number;
   lapses: number;
   updated_at: string;
+}
+
+export interface localFSRSState extends FSRSState {
+  is_synced: boolean;
 }
