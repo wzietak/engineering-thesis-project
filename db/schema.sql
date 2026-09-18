@@ -126,3 +126,8 @@ CREATE TABLE IF NOT EXISTS reviews (
     is_synced INTEGER NOT NULL DEFAULT 0,
     FOREIGN KEY(fsrs_state_id) REFERENCES fsrs_states(id) ON DELETE SET NULL
 );
+
+
+CREATE INDEX IF NOT EXISTS reviews_fsrs_state_id_idx on reviews(fsrs_state_id);
+
+CREATE INDEX IF NOT EXISTS reviews_is_synced_idx on reviews(is_synced);
