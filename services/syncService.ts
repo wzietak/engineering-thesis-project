@@ -13,25 +13,46 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 
 const LAST_SYNC_KEY = (userId: string) => `@lastSyncTime_${userId}`;
 
+let isSyncInProgress = false;
+
 export async function syncData(userId: string) {
+  if (isSyncInProgress) {
+    return;
+  }
+  isSyncInProgress = true;
+  const { data: serverTime, error } = await supabase.rpc("get_server_time");
+  console.log(">>SERVER TIME: ", serverTime);
+  const currentSyncTime = new Date().toISOString();
+  const SAFETY_BUFFER_MS = 30 * 1000;
   try {
-    const lastSyncTime = await AsyncStorage.getItem(LAST_SYNC_KEY(userId));
+    const rawLastSyncTime = await AsyncStorage.getItem(LAST_SYNC_KEY(userId));
 
-    const currentSyncTime = new Date().toISOString();
+    const lastSyncTime = rawLastSyncTime
+      ? new Date(
+          new Date(rawLastSyncTime).getTime() - SAFETY_BUFFER_MS,
+        ).toISOString()
+      : null;
 
-    pullDecks(userId, lastSyncTime);
-    pullCards(userId, lastSyncTime);
-    pullFSRSStates(userId, lastSyncTime);
-    pullReviews(lastSyncTime);
+    console.log(">>>>> lastSyncTime: ", lastSyncTime);
 
-    pushDecks(userId);
-    pushCards(userId);
-    pushFSRSStates(userId);
-    pushReviews(userId);
+    await pullDecks(userId, lastSyncTime);
+    await pullCards(userId, lastSyncTime);
+    await pullFSRSStates(userId, lastSyncTime);
+    await pullReviews(lastSyncTime);
 
-    await AsyncStorage.setItem(LAST_SYNC_KEY(userId), currentSyncTime);
+    await pushDecks(userId);
+    await pushCards(userId);
+    await pushFSRSStates(userId);
+    await pushReviews(userId);
+
+    await AsyncStorage.setItem(
+      LAST_SYNC_KEY(userId),
+      serverTime || currentSyncTime,
+    );
   } catch (error) {
     console.log("ERROR during synchronization: ", error);
+  } finally {
+    isSyncInProgress = false;
   }
 }
 
@@ -44,12 +65,14 @@ async function pullDecks(userId: string, lastSyncTime: string | null) {
 
   const { data: serverDecks, error } = await query;
   if (error) {
-    console.log(error);
+    console.log("pullDecks error: ", error);
     return;
   }
+
+  console.log(`[PULL DECKS] Pobrane z Supabase: ${serverDecks?.length ?? 0}`);
+
   if (!serverDecks || serverDecks.length === 0) return;
 
-  console.log(serverDecks);
   const decksMap = new Map();
 
   const localUnsyncedDecks =
@@ -59,14 +82,9 @@ async function pullDecks(userId: string, lastSyncTime: string | null) {
     decksMap.set(localDeck.id, localDeck);
   }
 
-  const decksToDelete: string[] = [];
   const decksToUpsert: any[] = [];
 
   for (const serverDeck of serverDecks) {
-    if (serverDeck.is_deleted === true) {
-      decksToDelete.push(serverDeck.id);
-      continue;
-    }
     const localDeck = decksMap.get(serverDeck.id);
 
     if (localDeck) {
@@ -85,10 +103,11 @@ async function pullDecks(userId: string, lastSyncTime: string | null) {
     }
   }
 
-  for (const deckId of decksToDelete)
-    await globalDeckRepository.deleteDeck(deckId, userId);
-
   if (decksToUpsert.length > 0) {
+    console.log(
+      "[PULL DECKS] Wykonuję upsert w SQLite dla:",
+      serverDecks.length,
+    );
     await globalDeckRepository.updateUnsyncedDecks(decksToUpsert);
   }
 }
@@ -97,11 +116,13 @@ async function pushDecks(userId: string) {
   const localUnsyncedDecks =
     await globalDeckRepository.getUnsyncedDecks(userId);
 
+  console.log(`[PUSH DECKS] Do wysłania: ${localUnsyncedDecks.length}`);
+
   if (localUnsyncedDecks.length > 0) {
     const { error } = await supabase.from("decks").upsert(localUnsyncedDecks);
 
     if (error) {
-      console.log(error);
+      console.log("pushDecks error: ", error);
       return;
     }
     await globalDeckRepository.markDecksAsSynced(
@@ -120,12 +141,14 @@ async function pullCards(userId: string, lastSyncTime: string | null) {
 
   const { data: serverCards, error } = await query;
   if (error) {
-    console.log(error);
+    console.log("pullCards error: ", error);
     return;
   }
+
+  console.log(`[PULL CARDS] Pobrane z Supabase: ${serverCards?.length ?? 0}`);
   if (!serverCards || serverCards.length === 0) return;
 
-  console.log(serverCards);
+  console.log("PULL CARDS, serverCards: ", serverCards);
   const cardsMap = new Map();
 
   const localUnsyncedCards =
@@ -135,14 +158,9 @@ async function pullCards(userId: string, lastSyncTime: string | null) {
     cardsMap.set(localCard.id, localCard);
   }
 
-  const cardsToDelete: string[] = [];
   const cardsToUpsert: any[] = [];
 
   for (const serverCard of serverCards) {
-    if (serverCard.is_deleted === true) {
-      cardsToDelete.push(serverCard.id);
-      continue;
-    }
     const localCard = cardsMap.get(serverCard.id);
 
     if (localCard) {
@@ -161,10 +179,11 @@ async function pullCards(userId: string, lastSyncTime: string | null) {
     }
   }
 
-  for (const cardId of cardsToDelete)
-    await globalCardRepository.deleteCard(cardId, userId);
-
   if (cardsToUpsert.length > 0) {
+    console.log(
+      "[PULL CARDS] Wykonuję upsert w SQLite dla:",
+      serverCards.length,
+    );
     await globalCardRepository.updateUnsyncedCards(cardsToUpsert);
   }
 }
@@ -173,15 +192,16 @@ async function pushCards(userId: string) {
   const localUnsyncedCards =
     await globalCardRepository.getUnsyncedCards(userId);
 
+  console.log(`[PUSH CARDS] Do wysłania: ${localUnsyncedCards.length}`);
+
   if (localUnsyncedCards.length > 0) {
     const { error } = await supabase.from("cards").upsert(localUnsyncedCards);
 
     if (error) {
-      console.log(error);
+      console.log("pushCards error: ", error);
       return;
     }
     await globalCardRepository.markCardsAsSynced(
-      userId,
       localUnsyncedCards.map((card) => card.id),
     );
   }
@@ -196,12 +216,16 @@ async function pullFSRSStates(userId: string, lastSyncTime: string | null) {
 
   const { data: serverStates, error } = await query;
   if (error) {
-    console.log(error);
+    console.log("pullStates error: ", error);
     return;
   }
+
+  console.log(
+    `[PULL FSRS STATES] Pobrane z Supabase: ${serverStates?.length ?? 0}`,
+  );
+
   if (!serverStates || serverStates.length === 0) return;
 
-  console.log(serverStates);
   const statesMap = new Map();
 
   const localUnsyncedStates = await getUnsyncedFSRSStates(userId);
@@ -232,6 +256,10 @@ async function pullFSRSStates(userId: string, lastSyncTime: string | null) {
   }
 
   if (statesToUpsert.length > 0) {
+    console.log(
+      "[PULL FSRS STATES] Wykonuję upsert w SQLite dla:",
+      serverStates.length,
+    );
     await updateUnsyncedFSRSStates(statesToUpsert);
   }
 }
@@ -239,13 +267,15 @@ async function pullFSRSStates(userId: string, lastSyncTime: string | null) {
 async function pushFSRSStates(userId: string) {
   const localUnsyncedStates = await getUnsyncedFSRSStates(userId);
 
+  console.log(`[PUSH FSRS STATES] Do wysłania: ${localUnsyncedStates.length}`);
+
   if (localUnsyncedStates.length > 0) {
     const { error } = await supabase
       .from("fsrs_states")
       .upsert(localUnsyncedStates);
 
     if (error) {
-      console.log(error);
+      console.log("pushStates error: ", error);
       return;
     }
     await markFSRSStatesAsSynced(localUnsyncedStates.map((state) => state.id));
@@ -261,16 +291,26 @@ async function pullReviews(lastSyncTime: string | null) {
 
   const { data: serverReviews, error } = await query;
   if (error) {
-    console.log(error);
+    console.log("pullReviews error: ", error);
     return;
   }
-  if (!serverReviews || serverReviews.length === 0) return;
 
+  console.log(
+    `[PULL REVIEWS] Pobrane z Supabase: ${serverReviews?.length ?? 0}`,
+  );
+
+  if (!serverReviews || serverReviews.length === 0) return;
+  console.log(
+    "[PULL REVIEWS] Wykonuję upsert w SQLite dla:",
+    serverReviews.length,
+  );
   await insertReviewsLocally(serverReviews);
 }
 
 async function pushReviews(userId: string) {
   const localUnsyncedReviews = await getUnsyncedReviews(userId);
+
+  console.log(`[PUSH REVIEWS] Do wysłania: ${localUnsyncedReviews.length}`);
 
   if (localUnsyncedReviews.length > 0) {
     const { error } = await supabase
@@ -278,9 +318,10 @@ async function pushReviews(userId: string) {
       .upsert(localUnsyncedReviews);
 
     if (error) {
-      console.log(error);
+      console.log("pushReviews error: ", error);
       return;
     }
+
     await markReviewsAsSynced(localUnsyncedReviews.map((review) => review.id));
   }
 }
