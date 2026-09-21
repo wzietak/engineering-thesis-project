@@ -112,7 +112,7 @@ export class SqliteCardRepository implements CardRepository {
         updated_at: card.updated_at,
         is_synced: card.is_synced === 1 ? true : false,
         is_deleted: card.is_deleted === 1 ? true : false,
-        tags: card.tags,
+        // tags: card.tags,
       };
       return cardData;
     }
@@ -153,8 +153,14 @@ export class SqliteCardRepository implements CardRepository {
 
   public async deleteCard(cardId: string, userId: string): Promise<void> {
     const result = await db.runAsync(
-      "UPDATE cards SET is_deleted = $is_deleted WHERE id = $id AND user_id = $user_id;",
-      { $is_deleted: 1, $user_id: userId, $id: cardId },
+      "UPDATE cards SET is_deleted = $is_deleted, is_synced = $is_synced, updated_at = $updated_at WHERE id = $id AND user_id = $user_id;",
+      {
+        $is_deleted: 1,
+        $user_id: userId,
+        $id: cardId,
+        $is_synced: 0,
+        $updated_at: new Date().toISOString(),
+      },
     );
   }
 
@@ -180,13 +186,12 @@ export class SqliteCardRepository implements CardRepository {
       created_at: row.created_at,
       updated_at: row.updated_at,
       is_deleted: row.is_deleted === 1 ? true : false,
-      tags: row.tags,
     }));
   }
   public async updateUnsyncedCards(cardsToUpsert: any[]): Promise<void> {
     for (const card of cardsToUpsert) {
       await db.runAsync(
-        "INSERT INTO cards (id, deck_id, card_type, front, back, example_sentence, example_source, user_id, created_at, updated_at, is_synced, is_deleted) VALUES ($id, $deck_id, $card_type, $front, $back, $example_sentence, $example_source,$user_id, $created_at, $updated_at, $is_synced, $is_deleted) ON CONFLICT (id) DO UPDATE SET deck_id = excluded.deck_id, card_type = excluded.card_type, front = excluded.front, back = excluded.back, example_sentence = excluded.example_sentence, example_source = excluded.example_source, user_id, created_at, updated_at = excluded.updated_at, is_synced = excluded.is_synced, is_deleted = excluded.is_deleted",
+        "INSERT INTO cards (id, deck_id, card_type, front, back, example_sentence, example_source, user_id, created_at, updated_at, is_synced, is_deleted) VALUES ($id, $deck_id, $card_type, $front, $back, $example_sentence, $example_source,$user_id, $created_at, $updated_at, $is_synced, $is_deleted) ON CONFLICT (id) DO UPDATE SET deck_id = excluded.deck_id, card_type = excluded.card_type, front = excluded.front, back = excluded.back, example_sentence = excluded.example_sentence, example_source = excluded.example_source, updated_at = excluded.updated_at, is_synced = 1, is_deleted = excluded.is_deleted",
         {
           $id: card.id,
           $deck_id: card.deck_id,
@@ -206,14 +211,21 @@ export class SqliteCardRepository implements CardRepository {
   }
 
   public async markCardsAsSynced(
-    userId: string,
     cardsIds: string[],
   ): Promise<void> {
-    for (const cardId of cardsIds) {
-      await db.runAsync(
-        "UPDATE cards SET is_synced = 1 WHERE id = $card_id AND user_id = $user_id",
-        { $card_id: cardId, $user_id: userId },
-      );
-    }
+    if (!cardsIds || cardsIds.length === 0) return;
+
+    const placeholders = cardsIds.map((c) => "?").join(", ");
+
+    console.log("[CARDS IDS ARRAY: ", cardsIds);
+
+    const result = await db.runAsync(
+      `UPDATE cards SET is_synced = 1 WHERE id IN (${placeholders})`,
+      ...cardsIds,
+    );
+
+    console.log(
+      `[MARK CARDS AS SYNCED] Wysłano ${cardsIds.length} ID, zaktualizowano w bazie: ${result.changes}`,
+    );
   }
 }
