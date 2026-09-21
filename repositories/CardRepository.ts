@@ -7,7 +7,7 @@ export type Filters = {
   userId?: string;
   front?: string;
   back?: string;
-  tags?: string[];
+  // tags?: string[];
 };
 
 export interface CardRepository {
@@ -23,5 +23,5 @@ export interface CardRepository {
   getAllCardsByUser: (userId: string) => Promise<CardForBrowse[]>;
   getUnsyncedCards: (userId: string) => Promise<Omit<Card, "is_synced">[]>;
   updateUnsyncedCards: (cardsToUpsert: any[]) => Promise<void>;
-  markCardsAsSynced: (userId : string, cardsIds : string[]) => Promise<void>;
+  markCardsAsSynced: (cardsIds : string[]) => Promise<void>;
 }
