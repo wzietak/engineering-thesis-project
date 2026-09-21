@@ -43,7 +43,7 @@ export async function createNewCardState(
   };
 
   await db.runAsync(
-    "INSERT INTO fsrs_states VALUES ($id, $card_id, $card_direction, $stability, $difficulty, $last_review, $next_review, $interval_days, $state, $reps, $lapses, $updated_at,0);",
+    "INSERT INTO fsrs_states VALUES ($id, $card_id, $card_direction, $stability, $difficulty, $last_review, $next_review, $interval_days, $state, $reps, $lapses, $updated_at, 0);",
     {
       $id: newCardState.id,
       $card_id: newCardState.card_id,
@@ -103,7 +103,7 @@ export async function saveCardReview(
   );
 
   const reviewLog = await db.getFirstAsync<{ id: string }>(
-    "INSERT INTO reviews VALUES ($id, $fsrs_state_id, $grade, $previous_stability, $previous_difficulty, $new_stability, $new_difficulty, $previous_state, $retrievability_at_review, $exercise_type, $elapsed_days, $scheduled_days, $reviewed_at, is_synced = 0) RETURNING id;",
+    "INSERT INTO reviews VALUES ($id, $fsrs_state_id, $grade, $previous_stability, $previous_difficulty, $new_stability, $new_difficulty, $previous_state, $retrievability_at_review, $exercise_type, $elapsed_days, $scheduled_days, $reviewed_at, 0) RETURNING id;",
     {
       $id: Crypto.randomUUID(),
       $fsrs_state_id: newCardState.id,
@@ -120,7 +120,7 @@ export async function saveCardReview(
           DAY_IN_MILISECONDS
         : 0,
       $scheduled_days: newCardState.interval_days,
-      $reviewed_at: reviewDetails.reviewed_at,
+      $reviewed_at: new Date().toISOString(),
     },
   );
 
@@ -154,7 +154,7 @@ export async function getUnsyncedFSRSStates(
   userId: string,
 ): Promise<FSRSState[]> {
   const FSRSStates = await db.getAllAsync<localFSRSState>(
-    "SELECT * FROM fsrs_states fs JOIN cards c on c.id = fs.card_id WHERE c.user_id = $user_id AND is_synced = $is_synced",
+    "SELECT fs.* FROM fsrs_states fs JOIN cards c on c.id = fs.card_id WHERE c.user_id = $user_id AND fs.is_synced = $is_synced",
     {
       $user_id: userId,
       $is_synced: 0,
@@ -179,24 +179,28 @@ export async function updateUnsyncedFSRSStates(
   statesToUpsert: any[],
 ): Promise<void> {
   for (const state of statesToUpsert) {
-    await db.runAsync(
-      "INSERT INTO fsrs_states (id, card_id,card_direction, stability, difficulty,    last_review, next_review, interval_days,    state, reps, lapses, updated_at, is_synced)VALUES ($id, $card_id, $card_direction, $stability, $difficulty, $last_review, $next_review, $interval_days, $state, $reps, $lapses, $updated_at, $is_synced) ON CONFLICT (id) DO UPDATE SET card_direction = excluded.card_direction, stability = excluded.stability, difficulty = excluded.difficulty,    last_review = excluded.last_review, next_review = excluded.next_review, interval_days = excluded.interval_days,    state = excluded.state, reps = excluded.reps, lapses = excluded.lapses, updated_at = excluded.updated_at, is_synced = excluded.is_synced",
-      {
-        $id: state.id,
-        $card_id: state.card_id,
-        $card_direction: state.card_direction,
-        $stability: state.stability,
-        $difficulty: state.difficulty,
-        $last_review: state.last_review,
-        $next_review: state.next_review,
-        $interval_days: state.interval_days,
-        $state: state.state,
-        $reps: state.reps,
-        $lapses: state.lapses,
-        $updated_at: state.updated_at,
-        $is_synced: 1,
-      },
-    );
+    try {
+      await db.runAsync(
+        "INSERT INTO fsrs_states (id, card_id,card_direction, stability, difficulty,    last_review, next_review, interval_days,    state, reps, lapses, updated_at, is_synced)VALUES ($id, $card_id, $card_direction, $stability, $difficulty, $last_review, $next_review, $interval_days, $state, $reps, $lapses, $updated_at, $is_synced) ON CONFLICT (id) DO UPDATE SET card_direction = excluded.card_direction, stability = excluded.stability, difficulty = excluded.difficulty, last_review = excluded.last_review, next_review = excluded.next_review, interval_days = excluded.interval_days, state = excluded.state, reps = excluded.reps, lapses = excluded.lapses, updated_at = excluded.updated_at, is_synced = excluded.is_synced",
+        {
+          $id: state.id,
+          $card_id: state.card_id,
+          $card_direction: state.card_direction,
+          $stability: state.stability,
+          $difficulty: state.difficulty,
+          $last_review: state.last_review,
+          $next_review: state.next_review,
+          $interval_days: state.interval_days,
+          $state: state.state,
+          $reps: state.reps,
+          $lapses: state.lapses,
+          $updated_at: state.updated_at,
+          $is_synced: 1,
+        },
+      );
+    } catch (e) {
+      console.warn(`Skipped FSRSState with id = ${state.id}`, e);
+    }
   }
 }
 
@@ -215,7 +219,7 @@ export async function insertReviewsLocally(
 ): Promise<void> {
   for (const review of reviewsToInsert) {
     await db.runAsync(
-      "INSERT OR IGNORE INTO reviews (id, fsrs_state_id, grade,    previous_stability, previous_difficulty, new_stability, new_difficulty, previous_state, retrievability_at_review, exercise_type,  elapsed_days, scheduled_days, reviewed_at,   is_synced) VALUES ($id, $fsrs_state_id, $grade, $previous_stability, $previous_difficulty, $new_stability, $new_difficulty, $previous_state, $retrievability_at_review, $exercise_type,  $elapsed_days, $scheduled_days, $reviewed_at,  $is_synced)",
+      "INSERT OR IGNORE INTO reviews (id, fsrs_state_id, grade, previous_stability, previous_difficulty, new_stability, new_difficulty, previous_state, retrievability_at_review, exercise_type,  elapsed_days, scheduled_days, reviewed_at,   is_synced) VALUES ($id, $fsrs_state_id, $grade, $previous_stability, $previous_difficulty, $new_stability, $new_difficulty, $previous_state, $retrievability_at_review, $exercise_type,  $elapsed_days, $scheduled_days, $reviewed_at, $is_synced)",
       {
         $id: review.id,
         $fsrs_state_id: review.fsrs_state_id,
@@ -238,7 +242,7 @@ export async function insertReviewsLocally(
 
 export async function getUnsyncedReviews(userId: string) {
   const reviewLogs = await db.getAllAsync<ReviewLog>(
-    "SELECT * FROM reviews r JOIN fsrs_states fs on fs.id = r.fsrs_state_id JOIN cards c on c.id = fs.card_id WHERE c.user_id = $user_id AND is_synced = $is_synced",
+    "SELECT r.* FROM reviews r JOIN fsrs_states fs on fs.id = r.fsrs_state_id JOIN cards c on c.id = fs.card_id WHERE c.user_id = $user_id AND r.is_synced = $is_synced",
     {
       $user_id: userId,
       $is_synced: 0,
