@@ -140,8 +140,14 @@ export class SqliteDeckRepository implements DeckRepository {
 
   public async deleteDeck(deckId: string, userId: string): Promise<void> {
     const result = await db.runAsync(
-      "UPDATE decks SET is_deleted = $is_deleted, name = name || '_deleted_' || id  WHERE id = $id AND user_id = $user_id",
-      { $is_deleted: 1, $user_id: userId, $id: deckId },
+      "UPDATE decks SET is_deleted = $is_deleted, is_synced = $is_synced, updated_at = $updated_at, name = name || '_deleted_' || id  WHERE id = $id AND user_id = $user_id",
+      {
+        $is_deleted: 1,
+        $user_id: userId,
+        $id: deckId,
+        $is_synced: 0,
+        $updated_at: new Date().toISOString(),
+      },
     );
   }
 
@@ -170,7 +176,7 @@ export class SqliteDeckRepository implements DeckRepository {
   public async updateUnsyncedDecks(decksToUpsert: any[]): Promise<void> {
     for (const deck of decksToUpsert) {
       await db.runAsync(
-        "INSERT INTO decks (id, name, source_language, target_language,user_id, created_at, updated_at, is_synced, is_deleted) VALUES ($id, $name, $source_language, $target_language,$user_id, $created_at, $updated_at, $is_synced, $is_deleted) ON CONFLICT (id) DO UPDATE SET name = excluded.name, source_language = excluded.source_language, target_language = excluded.target_language, user_id, created_at, updated_at = excluded.updated_at, is_synced = excluded.is_synced, is_deleted = excluded.is_deleted",
+        "INSERT INTO decks (id, name, source_language, target_language,user_id, created_at, updated_at, is_synced, is_deleted) VALUES ($id, $name, $source_language, $target_language,$user_id, $created_at, $updated_at, $is_synced, $is_deleted) ON CONFLICT (id) DO UPDATE SET name = excluded.name, source_language = excluded.source_language, target_language = excluded.target_language, updated_at = excluded.updated_at, is_synced = 1, is_deleted = excluded.is_deleted",
         {
           $id: deck.id,
           $name: deck.name,
