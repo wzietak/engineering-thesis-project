@@ -110,9 +110,14 @@ export default function browseCards() {
           setIsLoading(false);
         });
 
-      globalDeckRepository.getDecks(userId).then((fetchedDecks) => {
-        setDecks(fetchedDecks);
-      });
+      globalDeckRepository
+        .getDecks(userId)
+        .then((fetchedDecks) => {
+          setDecks(fetchedDecks);
+        })
+        .catch((error) => {
+          console.log("getDecks error: ", error);
+        });
 
       setSearchQuery("");
 
