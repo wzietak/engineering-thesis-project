@@ -67,7 +67,10 @@ export default function SyncOptionRow({ userId }: Props) {
       <Text style={styles.mainText}>Cloud sync</Text>
       <View style={{ flexDirection: "row", justifyContent: "space-between" }}>
         <View
-          style={{ flexDirection: "column", justifyContent: "space-between" }}
+          style={{
+            flexDirection: "column",
+            justifyContent: "flex-end",
+          }}
         >
           <Text style={styles.text}>Last synced at: </Text>
           <Text style={styles.text}>{lastSyncDate}</Text>
