@@ -10,6 +10,7 @@ import { globalCardRepository } from "@/repositories/globalCardRepository";
 import { globalDeckRepository } from "@/repositories/globalDeckRepository";
 import { supabase } from "@/utils/supabase";
 import AsyncStorage from "@react-native-async-storage/async-storage";
+import NetInfo from "@react-native-community/netinfo";
 
 export const LAST_SYNC_KEY = (userId: string) => `@lastSyncTime_${userId}`;
 
@@ -19,11 +20,23 @@ export async function syncData(userId: string) {
   if (isSyncInProgress) {
     return;
   }
+
+  const networkConnectionState = await NetInfo.fetch();
+
+  if (
+    !networkConnectionState.isConnected ||
+    !networkConnectionState.isInternetReachable
+  ) {
+    console.log("OFFLINE!");
+    throw new Error("NO_NETWORK_CONNECTION");
+  }
+
   isSyncInProgress = true;
   const { data: serverTime, error } = await supabase.rpc("get_server_time");
   console.log(">>SERVER TIME: ", serverTime);
   const currentSyncTime = new Date().toISOString();
   const SAFETY_BUFFER_MS = 30 * 1000;
+
   try {
     const rawLastSyncTime = await AsyncStorage.getItem(LAST_SYNC_KEY(userId));
 

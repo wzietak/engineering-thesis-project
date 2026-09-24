@@ -107,8 +107,13 @@ export default function mainScreen() {
     try {
       await syncData(userId);
       await loadDecksfromDB();
-    } catch (error) {
+    } catch (error: any) {
       console.log(error);
+      if (error?.message === "NO_NETWORK_CONNECTION") {
+        if (Platform.OS === "android") {
+          ToastAndroid.show("No network connection", ToastAndroid.SHORT);
+        }
+      }
     } finally {
       setIsRefreshing(false);
     }

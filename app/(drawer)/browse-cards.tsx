@@ -12,11 +12,13 @@ import Octicons from "@expo/vector-icons/Octicons";
 import { router, useFocusEffect } from "expo-router";
 import { useCallback, useContext, useMemo, useRef, useState } from "react";
 import {
+  Platform,
   Pressable,
   RefreshControl,
   StyleSheet,
   Text,
   TextInput,
+  ToastAndroid,
   View,
 } from "react-native";
 import { FlatList, ScrollView } from "react-native-gesture-handler";
@@ -160,8 +162,13 @@ export default function browseCards() {
     try {
       await syncData(userId);
       await loadUserCardsFromDB();
-    } catch (error) {
+    } catch (error: any) {
       console.log(error);
+      if (error?.message === "NO_NETWORK_CONNECTION") {
+        if (Platform.OS === "android") {
+          ToastAndroid.show("No network connection", ToastAndroid.SHORT);
+        }
+      }
     } finally {
       setIsRefreshing(false);
     }
@@ -211,7 +218,6 @@ export default function browseCards() {
             onRefresh={onRefresh}
             progressBackgroundColor={theme.colors.primary}
             colors={[theme.colors.background]}
-            
           ></RefreshControl>
         }
         keyExtractor={(item) => item.cardId}
