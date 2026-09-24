@@ -22,6 +22,7 @@ const createStyles = (theme: AppTheme) =>
     container: {
       paddingHorizontal: 20,
       flex: 1,
+      flexGrow: 1,
       alignItems: "center",
       justifyContent: "center",
       backgroundColor: theme.colors.background,
