@@ -12,8 +12,9 @@ import { DeckWithReviewCount } from "@/models/deck";
 import { globalDeckRepository } from "@/repositories/globalDeckRepository";
 import { syncData } from "@/services/syncService";
 import { useFocusEffect, useRouter } from "expo-router";
-import { useCallback, useContext, useState } from "react";
+import { useCallback, useContext, useEffect, useState } from "react";
 import {
+  DeviceEventEmitter,
   Dimensions,
   FlatList,
   Platform,
@@ -48,26 +49,39 @@ export default function mainScreen() {
     if (!DBconnection.isReady || !userId) {
       return;
     }
+
     setIsLoading(true);
-    globalDeckRepository
-      .getDecks(userId)
-      .then((fetchedDecks) => {
-        setDecks([...(fetchedDecks || [])]);
-      })
-      .catch((error) => {
-        console.error(error);
-      })
-      .finally(() => {
-        setIsLoading(false);
-      });
-    return () => setButtonVisible(false);
+
+    try {
+      const fetchedDecks = await globalDeckRepository.getDecks(userId);
+
+      setDecks([...(fetchedDecks || [])]);
+    } catch (error) {
+      console.log(error);
+    } finally {
+      setIsLoading(false);
+    }
   }, [DBconnection.isReady, session?.currentSession?.user.id]);
 
   useFocusEffect(
     useCallback(() => {
       loadDecksfromDB();
+      return () => setButtonVisible(false);
     }, [loadDecksfromDB]),
   );
+
+  useEffect(() => {
+    const subscription = DeviceEventEmitter.addListener(
+      "sync_completed",
+      () => {
+        loadDecksfromDB();
+      },
+    );
+
+    return () => {
+      subscription.remove();
+    };
+  }, [loadDecksfromDB]);
 
   const handleDelete = async () => {
     if (activeDeckId) {
@@ -109,15 +123,17 @@ export default function mainScreen() {
           paddingBottom: insets.bottom,
         },
       ]}
-      key={decks.length}
+      // key={decks.length}
     >
-      {isLoading ? (
+      {isLoading && decks.length === 0 ? (
         <LoadingScreen></LoadingScreen>
-      ) : decks.length === 0 ? (
-        <NoDecksView></NoDecksView>
       ) : (
         <FlatList
-          contentContainerStyle={styles.scrollContainer}
+          contentContainerStyle={[
+            styles.scrollContainer,
+            { flex: decks.length === 0 ? 1 : 0 },
+          ]}
+          ListEmptyComponent={<NoDecksView></NoDecksView>}
           refreshControl={
             <RefreshControl
               refreshing={isRefreshing}
