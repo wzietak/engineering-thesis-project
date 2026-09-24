@@ -2,7 +2,6 @@ import SettingsOptionRow from "@/components/SettingsOptionRow";
 import SyncOptionRow from "@/components/SyncOptionRow";
 import { AuthContext } from "@/contexts/AuthContext";
 import { useAppTheme } from "@/contexts/ColorThemeContext";
-import { syncData } from "@/services/syncService";
 import { AppTheme } from "@/styles/theme";
 import Octicons from "@expo/vector-icons/Octicons";
 import { useContext } from "react";
