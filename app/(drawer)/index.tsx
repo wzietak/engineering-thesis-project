@@ -10,12 +10,14 @@ import { useAppTheme } from "@/contexts/ColorThemeContext";
 import { DBContext } from "@/contexts/DBContext";
 import { DeckWithReviewCount } from "@/models/deck";
 import { globalDeckRepository } from "@/repositories/globalDeckRepository";
+import { syncData } from "@/services/syncService";
 import { useFocusEffect, useRouter } from "expo-router";
 import { useCallback, useContext, useState } from "react";
 import {
   Dimensions,
   FlatList,
   Platform,
+  RefreshControl,
   StyleSheet,
   ToastAndroid,
   View,
@@ -35,31 +37,36 @@ export default function mainScreen() {
   const [pressLocationY, setPressLocationY] = useState<number>();
   const [activeDeckId, setActiveDeckId] = useState<string | null>(null);
   const [isDeleteModalVisible, setIsDeleteModalVisible] = useState(false);
+  const [isRefreshing, setIsRefreshing] = useState<boolean>(false);
 
   const SCREEN_HEIGHT = Dimensions.get("window").height;
   const SAFE_MARGIN = 20;
 
   const userId = session?.currentSession?.user.id as string;
 
+  const loadDecksfromDB = useCallback(async () => {
+    if (!DBconnection.isReady || !userId) {
+      return;
+    }
+    setIsLoading(true);
+    globalDeckRepository
+      .getDecks(userId)
+      .then((fetchedDecks) => {
+        setDecks([...(fetchedDecks || [])]);
+      })
+      .catch((error) => {
+        console.error(error);
+      })
+      .finally(() => {
+        setIsLoading(false);
+      });
+    return () => setButtonVisible(false);
+  }, [DBconnection.isReady, session?.currentSession?.user.id]);
+
   useFocusEffect(
     useCallback(() => {
-      if (!DBconnection.isReady || !userId) {
-        return;
-      }
-      setIsLoading(true);
-      globalDeckRepository
-        .getDecks(userId)
-        .then((fetchedDecks) => {
-          setDecks([...(fetchedDecks || [])]);
-        })
-        .catch((error) => {
-          console.error(error);
-        })
-        .finally(() => {
-          setIsLoading(false);
-        });
-      return () => setButtonVisible(false);
-    }, [DBconnection.isReady, session?.currentSession?.user.id]),
+      loadDecksfromDB();
+    }, [loadDecksfromDB]),
   );
 
   const handleDelete = async () => {
@@ -76,6 +83,21 @@ export default function mainScreen() {
       if (Platform.OS === "android")
         ToastAndroid.show("Deck deleted successfully", ToastAndroid.SHORT);
     } else return;
+  };
+
+  const onRefresh = async () => {
+    if (isRefreshing || !userId) return;
+
+    setIsRefreshing(true);
+
+    try {
+      await syncData(userId);
+      await loadDecksfromDB();
+    } catch (error) {
+      console.log(error);
+    } finally {
+      setIsRefreshing(false);
+    }
   };
 
   return (
@@ -96,6 +118,14 @@ export default function mainScreen() {
       ) : (
         <FlatList
           contentContainerStyle={styles.scrollContainer}
+          refreshControl={
+            <RefreshControl
+              refreshing={isRefreshing}
+              onRefresh={onRefresh}
+              progressBackgroundColor={theme.colors.primary}
+              colors={[theme.colors.background]}
+            ></RefreshControl>
+          }
           data={decks}
           keyExtractor={(item) => item.id.toString()}
           renderItem={({ item, index }) => {

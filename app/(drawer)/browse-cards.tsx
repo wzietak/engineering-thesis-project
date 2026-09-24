@@ -6,11 +6,19 @@ import { useAppTheme } from "@/contexts/ColorThemeContext";
 import { DBContext } from "@/contexts/DBContext";
 import { globalCardRepository } from "@/repositories/globalCardRepository";
 import { globalDeckRepository } from "@/repositories/globalDeckRepository";
+import { syncData } from "@/services/syncService";
 import { AppTheme } from "@/styles/theme";
 import Octicons from "@expo/vector-icons/Octicons";
 import { router, useFocusEffect } from "expo-router";
 import { useCallback, useContext, useMemo, useRef, useState } from "react";
-import { Pressable, StyleSheet, Text, TextInput, View } from "react-native";
+import {
+  Pressable,
+  RefreshControl,
+  StyleSheet,
+  Text,
+  TextInput,
+  View,
+} from "react-native";
 import { FlatList, ScrollView } from "react-native-gesture-handler";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
@@ -40,6 +48,7 @@ export default function browseCards() {
   const [searchQuery, setSearchQuery] = useState<string>("");
   const [isUndoSnackBarVisible, setIsUndoSnackBarVisible] =
     useState<boolean>(false);
+  const [isRefreshing, setIsRefreshing] = useState<boolean>(false);
 
   const [deletedCardIDs, setDeletedCardIDs] = useState<string[]>([]);
   const deleteTimers = useRef<{ [key: string]: ReturnType<typeof setTimeout> }>(
@@ -92,52 +101,113 @@ export default function browseCards() {
     return result;
   }, [cards, selectedDeckId, searchQuery, deletedCardIDs]);
 
+  const loadUserCardsFromDB = useCallback(async () => {
+    if (!DBconnection.isReady || !userId) {
+      return;
+    }
+    setIsLoading(true);
+    globalCardRepository
+      .getAllCardsByUser(userId)
+      .then((fetchedCards) => {
+        setCards([...(fetchedCards || [])]);
+      })
+      .catch((error) => {
+        console.error(error);
+      })
+      .finally(() => {
+        setIsLoading(false);
+      });
+
+    globalDeckRepository
+      .getDecks(userId)
+      .then((fetchedDecks) => {
+        setDecks(fetchedDecks);
+      })
+      .catch((error) => {
+        console.log("getDecks error: ", error);
+      });
+
+    setSearchQuery("");
+
+    return () => {
+      const pendingCardIDs = Object.keys(deleteTimers.current);
+      if (pendingCardIDs.length > 0) {
+        pendingCardIDs.forEach((cardId) => {
+          clearTimeout(deleteTimers.current[cardId]);
+          delete deleteTimers.current[cardId];
+          if (userId) {
+            globalCardRepository.deleteCard(cardId, userId);
+          }
+        });
+        setDeletedCardIDs([]);
+        setIsUndoSnackBarVisible(false);
+        setSelectedDeckId("");
+      }
+    };
+  }, [DBconnection.isReady, userId]);
+
   useFocusEffect(
     useCallback(() => {
-      if (!DBconnection.isReady || !userId) {
-        return;
-      }
-      setIsLoading(true);
-      globalCardRepository
-        .getAllCardsByUser(userId)
-        .then((fetchedCards) => {
-          setCards([...(fetchedCards || [])]);
-        })
-        .catch((error) => {
-          console.error(error);
-        })
-        .finally(() => {
-          setIsLoading(false);
-        });
+      // if (!DBconnection.isReady || !userId) {
+      //   return;
+      // }
+      // setIsLoading(true);
+      // globalCardRepository
+      //   .getAllCardsByUser(userId)
+      //   .then((fetchedCards) => {
+      //     setCards([...(fetchedCards || [])]);
+      //   })
+      //   .catch((error) => {
+      //     console.error(error);
+      //   })
+      //   .finally(() => {
+      //     setIsLoading(false);
+      //   });
 
-      globalDeckRepository
-        .getDecks(userId)
-        .then((fetchedDecks) => {
-          setDecks(fetchedDecks);
-        })
-        .catch((error) => {
-          console.log("getDecks error: ", error);
-        });
+      // globalDeckRepository
+      //   .getDecks(userId)
+      //   .then((fetchedDecks) => {
+      //     setDecks(fetchedDecks);
+      //   })
+      //   .catch((error) => {
+      //     console.log("getDecks error: ", error);
+      //   });
 
-      setSearchQuery("");
+      // setSearchQuery("");
 
-      return () => {
-        const pendingCardIDs = Object.keys(deleteTimers.current);
-        if (pendingCardIDs.length > 0) {
-          pendingCardIDs.forEach((cardId) => {
-            clearTimeout(deleteTimers.current[cardId]);
-            delete deleteTimers.current[cardId];
-            if (userId) {
-              globalCardRepository.deleteCard(cardId, userId);
-            }
-          });
-          setDeletedCardIDs([]);
-          setIsUndoSnackBarVisible(false);
-          setSelectedDeckId("");
-        }
-      };
-    }, [DBconnection.isReady, userId]),
+      // return () => {
+      //   const pendingCardIDs = Object.keys(deleteTimers.current);
+      //   if (pendingCardIDs.length > 0) {
+      //     pendingCardIDs.forEach((cardId) => {
+      //       clearTimeout(deleteTimers.current[cardId]);
+      //       delete deleteTimers.current[cardId];
+      //       if (userId) {
+      //         globalCardRepository.deleteCard(cardId, userId);
+      //       }
+      //     });
+      //     setDeletedCardIDs([]);
+      //     setIsUndoSnackBarVisible(false);
+      //     setSelectedDeckId("");
+      //   }
+      // };
+      loadUserCardsFromDB();
+    }, [loadUserCardsFromDB]),
   );
+
+  const onRefresh = async () => {
+    if (isRefreshing || !userId) return;
+
+    setIsRefreshing(true);
+
+    try {
+      await syncData(userId);
+      await loadUserCardsFromDB();
+    } catch (error) {
+      console.log(error);
+    } finally {
+      setIsRefreshing(false);
+    }
+  };
 
   return (
     <View style={[styles.mainContainer, { paddingBottom: insets.bottom }]}>
@@ -177,6 +247,14 @@ export default function browseCards() {
         keyboardShouldPersistTaps="handled"
         style={{ height: "100%" }}
         contentContainerStyle={[styles.scrollContainer]}
+        refreshControl={
+          <RefreshControl
+            refreshing={isRefreshing}
+            onRefresh={onRefresh}
+            progressBackgroundColor={theme.colors.primary}
+            colors={[theme.colors.background]}
+          ></RefreshControl>
+        }
         keyExtractor={(item) => item.cardId}
         data={filteredCards}
         showsVerticalScrollIndicator={false}
