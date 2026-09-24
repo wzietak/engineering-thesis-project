@@ -6,7 +6,7 @@ import UndoFlashcardButton from "@/components/buttons/UndoFlashcardButton";
 import DeleteConfirmationAlert from "@/components/DeleteConfirmationAlert";
 import EmptyDeckView from "@/components/EmptyDeckView";
 import FlashCardContainer, {
-    flashcardRef,
+  flashcardRef,
 } from "@/components/flashcard/FlashCardContainer";
 import FlashcardOptions from "@/components/FlashcardOptions";
 import LoadingScreen from "@/components/LoadingScreen";
@@ -15,13 +15,14 @@ import { AuthContext } from "@/contexts/AuthContext";
 import { Card } from "@/models/card";
 import { FrontType } from "@/models/FrontTypes";
 import {
-    getCardsForReview,
-    ReviewableCard,
-    saveCardReview,
-    undoCardReview,
+  getCardsForReview,
+  ReviewableCard,
+  saveCardReview,
+  undoCardReview,
 } from "@/repositories/flashcardReviewRepository.ts";
 import { globalCardRepository } from "@/repositories/globalCardRepository";
 import { globalDeckRepository } from "@/repositories/globalDeckRepository";
+import { syncData } from "@/services/syncService";
 import { eventProvider } from "@/utils/eventProvider";
 import { router, Stack, useLocalSearchParams } from "expo-router";
 import { useContext, useEffect, useRef, useState } from "react";
@@ -69,7 +70,11 @@ export default function studyScreen() {
   const [isDeleteModalVisible, setIsDeleteModalVisible] = useState(false);
 
   const session = useContext(AuthContext);
+  const userId = session?.currentSession?.user.id;
   const fsrs = new FSRS();
+
+  const hasReviewedRef = useRef(false);
+  const isCompletedRef = useRef(false);
 
   const [undoStack, setUndoStack] = useState<undoCardData[]>([]);
 
@@ -81,7 +86,12 @@ export default function studyScreen() {
     if (currentCardIndex < cardsForToday.length - 1) {
       setCurrentCardIndex(currentCardIndex + 1);
     } else {
+      isCompletedRef.current = true;
       router.back();
+
+      if (userId) {
+        syncData(userId).catch((error) => console.log(error));
+      }
     }
   };
 
@@ -110,6 +120,8 @@ export default function studyScreen() {
         previousCardState,
         fsrs,
       );
+
+      hasReviewedRef.current = true;
 
       const undoCardData: undoCardData = {
         reviewId: reviewId as string,
@@ -203,6 +215,14 @@ export default function studyScreen() {
     };
   }, []);
 
+  useEffect(() => {
+    return () => {
+      if (hasReviewedRef.current && !isCompletedRef.current && userId) {
+        syncData(userId);
+      }
+    };
+  }, [userId]);
+
   /* 
   Used 3 different booleans: isLoading, !deckId and isMounted.
   They all prevents app from null exceptions when user moves too fast between decks.
@@ -267,6 +287,9 @@ export default function studyScreen() {
         showBack={true}
         goBack={() => {
           router.back();
+          if (userId) {
+            syncData(userId).catch((error) => console.log(error));
+          }
         }}
         openOptions={() =>
           setFlashcardOptionsVisible(!areFlashcardOptionsVisible)

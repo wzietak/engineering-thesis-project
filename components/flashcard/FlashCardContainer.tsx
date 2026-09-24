@@ -87,9 +87,9 @@ export default function FlashCardContainer({
           <AssessmentButton
             buttonText="Again"
             style={{ backgroundColor: theme.colors.red }}
-            onPress={() => {
+            onPress={async () => {
               setIsReversed(false);
-              onAssessmentButtonPress(Grade.Again);
+              await onAssessmentButtonPress(Grade.Again);
               onNextCard();
             }}
             isDisabled={isButtonDisabled}
@@ -97,9 +97,9 @@ export default function FlashCardContainer({
           <AssessmentButton
             buttonText="Hard"
             style={{ backgroundColor: theme.colors.grey_light }}
-            onPress={() => {
+            onPress={async () => {
               setIsReversed(false);
-              onAssessmentButtonPress(Grade.Hard);
+              await onAssessmentButtonPress(Grade.Hard);
               onNextCard();
             }}
             isDisabled={isButtonDisabled}
@@ -107,9 +107,9 @@ export default function FlashCardContainer({
           <AssessmentButton
             buttonText="Good"
             style={{ backgroundColor: theme.colors.green }}
-            onPress={() => {
+            onPress={async () => {
               setIsReversed(false);
-              onAssessmentButtonPress(Grade.Good);
+              await onAssessmentButtonPress(Grade.Good);
               onNextCard();
             }}
             isDisabled={isButtonDisabled}
@@ -117,9 +117,9 @@ export default function FlashCardContainer({
           <AssessmentButton
             buttonText="Easy"
             style={{ backgroundColor: theme.colors.lightblue }}
-            onPress={() => {
+            onPress={async () => {
               setIsReversed(false);
-              onAssessmentButtonPress(Grade.Easy);
+              await onAssessmentButtonPress(Grade.Easy);
               onNextCard();
             }}
             isDisabled={isButtonDisabled}
