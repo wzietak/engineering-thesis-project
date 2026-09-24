@@ -11,7 +11,7 @@ import { globalDeckRepository } from "@/repositories/globalDeckRepository";
 import { supabase } from "@/utils/supabase";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 
-const LAST_SYNC_KEY = (userId: string) => `@lastSyncTime_${userId}`;
+export const LAST_SYNC_KEY = (userId: string) => `@lastSyncTime_${userId}`;
 
 let isSyncInProgress = false;
 

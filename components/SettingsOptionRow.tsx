@@ -54,13 +54,13 @@ export default function SettingsOptionRow() {
 const createStyles = (theme: AppTheme) =>
   StyleSheet.create({
     mainContainer: {
-      paddingVertical: 20,
+      paddingVertical: 5,
       flex: 1,
       backgroundColor: theme.colors.background,
     },
     mainText: {
       fontFamily: theme.fontFamily.bold,
-      fontSize: theme.fontSize.md,
+      fontSize: theme.fontSize.sm,
       color: theme.colors.primary,
     },
     dropdownPlaceholder: {
