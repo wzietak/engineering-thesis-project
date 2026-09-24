@@ -148,48 +148,6 @@ export default function browseCards() {
 
   useFocusEffect(
     useCallback(() => {
-      // if (!DBconnection.isReady || !userId) {
-      //   return;
-      // }
-      // setIsLoading(true);
-      // globalCardRepository
-      //   .getAllCardsByUser(userId)
-      //   .then((fetchedCards) => {
-      //     setCards([...(fetchedCards || [])]);
-      //   })
-      //   .catch((error) => {
-      //     console.error(error);
-      //   })
-      //   .finally(() => {
-      //     setIsLoading(false);
-      //   });
-
-      // globalDeckRepository
-      //   .getDecks(userId)
-      //   .then((fetchedDecks) => {
-      //     setDecks(fetchedDecks);
-      //   })
-      //   .catch((error) => {
-      //     console.log("getDecks error: ", error);
-      //   });
-
-      // setSearchQuery("");
-
-      // return () => {
-      //   const pendingCardIDs = Object.keys(deleteTimers.current);
-      //   if (pendingCardIDs.length > 0) {
-      //     pendingCardIDs.forEach((cardId) => {
-      //       clearTimeout(deleteTimers.current[cardId]);
-      //       delete deleteTimers.current[cardId];
-      //       if (userId) {
-      //         globalCardRepository.deleteCard(cardId, userId);
-      //       }
-      //     });
-      //     setDeletedCardIDs([]);
-      //     setIsUndoSnackBarVisible(false);
-      //     setSelectedDeckId("");
-      //   }
-      // };
       loadUserCardsFromDB();
     }, [loadUserCardsFromDB]),
   );
@@ -253,6 +211,7 @@ export default function browseCards() {
             onRefresh={onRefresh}
             progressBackgroundColor={theme.colors.primary}
             colors={[theme.colors.background]}
+            
           ></RefreshControl>
         }
         keyExtractor={(item) => item.cardId}
