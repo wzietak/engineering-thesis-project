@@ -4,7 +4,7 @@ import { AppTheme } from "@/styles/theme";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useFocusEffect } from "expo-router";
 import { useCallback, useState } from "react";
-import { StyleSheet, Text, View } from "react-native";
+import { Platform, StyleSheet, Text, ToastAndroid, View } from "react-native";
 import SyncPill from "./buttons/SyncPill";
 
 type Props = {
@@ -37,7 +37,7 @@ export default function SyncOptionRow({ userId }: Props) {
         );
         setLastSyncDate(formattedDate);
       }
-    } catch (error) {
+    } catch (error: any) {
       console.log(error);
     }
   }, [userId]);
@@ -55,8 +55,13 @@ export default function SyncOptionRow({ userId }: Props) {
     try {
       await syncData(userId);
       await loadLastSyncDate();
-    } catch (error) {
+    } catch (error: any) {
       console.log(error);
+      if (error?.message === "NO_NETWORK_CONNECTION") {
+        if (Platform.OS === "android") {
+          ToastAndroid.show("No network connection", ToastAndroid.SHORT);
+        }
+      }
     } finally {
       setIsSyncing(false);
     }
