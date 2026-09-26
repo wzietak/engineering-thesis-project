@@ -15,5 +15,5 @@ export interface Card {
   updated_at: string;
   is_synced: boolean;
   is_deleted: boolean;
-  tags: string[];
+  // tags: string[];
 }

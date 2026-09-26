@@ -8,8 +8,7 @@ CREATE TABLE IF NOT EXISTS decks (
     user_id uuid NOT NULL,
     created_at timestamptz NOT NULL DEFAULT now(),
     updated_at timestamptz NOT NULL DEFAULT now(),
-    is_synced INT NOT NULL DEFAULT 0,
-    is_deleted INT NOT NULL DEFAULT 0,
+    is_deleted BOOLEAN NOT NULL DEFAULT false,
     FOREIGN KEY(user_id) REFERENCES auth.users(id) ON DELETE CASCADE,
     UNIQUE(name, user_id)
 );
@@ -25,8 +24,7 @@ CREATE TABLE IF NOT EXISTS cards (
     user_id uuid NOT NULL,
     created_at timestamptz NOT NULL DEFAULT now(),
     updated_at timestamptz NOT NULL DEFAULT now(),
-    is_synced INT NOT NULL DEFAULT 0,
-    is_deleted INT NOT NULL DEFAULT 0,
+    is_deleted BOOLEAN NOT NULL DEFAULT false,
     FOREIGN KEY(user_id) REFERENCES auth.users(id) ON DELETE CASCADE,
     FOREIGN KEY(deck_id) REFERENCES decks(id) ON DELETE CASCADE
 );
@@ -39,7 +37,7 @@ CREATE TABLE IF NOT EXISTS fsrs_states (
     difficulty DOUBLE PRECISION,
     last_review timestamptz,
     next_review timestamptz,
-    interval_days SMALLINT, 
+    interval_days DOUBLE PRECISION, 
     state TEXT NOT NULL DEFAULT 'New',
     reps SMALLINT NOT NULL DEFAULT 0,
     lapses SMALLINT NOT NULL DEFAULT 0,
@@ -58,11 +56,16 @@ CREATE TABLE IF NOT EXISTS reviews (
     previous_state TEXT NOT NULL,
     retrievability_at_review REAL,
     exercise_type TEXT NOT NULL,
-    elapsed_days INT NOT NULL,
-    scheduled_days SMALLINT NOT NULL,
+    elapsed_days DOUBLE PRECISION NOT NULL,
+    scheduled_days DOUBLE PRECISION NOT NULL,
     reviewed_at timestamptz NOT NULL DEFAULT now(),
     FOREIGN KEY(fsrs_state_id) REFERENCES fsrs_states(id) ON DELETE SET NULL
 );
+
+CREATE OR REPLACE FUNCTION get_server_time()
+RETURNS timestamptz AS $$
+SELECT now();
+$$ LANGUAGE sql;
 
 -- SQLite
 CREATE TABLE IF NOT EXISTS decks (
@@ -107,6 +110,7 @@ CREATE TABLE IF NOT EXISTS fsrs_states (
     reps INTEGER NOT NULL DEFAULT 0,
     lapses INTEGER NOT NULL DEFAULT 0,
     updated_at text NOT NULL,
+    is_synced INTEGER NOT NULL DEFAULT 0,
     FOREIGN KEY(card_id) REFERENCES cards(id) ON DELETE CASCADE
 );
 
@@ -124,5 +128,11 @@ CREATE TABLE IF NOT EXISTS reviews (
     elapsed_days INTEGER NOT NULL,
     scheduled_days INTEGER NOT NULL,
     reviewed_at text NOT NULL,
+    is_synced INTEGER NOT NULL DEFAULT 0,
     FOREIGN KEY(fsrs_state_id) REFERENCES fsrs_states(id) ON DELETE SET NULL
 );
+
+
+CREATE INDEX IF NOT EXISTS reviews_fsrs_state_id_idx on reviews(fsrs_state_id);
+
+CREATE INDEX IF NOT EXISTS reviews_is_synced_idx on reviews(is_synced);

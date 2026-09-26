@@ -1,4 +1,3 @@
-import { createNewCardState } from "@/algorithm/flashcardReviewRepository.ts";
 import ConfirmationButton from "@/components/buttons/ConfirmationButton";
 import LoadingScreen from "@/components/LoadingScreen";
 import { AuthContext } from "@/contexts/AuthContext";
@@ -6,6 +5,7 @@ import { useAppTheme } from "@/contexts/ColorThemeContext";
 import { Card, ExampleSource } from "@/models/card";
 import { CARD_TYPE_OPTIONS, CardType } from "@/models/CardTypes";
 import { Deck } from "@/models/deck";
+import { createNewCardState } from "@/repositories/flashcardReviewRepository.ts";
 import { globalCardRepository } from "@/repositories/globalCardRepository";
 import { globalDeckRepository } from "@/repositories/globalDeckRepository";
 import { generateSentence } from "@/services/aiService";
@@ -132,8 +132,6 @@ export default function AddNewCard() {
     }
   }, [cardId]);
 
-
-
   const formattedOptions = rawDecks
     .map((deck: Deck) => {
       return { label: deck.name, value: deck.id };
@@ -241,7 +239,9 @@ export default function AddNewCard() {
         if (Platform.OS === "android")
           ToastAndroid.show("Changes saved", ToastAndroid.SHORT);
       }
-    } catch (error) {}
+    } catch (error) {
+      console.log(error);
+    }
   };
 
   return (

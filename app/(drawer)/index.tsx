@@ -10,12 +10,15 @@ import { useAppTheme } from "@/contexts/ColorThemeContext";
 import { DBContext } from "@/contexts/DBContext";
 import { DeckWithReviewCount } from "@/models/deck";
 import { globalDeckRepository } from "@/repositories/globalDeckRepository";
+import { syncData } from "@/services/syncService";
 import { useFocusEffect, useRouter } from "expo-router";
-import { useCallback, useContext, useState } from "react";
+import { useCallback, useContext, useEffect, useState } from "react";
 import {
+  DeviceEventEmitter,
   Dimensions,
   FlatList,
   Platform,
+  RefreshControl,
   StyleSheet,
   ToastAndroid,
   View,
@@ -35,32 +38,50 @@ export default function mainScreen() {
   const [pressLocationY, setPressLocationY] = useState<number>();
   const [activeDeckId, setActiveDeckId] = useState<string | null>(null);
   const [isDeleteModalVisible, setIsDeleteModalVisible] = useState(false);
+  const [isRefreshing, setIsRefreshing] = useState<boolean>(false);
 
   const SCREEN_HEIGHT = Dimensions.get("window").height;
   const SAFE_MARGIN = 20;
 
   const userId = session?.currentSession?.user.id as string;
 
+  const loadDecksfromDB = useCallback(async () => {
+    if (!DBconnection.isReady || !userId) {
+      return;
+    }
+
+    setIsLoading(true);
+
+    try {
+      const fetchedDecks = await globalDeckRepository.getDecks(userId);
+
+      setDecks([...(fetchedDecks || [])]);
+    } catch (error) {
+      console.log(error);
+    } finally {
+      setIsLoading(false);
+    }
+  }, [DBconnection.isReady, session?.currentSession?.user.id]);
+
   useFocusEffect(
     useCallback(() => {
-      if (!DBconnection.isReady || !userId) {
-        return;
-      }
-      setIsLoading(true);
-      globalDeckRepository
-        .getDecks(userId)
-        .then((fetchedDecks) => {
-          setDecks([...(fetchedDecks || [])]);
-        })
-        .catch((error) => {
-          console.error(error);
-        })
-        .finally(() => {
-          setIsLoading(false);
-        });
+      loadDecksfromDB();
       return () => setButtonVisible(false);
-    }, [DBconnection.isReady, session?.currentSession?.user.id]),
+    }, [loadDecksfromDB]),
   );
+
+  useEffect(() => {
+    const subscription = DeviceEventEmitter.addListener(
+      "sync_completed",
+      () => {
+        loadDecksfromDB();
+      },
+    );
+
+    return () => {
+      subscription.remove();
+    };
+  }, [loadDecksfromDB]);
 
   const handleDelete = async () => {
     if (activeDeckId) {
@@ -78,6 +99,26 @@ export default function mainScreen() {
     } else return;
   };
 
+  const onRefresh = async () => {
+    if (isRefreshing || !userId) return;
+
+    setIsRefreshing(true);
+
+    try {
+      await syncData(userId);
+      await loadDecksfromDB();
+    } catch (error: any) {
+      console.log(error);
+      if (error?.message === "NO_NETWORK_CONNECTION") {
+        if (Platform.OS === "android") {
+          ToastAndroid.show("No network connection", ToastAndroid.SHORT);
+        }
+      }
+    } finally {
+      setIsRefreshing(false);
+    }
+  };
+
   return (
     <View
       style={[
@@ -87,15 +128,25 @@ export default function mainScreen() {
           paddingBottom: insets.bottom,
         },
       ]}
-      key={decks.length}
+      // key={decks.length}
     >
-      {isLoading ? (
+      {isLoading && decks.length === 0 ? (
         <LoadingScreen></LoadingScreen>
-      ) : decks.length === 0 ? (
-        <NoDecksView></NoDecksView>
       ) : (
         <FlatList
-          contentContainerStyle={styles.scrollContainer}
+          contentContainerStyle={[
+            styles.scrollContainer,
+            { flex: decks.length === 0 ? 1 : 0 },
+          ]}
+          ListEmptyComponent={<NoDecksView></NoDecksView>}
+          refreshControl={
+            <RefreshControl
+              refreshing={isRefreshing}
+              onRefresh={onRefresh}
+              progressBackgroundColor={theme.colors.primary}
+              colors={[theme.colors.background]}
+            ></RefreshControl>
+          }
           data={decks}
           keyExtractor={(item) => item.id.toString()}
           renderItem={({ item, index }) => {

@@ -127,7 +127,7 @@ export default function FlashcardComponent({
 
             <View style={[styles.halfContainer]}>
               <View style={styles.deckNamePill}>
-                <Text style={styles.deckNameText}>{deckName}</Text>
+                <Text style={styles.deckNameText} numberOfLines={1}>{deckName}</Text>
               </View>
 
               <View

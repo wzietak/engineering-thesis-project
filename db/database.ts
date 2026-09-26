@@ -4,7 +4,7 @@ export let db: SQLite.SQLiteDatabase;
 
 export async function initDB() {
   try {
-    db = await SQLite.openDatabaseAsync("better-anki.db");
+    db = await SQLite.openDatabaseAsync("better-ankiv2.db");
     await db.execAsync(`PRAGMA foreign_keys = ON;`);
 
     const createDecksTableStatement =
@@ -52,6 +52,7 @@ export async function initDB() {
     reps INTEGER NOT NULL DEFAULT 0,
     lapses INTEGER NOT NULL DEFAULT 0,
     updated_at text NOT NULL,
+    is_synced INTEGER NOT NULL DEFAULT 0,
     FOREIGN KEY(card_id) REFERENCES cards(id) ON DELETE CASCADE
 );`);
 
@@ -70,8 +71,18 @@ export async function initDB() {
     elapsed_days INTEGER NOT NULL,
     scheduled_days INTEGER NOT NULL,
     reviewed_at text NOT NULL,
+    is_synced INTEGER NOT NULL DEFAULT 0,
     FOREIGN KEY(fsrs_state_id) REFERENCES fsrs_states(id) ON DELETE SET NULL
 );`);
+
+    const createIndex1 = await db.execAsync(
+      `CREATE INDEX IF NOT EXISTS reviews_fsrs_state_id_idx on reviews(fsrs_state_id);`,
+    );
+
+    const createIndex2 = await db.execAsync(
+      `CREATE INDEX IF NOT EXISTS reviews_is_synced_idx on reviews(is_synced);`,
+    );
+
     return true;
   } catch (error) {
     console.log(error);

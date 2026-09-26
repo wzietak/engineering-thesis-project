@@ -1,9 +1,3 @@
-import {
-  getCardsForReview,
-  ReviewableCard,
-  saveCardReview,
-  undoCardReview,
-} from "@/algorithm/flashcardReviewRepository.ts";
 import { FSRS } from "@/algorithm/FSRS";
 import { FSRSState } from "@/algorithm/FSRSState";
 import { Grade } from "@/algorithm/FSRSTypes";
@@ -20,8 +14,15 @@ import Overlay from "@/components/Overlay";
 import { AuthContext } from "@/contexts/AuthContext";
 import { Card } from "@/models/card";
 import { FrontType } from "@/models/FrontTypes";
+import {
+  getCardsForReview,
+  ReviewableCard,
+  saveCardReview,
+  undoCardReview,
+} from "@/repositories/flashcardReviewRepository.ts";
 import { globalCardRepository } from "@/repositories/globalCardRepository";
 import { globalDeckRepository } from "@/repositories/globalDeckRepository";
+import { syncData } from "@/services/syncService";
 import { eventProvider } from "@/utils/eventProvider";
 import { router, Stack, useLocalSearchParams } from "expo-router";
 import { useContext, useEffect, useRef, useState } from "react";
@@ -69,7 +70,11 @@ export default function studyScreen() {
   const [isDeleteModalVisible, setIsDeleteModalVisible] = useState(false);
 
   const session = useContext(AuthContext);
+  const userId = session?.currentSession?.user.id;
   const fsrs = new FSRS();
+
+  const hasReviewedRef = useRef(false);
+  const isCompletedRef = useRef(false);
 
   const [undoStack, setUndoStack] = useState<undoCardData[]>([]);
 
@@ -81,7 +86,12 @@ export default function studyScreen() {
     if (currentCardIndex < cardsForToday.length - 1) {
       setCurrentCardIndex(currentCardIndex + 1);
     } else {
+      isCompletedRef.current = true;
       router.back();
+
+      if (userId) {
+        syncData(userId).catch((error) => console.log(error));
+      }
     }
   };
 
@@ -110,6 +120,8 @@ export default function studyScreen() {
         previousCardState,
         fsrs,
       );
+
+      hasReviewedRef.current = true;
 
       const undoCardData: undoCardData = {
         reviewId: reviewId as string,
@@ -183,7 +195,6 @@ export default function studyScreen() {
           (card) => card.card_id !== removedCardId,
         );
         setCurrentCardIndex((currentCardIndex) => {
-         
           if (currentCardIndex >= newCardsForToday.length) {
             setTimeout(() => {
               router.dismissAll();
@@ -203,6 +214,14 @@ export default function studyScreen() {
       eventProvider.off("onCardRemovedFromSession", handleCardRemoval);
     };
   }, []);
+
+  useEffect(() => {
+    return () => {
+      if (hasReviewedRef.current && !isCompletedRef.current && userId) {
+        syncData(userId);
+      }
+    };
+  }, [userId]);
 
   /* 
   Used 3 different booleans: isLoading, !deckId and isMounted.
@@ -268,6 +287,9 @@ export default function studyScreen() {
         showBack={true}
         goBack={() => {
           router.back();
+          if (userId) {
+            syncData(userId).catch((error) => console.log(error));
+          }
         }}
         openOptions={() =>
           setFlashcardOptionsVisible(!areFlashcardOptionsVisible)

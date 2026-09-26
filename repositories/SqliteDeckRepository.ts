@@ -140,8 +140,67 @@ export class SqliteDeckRepository implements DeckRepository {
 
   public async deleteDeck(deckId: string, userId: string): Promise<void> {
     const result = await db.runAsync(
-      "UPDATE decks SET is_deleted = $is_deleted, name = name || '_deleted_' || id  WHERE id = $id AND user_id = $user_id",
-      { $is_deleted: 1, $user_id: userId, $id: deckId },
+      "UPDATE decks SET is_deleted = $is_deleted, is_synced = $is_synced, updated_at = $updated_at, name = name || '_deleted_' || id  WHERE id = $id AND user_id = $user_id",
+      {
+        $is_deleted: 1,
+        $user_id: userId,
+        $id: deckId,
+        $is_synced: 0,
+        $updated_at: new Date().toISOString(),
+      },
     );
+  }
+
+  public async getUnsyncedDecks(
+    userId: string,
+  ): Promise<Omit<Deck, "is_synced">[]> {
+    const decks = await db.getAllAsync<DbDeckRow>(
+      "SELECT * FROM decks WHERE user_id = $user_id AND is_synced = $is_synced",
+      {
+        $user_id: userId,
+        $is_synced: 0,
+      },
+    );
+    return decks.map((row) => ({
+      id: row.id,
+      name: row.name,
+      source_language: row.source_language,
+      target_language: row.target_language,
+      user_id: row.user_id,
+      created_at: row.created_at,
+      updated_at: row.updated_at,
+      is_deleted: row.is_deleted === 1 ? true : false,
+    }));
+  }
+
+  public async updateUnsyncedDecks(decksToUpsert: any[]): Promise<void> {
+    for (const deck of decksToUpsert) {
+      await db.runAsync(
+        "INSERT INTO decks (id, name, source_language, target_language,user_id, created_at, updated_at, is_synced, is_deleted) VALUES ($id, $name, $source_language, $target_language,$user_id, $created_at, $updated_at, $is_synced, $is_deleted) ON CONFLICT (id) DO UPDATE SET name = excluded.name, source_language = excluded.source_language, target_language = excluded.target_language, updated_at = excluded.updated_at, is_synced = 1, is_deleted = excluded.is_deleted",
+        {
+          $id: deck.id,
+          $name: deck.name,
+          $source_language: deck.source_language,
+          $target_language: deck.target_language,
+          $user_id: deck.user_id,
+          $created_at: deck.created_at,
+          $updated_at: deck.updated_at,
+          $is_synced: 1,
+          $is_deleted: deck.is_deleted,
+        },
+      );
+    }
+  }
+
+  public async markDecksAsSynced(
+    userId: string,
+    decksIds: string[],
+  ): Promise<void> {
+    for (const deckId of decksIds) {
+      await db.runAsync(
+        "UPDATE decks SET is_synced = 1 WHERE id = $deck_id AND user_id = $user_id",
+        { $deck_id: deckId, $user_id: userId },
+      );
+    }
   }
 }

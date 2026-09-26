@@ -9,6 +9,6 @@ Until then:
 * Please be patient
 * Pretend this is intentional minimalism
 
-![Cat writing the code on the computer](https://gifdb.com/images/high/thank-goodness-i-took-that-coding-course-gkl7f76y3vwkuyh9.gif)
+<img src="./assets/images/readme-gif.gif" alt="Cat writing the code on the computer" width="250">
 
 ###### Stay tuned!

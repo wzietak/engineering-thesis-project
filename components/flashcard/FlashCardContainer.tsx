@@ -1,6 +1,6 @@
-import { ReviewableCard } from "@/algorithm/flashcardReviewRepository.ts";
 import { CardDirection, Grade } from "@/algorithm/FSRSTypes";
 import { useAppTheme } from "@/contexts/ColorThemeContext";
+import { ReviewableCard } from "@/repositories/flashcardReviewRepository.ts";
 import { AppTheme } from "@/styles/theme";
 import { useEffect, useImperativeHandle, useState } from "react";
 import { StyleSheet, View } from "react-native";
@@ -22,7 +22,7 @@ type Props = {
   onAssessmentButtonPress: (grade: Grade) => void;
   isButtonDisabled: boolean;
   ref: React.Ref<flashcardRef>;
-  onCardFlip?: (isReversed : boolean) => void;
+  onCardFlip?: (isReversed: boolean) => void;
 };
 
 export default function FlashCardContainer({
@@ -30,7 +30,8 @@ export default function FlashCardContainer({
   onNextCard,
   onAssessmentButtonPress,
   isButtonDisabled,
-  ref, onCardFlip
+  ref,
+  onCardFlip,
 }: Props) {
   const insets = useSafeAreaInsets();
   const { theme } = useAppTheme();
@@ -48,10 +49,10 @@ export default function FlashCardContainer({
 
   //useEffect added to pass isReversed state to the parent component on its value change
   useEffect(() => {
-    if(onCardFlip){
+    if (onCardFlip) {
       onCardFlip(isReversed);
     }
-  }, [isReversed])
+  }, [isReversed]);
 
   return (
     <View
@@ -86,9 +87,9 @@ export default function FlashCardContainer({
           <AssessmentButton
             buttonText="Again"
             style={{ backgroundColor: theme.colors.red }}
-            onPress={() => {
+            onPress={async () => {
               setIsReversed(false);
-              onAssessmentButtonPress(Grade.Again);
+              await onAssessmentButtonPress(Grade.Again);
               onNextCard();
             }}
             isDisabled={isButtonDisabled}
@@ -96,9 +97,9 @@ export default function FlashCardContainer({
           <AssessmentButton
             buttonText="Hard"
             style={{ backgroundColor: theme.colors.grey_light }}
-            onPress={() => {
+            onPress={async () => {
               setIsReversed(false);
-              onAssessmentButtonPress(Grade.Hard);
+              await onAssessmentButtonPress(Grade.Hard);
               onNextCard();
             }}
             isDisabled={isButtonDisabled}
@@ -106,9 +107,9 @@ export default function FlashCardContainer({
           <AssessmentButton
             buttonText="Good"
             style={{ backgroundColor: theme.colors.green }}
-            onPress={() => {
+            onPress={async () => {
               setIsReversed(false);
-              onAssessmentButtonPress(Grade.Good);
+              await onAssessmentButtonPress(Grade.Good);
               onNextCard();
             }}
             isDisabled={isButtonDisabled}
@@ -116,9 +117,9 @@ export default function FlashCardContainer({
           <AssessmentButton
             buttonText="Easy"
             style={{ backgroundColor: theme.colors.lightblue }}
-            onPress={() => {
+            onPress={async () => {
               setIsReversed(false);
-              onAssessmentButtonPress(Grade.Easy);
+              await onAssessmentButtonPress(Grade.Easy);
               onNextCard();
             }}
             isDisabled={isButtonDisabled}

@@ -1,6 +1,8 @@
+import { AuthContext } from "@/contexts/AuthContext";
 import { useAppTheme } from "@/contexts/ColorThemeContext";
 import { AppTheme } from "@/styles/theme";
 import Octicons from "@expo/vector-icons/Octicons";
+import { useContext } from "react";
 import {
   Modal,
   Pressable,
@@ -20,6 +22,9 @@ type Props = {
 export default function MainOptions({ visible, hideOnOutline }: Props) {
   const { theme, setPreferredTheme, actualTheme } = useAppTheme();
   const styles = createStyles(theme);
+  const session = useContext(AuthContext);
+  const userId = session?.currentSession?.user.id ?? "";
+
   if (!visible) {
     return null;
   }
