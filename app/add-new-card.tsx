@@ -5,7 +5,7 @@ import { useAppTheme } from "@/contexts/ColorThemeContext";
 import { Card, ExampleSource } from "@/models/card";
 import { CARD_TYPE_OPTIONS, CardType } from "@/models/CardTypes";
 import { Deck } from "@/models/deck";
-import { createNewCardState } from "@/repositories/flashcardReviewRepository.ts";
+import { createNewCardState } from "@/repositories/flashcardReviewRepository";
 import { globalCardRepository } from "@/repositories/globalCardRepository";
 import { globalDeckRepository } from "@/repositories/globalDeckRepository";
 import { generateSentence } from "@/services/aiService";

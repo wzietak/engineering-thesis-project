@@ -1,4 +1,4 @@
-import { FSRSState } from "./FSRSState";
+import { FSRSState } from "../models/FSRSState";
 import { flashcardState, FSRS_PARAMETERS, Grade } from "./FSRSTypes";
 
 export const DAY_IN_MILISECONDS = 24 * 60 * 60 * 1000;
@@ -187,7 +187,6 @@ export class FSRS {
       reps: card.reps + 1,
       lapses: card.lapses + addedLapses,
     };
-
 
     return {
       updatedCardState: updatedCardState,

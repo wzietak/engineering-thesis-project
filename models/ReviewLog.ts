@@ -1,5 +1,5 @@
 import { State } from "react-native-gesture-handler";
-import { ExerciseType, Grade } from "./FSRSTypes";
+import { ExerciseType, Grade } from "../algorithm/FSRSTypes";
 
 export interface ReviewLog {
   id: string;

@@ -5,7 +5,7 @@ import {
   markFSRSStatesAsSynced,
   markReviewsAsSynced,
   updateUnsyncedFSRSStates,
-} from "@/repositories/flashcardReviewRepository.ts";
+} from "@/repositories/flashcardReviewRepository";
 import { globalCardRepository } from "@/repositories/globalCardRepository";
 import { globalDeckRepository } from "@/repositories/globalDeckRepository";
 import { supabase } from "@/utils/supabase";

@@ -1,10 +1,10 @@
 import { DAY_IN_MILISECONDS } from "@/algorithm/FSRS";
-import { FSRSState, localFSRSState } from "@/algorithm/FSRSState";
 import { CardDirection, flashcardState, Grade } from "@/algorithm/FSRSTypes";
-import { ReviewLog } from "@/algorithm/ReviewLog";
 import { db } from "@/db/database";
 import { Card } from "@/models/card";
 import { CardType } from "@/models/CardTypes";
+import { FSRSState, localFSRSState } from "@/models/FSRSState";
+import { ReviewLog } from "@/models/ReviewLog";
 import * as Crypto from "expo-crypto";
 
 type reviewDetails = {

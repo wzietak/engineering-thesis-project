@@ -1,6 +1,6 @@
 import { CardDirection, Grade } from "@/algorithm/FSRSTypes";
 import { useAppTheme } from "@/contexts/ColorThemeContext";
-import { ReviewableCard } from "@/repositories/flashcardReviewRepository.ts";
+import { ReviewableCard } from "@/repositories/flashcardReviewRepository";
 import { AppTheme } from "@/styles/theme";
 import { useEffect, useImperativeHandle, useState } from "react";
 import { StyleSheet, View } from "react-native";

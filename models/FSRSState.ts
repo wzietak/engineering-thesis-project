@@ -1,5 +1,4 @@
-import { FSRS } from "./FSRS";
-import { CardDirection, flashcardState } from "./FSRSTypes";
+import { CardDirection, flashcardState } from "../algorithm/FSRSTypes";
 
 export interface FSRSState {
   id: string;

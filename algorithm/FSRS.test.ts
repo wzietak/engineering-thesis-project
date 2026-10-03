@@ -1,5 +1,5 @@
+import { FSRSState } from "../models/FSRSState";
 import { DAY_IN_MILISECONDS, FSRS } from "./FSRS";
-import { FSRSState } from "./FSRSState";
 import { CardDirection, flashcardState, Grade } from "./FSRSTypes";
 
 const fsrs = new FSRS();

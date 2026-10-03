@@ -1,5 +1,4 @@
 import { FSRS } from "@/algorithm/FSRS";
-import { FSRSState } from "@/algorithm/FSRSState";
 import { Grade } from "@/algorithm/FSRSTypes";
 import AppHeader from "@/components/AppHeader";
 import UndoFlashcardButton from "@/components/buttons/UndoFlashcardButton";
@@ -14,12 +13,13 @@ import Overlay from "@/components/Overlay";
 import { AuthContext } from "@/contexts/AuthContext";
 import { Card } from "@/models/card";
 import { FrontType } from "@/models/FrontTypes";
+import { FSRSState } from "@/models/FSRSState";
 import {
   getCardsForReview,
   ReviewableCard,
   saveCardReview,
   undoCardReview,
-} from "@/repositories/flashcardReviewRepository.ts";
+} from "@/repositories/flashcardReviewRepository";
 import { globalCardRepository } from "@/repositories/globalCardRepository";
 import { globalDeckRepository } from "@/repositories/globalDeckRepository";
 import { syncData } from "@/services/syncService";
