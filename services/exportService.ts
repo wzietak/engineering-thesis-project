@@ -23,6 +23,14 @@ export async function exportDeck(deckId: string, userId: string) {
     const deck = await globalDeckRepository.getDeckById(deckId, userId);
     const cards = await globalCardRepository.getCards(userId, deckId);
 
+    if (cards.length === 0) {
+      ToastAndroid.show(
+        "Cannot export an empty deck. Add cards first.",
+        ToastAndroid.SHORT,
+      );
+      return;
+    }
+
     if (deck && cards) {
       const exportData: ExportedDeck = {
         name: deck.name,
