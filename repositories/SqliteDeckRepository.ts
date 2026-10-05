@@ -120,6 +120,19 @@ export class SqliteDeckRepository implements DeckRepository {
     return null;
   }
 
+  public async checkIfDeckNameExists(
+    userId: string,
+    deckName: string,
+  ): Promise<boolean> {
+    const result = await db.getFirstAsync(
+      "SELECT * FROM decks WHERE name = $name AND user_id = $user_id AND is_deleted = 0",
+      { $user_id: userId, $name: deckName },
+    );
+
+    if (result !== null) return true;
+    return false;
+  }
+
   public async updateDeck(
     deckData: Omit<Deck, "created_at" | "updated_at" | "is_synced">,
   ): Promise<Deck | null> {
