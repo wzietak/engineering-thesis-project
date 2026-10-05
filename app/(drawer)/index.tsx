@@ -79,8 +79,16 @@ export default function mainScreen() {
       },
     );
 
+    const import_subscription = DeviceEventEmitter.addListener(
+      "import_completed",
+      () => {
+        loadDecksfromDB();
+      },
+    );
+
     return () => {
       subscription.remove();
+      import_subscription.remove();
     };
   }, [loadDecksfromDB]);
 
