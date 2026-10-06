@@ -67,6 +67,7 @@ export async function exportDeck(deckId: string, userId: string) {
             "Google Drive isn't supported. Please select a local folder.",
             ToastAndroid.SHORT,
           );
+          return;
         }
 
         const fileUri = await StorageAccessFramework.createFileAsync(
