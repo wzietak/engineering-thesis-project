@@ -9,6 +9,7 @@ type Props = {
   positionTop: number;
   onEditPress: () => void;
   onDeletePress: () => void;
+  onExportPress: () => void;
 };
 
 export default function DeckOptions({
@@ -16,6 +17,7 @@ export default function DeckOptions({
   positionTop,
   onEditPress,
   onDeletePress,
+  onExportPress,
 }: Props) {
   const { theme } = useAppTheme();
   const styles = createStyles(theme);
@@ -46,6 +48,10 @@ export default function DeckOptions({
     >
       <Pressable style={styles.menuOption} onPress={onEditPress}>
         <Text style={styles.menuOptionText}>Edit deck</Text>
+      </Pressable>
+      <View style={styles.separator}></View>
+      <Pressable style={styles.menuOption} onPress={onExportPress}>
+        <Text style={styles.menuOptionText}>Export deck</Text>
       </Pressable>
       <View style={styles.separator}></View>
       <Pressable style={styles.menuOption} onPress={onDeletePress}>

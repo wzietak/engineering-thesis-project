@@ -17,9 +17,14 @@ type Props = {
   visible: boolean;
   hideOnOutline: () => void;
   variant?: string;
+  onImportPress: () => void;
 };
 
-export default function MainOptions({ visible, hideOnOutline }: Props) {
+export default function MainOptions({
+  visible,
+  hideOnOutline,
+  onImportPress,
+}: Props) {
   const { theme, setPreferredTheme, actualTheme } = useAppTheme();
   const styles = createStyles(theme);
   const session = useContext(AuthContext);
@@ -57,7 +62,7 @@ export default function MainOptions({ visible, hideOnOutline }: Props) {
               ></ToggleButton>
             </Pressable>
 
-            <Pressable style={styles.menuOption}>
+            <Pressable style={styles.menuOption} onPress={onImportPress}>
               <Octicons
                 style={styles.menuIcon}
                 name="download"
@@ -65,16 +70,6 @@ export default function MainOptions({ visible, hideOnOutline }: Props) {
                 color="black"
               />
               <Text style={styles.menuOptionText}>Import</Text>
-            </Pressable>
-
-            <Pressable style={styles.menuOption}>
-              <Octicons
-                style={styles.menuIcon}
-                name="share"
-                size={22}
-                color="black"
-              />
-              <Text style={styles.menuOptionText}>Export</Text>
             </Pressable>
           </View>
         </View>
@@ -87,7 +82,7 @@ const createStyles = (theme: AppTheme) =>
   StyleSheet.create({
     mainOptionsComponent: {
       width: 190,
-      height: 130,
+      height: 80,
       position: "absolute",
       right: "5%",
       top: 95,

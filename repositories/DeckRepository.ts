@@ -10,9 +10,10 @@ export interface DeckRepository {
   getDecks: (userId: string) => Promise<DeckWithReviewCount[]>;
   checkIfDeckIsEmpty: (deckId: string) => Promise<boolean>;
   getDeckById: (deckId: string, userId: string) => Promise<Deck | null>;
+  checkIfDeckNameExists: (userId: string, deckName: string) => Promise<boolean>;
   updateDeck: (deckData: Deck) => Promise<Deck | null>;
   deleteDeck: (deckId: string, userId: string) => Promise<void>;
   getUnsyncedDecks: (userId: string) => Promise<Omit<Deck, "is_synced">[]>;
   updateUnsyncedDecks: (decksToUpsert: any[]) => Promise<void>;
-  markDecksAsSynced: (userId : string, decksIds : string[]) => Promise<void>;
+  markDecksAsSynced: (userId: string, decksIds: string[]) => Promise<void>;
 }

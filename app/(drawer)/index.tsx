@@ -10,6 +10,7 @@ import { useAppTheme } from "@/contexts/ColorThemeContext";
 import { DBContext } from "@/contexts/DBContext";
 import { DeckWithReviewCount } from "@/models/deck";
 import { globalDeckRepository } from "@/repositories/globalDeckRepository";
+import { exportDeck } from "@/services/exportService";
 import { syncData } from "@/services/syncService";
 import { useFocusEffect, useRouter } from "expo-router";
 import { useCallback, useContext, useEffect, useState } from "react";
@@ -78,8 +79,16 @@ export default function mainScreen() {
       },
     );
 
+    const import_subscription = DeviceEventEmitter.addListener(
+      "import_completed",
+      () => {
+        loadDecksfromDB();
+      },
+    );
+
     return () => {
       subscription.remove();
+      import_subscription.remove();
     };
   }, [loadDecksfromDB]);
 
@@ -231,6 +240,10 @@ export default function mainScreen() {
         onDeletePress={() => {
           setDeckOptionsVisible(false);
           setIsDeleteModalVisible(true);
+        }}
+        onExportPress={() => {
+          exportDeck(activeDeckId as string, userId);
+          setDeckOptionsVisible(false);
         }}
       ></DeckOptions>
       {isDeleteModalVisible ? (
