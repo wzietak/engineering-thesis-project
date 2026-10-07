@@ -12,17 +12,19 @@ type Props = {
   buttonText: string;
   onPress?: () => void;
   style?: StyleProp<ViewStyle>;
+  disabled: boolean;
 };
 
 export default function ConfirmationButton({
   buttonText,
   onPress,
   style,
+  disabled,
 }: Props) {
   const { theme } = useAppTheme();
   const styles = createStyles(theme);
   return (
-    <Pressable style={[styles.buttonPressable, style]} onPress={onPress}>
+    <Pressable style={[styles.buttonPressable, style]} onPress={onPress} disabled={disabled}>
       <Text style={styles.buttonText}>{buttonText}</Text>
     </Pressable>
   );
