@@ -1,4 +1,4 @@
-import { CardDirection, Grade } from "@/algorithm/FSRSTypes";
+import { CardDirection, ExerciseType, Grade } from "@/algorithm/FSRSTypes";
 import { useAppTheme } from "@/contexts/ColorThemeContext";
 import { ReviewableCard } from "@/repositories/flashcardReviewRepository";
 import { AppTheme } from "@/styles/theme";
@@ -8,6 +8,7 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 import AssessmentButton from "../buttons/AssessmentButton";
 import ConfirmationButton from "../buttons/ConfirmationButton";
 import FlashCardBack from "./FlashCardBack";
+import ClozeFront from "./front types/ClozeFront";
 import StandardFront from "./front types/StandardFront";
 import TypeInFront from "./front types/TypeInFront";
 
@@ -17,32 +18,34 @@ export interface flashcardRef {
   isReversed: boolean;
 }
 
-export type ExerciseType = "standard" | "type_in" | "cloze";
-
 type Props = {
   cardData: ReviewableCard;
   onNextCard: () => void;
-  onAssessmentButtonPress: (grade: Grade) => void;
+  onAssessmentButtonPress: (grade: Grade, exerciseType: ExerciseType) => void;
   isButtonDisabled: boolean;
   ref: React.Ref<flashcardRef>;
   onCardFlip?: (isReversed: boolean) => void;
 };
 
 function drawExerciseType(card: ReviewableCard): ExerciseType {
-  // if(card.card_direction === CardType.REVERSED) ;
-  const availableTypes: ExerciseType[] = ["standard", "type_in"];
+  const availableTypes: ExerciseType[] = [
+    ExerciseType.StandardCard,
+    ExerciseType.TypeInCard,
+  ];
 
   const exampleSentence = card.example_sentence?.trim().toLowerCase();
-  const wordToFind = card.back;
+  const wordToFind = card.back.trim();
+
+  console.log("CARD DIRECTION: ", card.card_direction);
 
   const canUseCloze = Boolean(
     exampleSentence &&
     wordToFind &&
     exampleSentence.includes(wordToFind) &&
-    card.card_direction === CardDirection.Forward,
+    card.card_direction === CardDirection.Reverse,
   );
 
-  if (canUseCloze) availableTypes.push("cloze");
+  if (canUseCloze) availableTypes.push(ExerciseType.ClozeCard);
 
   const randomIndex = Math.floor(Math.random() * availableTypes.length);
   return availableTypes[randomIndex];
@@ -60,10 +63,11 @@ export default function FlashCardContainer({
   const { theme } = useAppTheme();
   const styles = createStyles(theme);
   const [isReversed, setIsReversed] = useState(false);
-  const exerciseType = useMemo(
-    () => drawExerciseType(cardData),
-    [cardData.card_id],
-  );
+
+  const exerciseType = useMemo(() => {
+    const drawn = drawExerciseType(cardData);
+    return drawn;
+  }, [cardData.card_id]);
 
   //Ref added to give parent component control over isReversed state
   useImperativeHandle(ref, () => {
@@ -85,7 +89,7 @@ export default function FlashCardContainer({
     <View
       style={[styles.flashCardContainer, { paddingBottom: insets.bottom + 40 }]}
     >
-      {exerciseType === "type_in" ? (
+      {exerciseType === ExerciseType.TypeInCard ? (
         <TypeInFront
           frontText={
             cardData.card_direction === CardDirection.Forward
@@ -104,6 +108,26 @@ export default function FlashCardContainer({
             setIsReversed(true);
           }}
         ></TypeInFront>
+      ) : exerciseType === ExerciseType.ClozeCard ? (
+        <ClozeFront
+          frontText={
+            cardData.card_direction === CardDirection.Forward
+              ? cardData.front
+              : cardData.back
+          }
+          style={{ flexGrow: isReversed ? 0 : 1 }}
+          isReversed={isReversed}
+          expectedAnswer={
+            cardData.card_direction === CardDirection.Forward
+              ? cardData.back
+              : cardData.front
+          }
+          exampleSentence={cardData.example_sentence ?? ""}
+          onSubmit={() => {
+            Keyboard.dismiss();
+            setIsReversed(true);
+          }}
+        ></ClozeFront>
       ) : (
         <StandardFront
           frontText={
@@ -123,6 +147,10 @@ export default function FlashCardContainer({
               : cardData.front
           }
           exampleSentence={cardData.example_sentence as string}
+          hideExampleSentenceAndBack={
+            exerciseType === ExerciseType.ClozeCard ? true : false
+          }
+          frontText={cardData.front}
         ></FlashCardBack>
       )}
       {!isReversed && (
@@ -139,7 +167,7 @@ export default function FlashCardContainer({
             style={{ backgroundColor: theme.colors.red }}
             onPress={async () => {
               setIsReversed(false);
-              await onAssessmentButtonPress(Grade.Again);
+              await onAssessmentButtonPress(Grade.Again, exerciseType);
               onNextCard();
             }}
             isDisabled={isButtonDisabled}
@@ -149,7 +177,7 @@ export default function FlashCardContainer({
             style={{ backgroundColor: theme.colors.grey_light }}
             onPress={async () => {
               setIsReversed(false);
-              await onAssessmentButtonPress(Grade.Hard);
+              await onAssessmentButtonPress(Grade.Hard, exerciseType);
               onNextCard();
             }}
             isDisabled={isButtonDisabled}
@@ -159,7 +187,7 @@ export default function FlashCardContainer({
             style={{ backgroundColor: theme.colors.green }}
             onPress={async () => {
               setIsReversed(false);
-              await onAssessmentButtonPress(Grade.Good);
+              await onAssessmentButtonPress(Grade.Good, exerciseType);
               onNextCard();
             }}
             isDisabled={isButtonDisabled}
@@ -169,7 +197,7 @@ export default function FlashCardContainer({
             style={{ backgroundColor: theme.colors.lightblue }}
             onPress={async () => {
               setIsReversed(false);
-              await onAssessmentButtonPress(Grade.Easy);
+              await onAssessmentButtonPress(Grade.Easy, exerciseType);
               onNextCard();
             }}
             isDisabled={isButtonDisabled}
