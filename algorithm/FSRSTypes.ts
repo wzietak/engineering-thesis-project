@@ -24,6 +24,7 @@ export enum Grade {
 }
 
 export enum ExerciseType {
-  StandardCard = "Standard",
-  InputCard = "Input",
+  StandardCard = "standard",
+  TypeInCard = "type_in",
+  ClozeCard = "cloze_card",
 }
