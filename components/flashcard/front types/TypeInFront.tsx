@@ -79,16 +79,6 @@ function checkCharacterMatches(userInput: string, expectedAnswer: string) {
       i--;
       j--;
     }
-    // else if (j > 0 && (i === 0 || matrix[i][j - 1] >= matrix[i - 1][j])) {
-    //   // if (result.length === 0 || result[0].char !== "-") {
-    //   //   result.unshift({ char: "-", status: "missing" });
-    //   // }
-    //   // j--;
-    // }
-    // else if (i > 0) {
-    //   result.unshift({ char: user[i - 1], status: "incorrect" });
-    //   i--;
-    // }
   }
 
   return result;
