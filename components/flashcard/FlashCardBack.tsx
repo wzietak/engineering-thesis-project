@@ -5,27 +5,35 @@ import { StyleSheet, Text, View } from "react-native";
 type Props = {
   backText: string;
   exampleSentence: string;
-  AIgenerated?: boolean;
+  hideExampleSentenceAndBack: boolean;
+  frontText: string;
 };
 export default function FlashCardBack({
   backText,
   exampleSentence,
-  AIgenerated = false,
+  hideExampleSentenceAndBack,
+  frontText,
 }: Props) {
   const { theme } = useAppTheme();
   const styles = createStyles(theme);
+
   return (
     <View style={styles.container}>
-      <View style={styles.separator}></View>
-      <Text style={styles.backText}>{backText}</Text>
-      <Text
-        style={[
-          styles.backTextSentence,
-          { color: AIgenerated ? theme.colors.purple : theme.colors.blue },
-        ]}
-      >
-        {exampleSentence}
-      </Text>
+      {!hideExampleSentenceAndBack ? (
+        <View>
+          <View style={styles.separator}></View>
+          <Text style={styles.backText}>{backText}</Text>
+
+          <Text style={[styles.backTextSentence, { color: theme.colors.blue }]}>
+            {exampleSentence}
+          </Text>
+        </View>
+      ) : (
+        <View>
+          <View style={styles.separator}></View>
+          <Text style={styles.backText}>{frontText}</Text>
+        </View>
+      )}
     </View>
   );
 }
@@ -46,7 +54,7 @@ const createStyles = (theme: AppTheme) =>
       fontFamily: theme.fontFamily.regular,
       fontSize: theme.fontSize.lg,
       textAlign: "center",
-      color: theme.colors.primary
+      color: theme.colors.primary,
     },
     backTextSentence: {
       paddingTop: 10,
