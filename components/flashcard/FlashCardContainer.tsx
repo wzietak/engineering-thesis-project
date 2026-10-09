@@ -65,7 +65,6 @@ export default function FlashCardContainer({
     [cardData.card_id],
   );
 
-
   //Ref added to give parent component control over isReversed state
   useImperativeHandle(ref, () => {
     return {
@@ -95,6 +94,11 @@ export default function FlashCardContainer({
           }
           style={{ flexGrow: isReversed ? 0 : 1 }}
           isReversed={isReversed}
+          expectedAnswer={
+            cardData.card_direction === CardDirection.Forward
+              ? cardData.back
+              : cardData.front
+          }
           onSubmit={() => {
             Keyboard.dismiss();
             setIsReversed(true);
