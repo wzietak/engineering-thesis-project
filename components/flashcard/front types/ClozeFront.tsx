@@ -26,13 +26,68 @@ export default function ClozeFront({
   const styles = createStyles(theme);
   const [userInput, setUserInput] = useState("");
 
-  const answerIndex = exampleSentence
+  const cleanAnswer = expectedAnswer.trim();
+  const cleanSentence = exampleSentence.trim();
+
+  const answerIndex = cleanSentence
     .toLowerCase()
-    .indexOf(expectedAnswer.toLowerCase());
+    .indexOf(cleanAnswer.toLowerCase());
+
+  const before = cleanSentence.slice(0, answerIndex);
+  const after = cleanSentence.slice(answerIndex + cleanAnswer.length);
+
+  const isInputCorrect =
+    userInput.trim().toLowerCase() === cleanAnswer.toLowerCase();
 
   return (
     <View style={[styles.container, style]}>
-      <Text style={styles.frontText}>{frontText}</Text>
+      <Text>
+        <Text
+          style={[
+            styles.exampleSentence,
+            {
+              color: isReversed ? theme.colors.blue : theme.colors.primary,
+            },
+          ]}
+        >
+          {before}
+        </Text>
+        {!isReversed ? (
+          <Text
+            style={[
+              styles.exampleSentence,
+              {
+                color: isReversed ? theme.colors.blue : theme.colors.primary,
+              },
+            ]}
+          >
+            ...............
+          </Text>
+        ) : (
+          <Text
+            style={[
+              styles.exampleSentence,
+              {
+                color: isReversed ? theme.colors.blue : theme.colors.primary,
+                fontFamily: theme.fontFamily.bold,
+              },
+            ]}
+          >
+            {expectedAnswer}
+          </Text>
+        )}
+
+        <Text
+          style={[
+            styles.exampleSentence,
+            {
+              color: isReversed ? theme.colors.blue : theme.colors.primary,
+            },
+          ]}
+        >
+          {after}
+        </Text>
+      </Text>
     </View>
   );
 }
@@ -45,6 +100,12 @@ const createStyles = (theme: AppTheme) =>
       alignItems: "center",
     },
     frontText: {
+      fontFamily: theme.fontFamily.regular,
+      fontSize: theme.fontSize.md,
+      textAlign: "center",
+      color: theme.colors.primary,
+    },
+    exampleSentence: {
       fontFamily: theme.fontFamily.regular,
       fontSize: theme.fontSize.lg,
       textAlign: "center",
