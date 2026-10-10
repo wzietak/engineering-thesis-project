@@ -30,8 +30,6 @@ export async function generateSentence(targetLanguage: string, word: string) {
     The response must start immediately with '{' and end with '}'.`,
     });
     return parseCleanJSON(response.text as string);
-
-    // JSON.parse(response.text as string);
   } catch (error: any) {
     console.log("API ERROR: ", error);
     if (
