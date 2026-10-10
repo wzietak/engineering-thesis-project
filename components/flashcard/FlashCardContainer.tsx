@@ -67,7 +67,7 @@ export default function FlashCardContainer({
   const exerciseType = useMemo(() => {
     const drawn = drawExerciseType(cardData);
     return drawn;
-  }, [cardData.card_id]);
+  }, [cardData.id]);
 
   //Ref added to give parent component control over isReversed state
   useImperativeHandle(ref, () => {
