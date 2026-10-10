@@ -28,6 +28,7 @@ export default function EmptyDeckView({noMoreCardsToReview = false} : Props) {
         buttonText="Go back"
         style={{ width: "100%" }}
         onPress={router.back}
+        disabled={false}
       ></ConfirmationButton>
     </View>
   );
