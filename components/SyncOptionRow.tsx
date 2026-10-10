@@ -1,5 +1,5 @@
 import { useAppTheme } from "@/contexts/ColorThemeContext";
-import { LAST_SYNC_KEY, syncData } from "@/services/syncService";
+import { forceFullSync, LAST_SYNC_KEY } from "@/services/syncService";
 import { AppTheme } from "@/styles/theme";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useFocusEffect } from "expo-router";
@@ -53,7 +53,7 @@ export default function SyncOptionRow({ userId }: Props) {
     setIsSyncing(true);
 
     try {
-      await syncData(userId);
+      await forceFullSync(userId);
       await loadLastSyncDate();
     } catch (error: any) {
       console.log(error);
