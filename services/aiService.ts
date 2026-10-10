@@ -23,7 +23,7 @@ export async function generateSentence(targetLanguage: string, word: string) {
     Rule 2 (Language): The input word MUST be in ${targetLanguage}. If it's in different language, reject it. Return: {"isValid": false, "errorReason": "wrong_language", "sentence": null}
     Rule 3 (Length): The input must be a single word or a short phrasal verb/idiom in ${targetLanguage} (max. 5 words). If the user inputs a full sentence or a long expression, reject it. Return: {"isValid": false, "errorReason": "wrong_length", "sentence": null}
     If the given input word/expression passes all the rules, provide natural, short example sentence for the given word in ${targetLanguage}. Return: {"isValid": true, "errorReason": null, "sentence": "..."}. Word: ${word}
-    CIRITICAL OUTPUT INSTRUCTIONS: 
+    CRITICAL OUTPUT INSTRUCTIONS: 
     Return ONLY valid, raw JSON.
     DO NOT wrap the response in Markdown code blocks.
     Do not include any conversational text, greetings, notes, explanations or postscript.
