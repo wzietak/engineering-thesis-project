@@ -17,7 +17,7 @@ function parseCleanJSON<T = any>(raw: string): T {
 export async function generateSentence(targetLanguage: string, word: string) {
   try {
     const response = await ai.models.generateContent({
-      model: "gemini-3.5-flash",
+      model: "gemini-3.1-flash-lite",
       contents: `You're a strict and helpful language teacher. Analyze the input text provider by the user.
     Rule 1 (Gibberish): If the input word is a random string of characters and is meaningless, reject it. Return: {"isValid": false, "errorReason": "gibberish", "sentence": null}
     Rule 2 (Language): The input word MUST be in ${targetLanguage}. If it's in different language, reject it. Return: {"isValid": false, "errorReason": "wrong_language", "sentence": null}
