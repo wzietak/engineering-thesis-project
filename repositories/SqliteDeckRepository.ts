@@ -123,10 +123,11 @@ export class SqliteDeckRepository implements DeckRepository {
   public async checkIfDeckNameExists(
     userId: string,
     deckName: string,
+    deckId?: string,
   ): Promise<boolean> {
     const result = await db.getFirstAsync(
-      "SELECT * FROM decks WHERE name = $name AND user_id = $user_id AND is_deleted = 0",
-      { $user_id: userId, $name: deckName },
+      `SELECT * FROM decks WHERE name = $name AND user_id = $user_id AND is_deleted = 0 ${deckId ? "AND id != $id" : ""}`,
+      { $user_id: userId, $name: deckName, ...(deckId ? { $id: deckId } : {}) },
     );
 
     if (result !== null) return true;
@@ -191,6 +192,7 @@ export class SqliteDeckRepository implements DeckRepository {
       const existingDeckName = await this.checkIfDeckNameExists(
         deck.user_id,
         deck.name,
+        deck.id,
       );
 
       let finalName = deck.name;
