@@ -16,6 +16,11 @@ export const LAST_SYNC_KEY = (userId: string) => `@lastSyncTime_${userId}`;
 
 let isSyncInProgress = false;
 
+export async function forceFullSync(userId: string) {
+  await AsyncStorage.removeItem(LAST_SYNC_KEY(userId));
+  await syncData(userId);
+}
+
 export async function syncData(userId: string) {
   if (isSyncInProgress) {
     return;
