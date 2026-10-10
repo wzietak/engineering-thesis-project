@@ -1,7 +1,7 @@
 import { useAppTheme } from "@/contexts/ColorThemeContext";
 import { AppTheme } from "@/styles/theme";
 import Octicons from "@expo/vector-icons/Octicons";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { StyleSheet, Text, TextInput, View, ViewStyle } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
@@ -102,6 +102,12 @@ export default function TypeInFront({
     if (!isReversed || !hasInput) return [];
     return checkCharacterMatches(userInput, expectedAnswer);
   }, [isReversed, userInput, expectedAnswer]);
+
+  useEffect(() => {
+    if (!isReversed) {
+      setUserInput("");
+    }
+  }, [isReversed]);
 
   return (
     <View style={[styles.container, style]}>
