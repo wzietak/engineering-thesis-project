@@ -4,7 +4,7 @@ import { globalCardRepository } from "@/repositories/globalCardRepository";
 import { globalDeckRepository } from "@/repositories/globalDeckRepository";
 import * as DocumentPicker from "expo-document-picker";
 import * as FileSystem from "expo-file-system/legacy";
-import { DeviceEventEmitter, ToastAndroid } from "react-native";
+import { ToastAndroid } from "react-native";
 import { ExportedDeck } from "./exportService";
 
 function validateImportedDeck(data: unknown): data is ExportedDeck {
@@ -84,7 +84,6 @@ export async function importDeck(userId: string) {
         "Invalid format. The selected file is not valid JSON.",
         ToastAndroid.SHORT,
       );
-      //   throw new Error("INVALID_JSON");
       return { success: false };
     }
 
