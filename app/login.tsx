@@ -107,7 +107,7 @@ export default function LoginPage() {
               style={styles.appIcon}
             ></Image>
           )}
-          <Text style={styles.appTitleText}>BetterAnki</Text>
+          <Text style={styles.appTitleText}>LittleFlip</Text>
           <Text style={styles.formText}>Email</Text>
           <TextInput
             style={[styles.textInput]}
@@ -187,6 +187,7 @@ export default function LoginPage() {
         <ConfirmationButton
           buttonText={isSignUp ? "Sign up" : "Sign in"}
           onPress={onButtonPress}
+          disabled={false}
         ></ConfirmationButton>
         <View
           style={{

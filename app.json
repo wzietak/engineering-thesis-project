@@ -1,11 +1,11 @@
 {
   "expo": {
-    "name": "better-anki",
-    "slug": "better-anki",
+    "name": "LittleFlip",
+    "slug": "little-flip",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/icons/adaptive-icon-android.png",
-    "scheme": "betteranki",
+    "scheme": "littleflip",
     "userInterfaceStyle": "automatic",
     "newArchEnabled": true,
     "ios": {
@@ -19,7 +19,7 @@
       },
       "edgeToEdgeEnabled": true,
       "predictiveBackGestureEnabled": false,
-      "package": "com.wzietak.betterankiv2"
+      "package": "com.wzietak.flipapp"
     },
     "web": {
       "output": "static",
