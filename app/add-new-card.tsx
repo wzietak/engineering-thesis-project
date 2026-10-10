@@ -551,7 +551,7 @@ export default function AddNewCard() {
             ) : null}
             {targetLanguage ? (
               <Pressable
-                disabled={isAIthinking ? true : false}
+                disabled={isAIthinking}
                 style={styles.genwithAIContent}
                 onPress={async () => {
                   setErrorText((prevErrors) => ({
@@ -704,6 +704,7 @@ export default function AddNewCard() {
             buttonText="Save"
             onPress={onSavePress}
             style={{ boxShadow: "" }}
+            disabled={isAIthinking}
           ></ConfirmationButton>
         </View>
       </View>
