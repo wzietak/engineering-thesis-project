@@ -188,11 +188,21 @@ export class SqliteDeckRepository implements DeckRepository {
 
   public async updateUnsyncedDecks(decksToUpsert: any[]): Promise<void> {
     for (const deck of decksToUpsert) {
+      const existingDeckName = await this.checkIfDeckNameExists(
+        deck.user_id,
+        deck.name,
+      );
+
+      let finalName = deck.name;
+
+      if (existingDeckName) {
+        finalName = `${deck.name} (copy)`;
+      }
       await db.runAsync(
         "INSERT INTO decks (id, name, source_language, target_language,user_id, created_at, updated_at, is_synced, is_deleted) VALUES ($id, $name, $source_language, $target_language,$user_id, $created_at, $updated_at, $is_synced, $is_deleted) ON CONFLICT (id) DO UPDATE SET name = excluded.name, source_language = excluded.source_language, target_language = excluded.target_language, updated_at = excluded.updated_at, is_synced = 1, is_deleted = excluded.is_deleted",
         {
           $id: deck.id,
-          $name: deck.name,
+          $name: finalName,
           $source_language: deck.source_language,
           $target_language: deck.target_language,
           $user_id: deck.user_id,
