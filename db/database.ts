@@ -4,7 +4,7 @@ export let db: SQLite.SQLiteDatabase;
 
 export async function initDB() {
   try {
-    db = await SQLite.openDatabaseAsync("better-ankiv2.db");
+    db = await SQLite.openDatabaseAsync("flip.db");
     await db.execAsync(`PRAGMA foreign_keys = ON;`);
 
     const createDecksTableStatement =

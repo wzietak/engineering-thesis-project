@@ -309,6 +309,7 @@ export default function addNewDeck() {
           bottom: insets.bottom + 40,
         }}
         onPress={onSavePress}
+        disabled={false}
       ></ConfirmationButton>
     </View>
   );

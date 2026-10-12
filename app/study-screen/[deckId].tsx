@@ -1,5 +1,5 @@
 import { FSRS } from "@/algorithm/FSRS";
-import { Grade } from "@/algorithm/FSRSTypes";
+import { CardDirection, ExerciseType, Grade } from "@/algorithm/FSRSTypes";
 import AppHeader from "@/components/AppHeader";
 import UndoFlashcardButton from "@/components/buttons/UndoFlashcardButton";
 import DeleteConfirmationAlert from "@/components/DeleteConfirmationAlert";
@@ -25,7 +25,7 @@ import { globalDeckRepository } from "@/repositories/globalDeckRepository";
 import { syncData } from "@/services/syncService";
 import { eventProvider } from "@/utils/eventProvider";
 import { router, Stack, useLocalSearchParams } from "expo-router";
-import { useContext, useEffect, useRef, useState } from "react";
+import { useContext, useEffect, useMemo, useRef, useState } from "react";
 import { View } from "react-native";
 
 type undoCardData = {
@@ -38,6 +38,7 @@ export async function handleCardAssessment(
   grade: Grade,
   previousCardState: FSRSState,
   fsrs: FSRS,
+  exerciseType : ExerciseType
 ) {
   const { updatedCardState, retrievability } = fsrs.calculateCardState(
     previousCardState,
@@ -46,7 +47,7 @@ export async function handleCardAssessment(
   const reviewId = await saveCardReview(previousCardState, updatedCardState, {
     grade: grade,
     retrievability_at_review: retrievability ? retrievability : null,
-    exercise_type: FrontType.STANDARD,
+    exercise_type: exerciseType,
     reviewed_at: new Date().toISOString(),
   });
 
@@ -55,6 +56,8 @@ export async function handleCardAssessment(
     previousFSRSState: previousCardState,
   };
 }
+
+
 
 export default function studyScreen() {
   const [cardsForToday, setCardsForToday] = useState<ReviewableCard[]>([]);
@@ -95,7 +98,7 @@ export default function studyScreen() {
     }
   };
 
-  const onCardAssessment = async (grade: Grade) => {
+  const onCardAssessment = async (grade: Grade, exerciseType : ExerciseType) => {
     if (isDBProcessing) return;
     setIsDBProcessing(true);
 
@@ -118,7 +121,7 @@ export default function studyScreen() {
       const { reviewId } = await handleCardAssessment(
         grade,
         previousCardState,
-        fsrs,
+        fsrs, exerciseType
       );
 
       hasReviewedRef.current = true;
@@ -331,7 +334,6 @@ export default function studyScreen() {
             pathname: "/add-new-card",
             params: {
               cardId: cardsForToday[currentCardIndex].card_id as string,
-              // returnTo: "/study-screen/[deckId]?deckId=${deckId}",
             },
           });
           setFlashcardOptionsVisible(false);
